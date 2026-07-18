@@ -1,567 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Next Chapter — find the right book for your reader</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ink:#14323B;
-    --ink-soft:#4A6670;
-    --paper:#F2EFE4;
-    --card:#FFFDF7;
-    --marigold:#E8A33D;
-    --berry:#8C3A5B;
-    --rule:#D9D3C2;
+:root{
+  --ink:#14323B; --soft:#4A6670; --paper:#F2EFE4; --card:#FFFDF7;
+  --gold:#E8A33D; --berry:#8C3A5B; --rule:#D9D3C2;
+  --display:"Fraunces",Georgia,serif; --body:"Public Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);overflow-x:hidden}
+body.locked{overflow:hidden}
+.wrap{max-width:940px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;margin:0}
+button{font:inherit;cursor:pointer;border:none}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 
-    --display:"Fraunces", Georgia, serif;
-    --body:"Public Sans", system-ui, sans-serif;
-  }
+/* masthead */
+header{padding:34px 0 10px}
+h1{font-weight:900;font-size:26px}
+h1 span{color:var(--berry)}
+.tagline{font-size:13px;color:var(--soft);letter-spacing:.14em;text-transform:uppercase;margin:4px 0 0}
 
-  *{box-sizing:border-box;}
+/* hero */
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:38px 0 42px;margin-top:22px}
+.sentence{font-family:var(--display);font-size:clamp(26px,5vw,46px);line-height:1.3;letter-spacing:-.02em;margin:0}
+.blank{display:inline-flex;border-bottom:3px solid var(--gold);padding:0 4px;max-width:100%}
+.blank input{font:inherit;color:var(--berry);font-weight:900;background:none;border:none;padding:0;width:2.4ch;text-align:center;min-width:0;-moz-appearance:textfield}
+.blank input::-webkit-inner-spin-button,.blank input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.blank input.wide{width:11ch;max-width:60vw;text-align:left;color:var(--ink);font-weight:600}
+.hint{margin:16px 0 0;font-size:13px;color:var(--soft);min-height:20px}
+.hint b{color:var(--berry)}
+.go{margin-top:20px;font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
+.go:hover{background:var(--berry)}
+.go[disabled]{opacity:.55;cursor:progress}
 
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:var(--body);
-    line-height:1.55;
-  }
+/* results */
+.head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:16px;margin:34px 0 14px}
+.head h2{font-size:19px;font-weight:600}
+.count,.muted{font-size:13px;color:var(--soft)}
+.muted{font-size:14px;margin:0}
+.relaxed{font-size:13px;color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold);border-radius:2px;padding:9px 12px;margin:0 0 14px}
+[hidden]{display:none!important}
+.shelf{list-style:none;margin:0 0 60px;padding:0;display:grid;gap:14px}
+.skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
+.book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
+.book{display:grid;grid-template-columns:64px 1fr;gap:16px;width:100%;text-align:left;padding:16px;color:inherit;transition:border-color .15s}
+.book:hover{border-color:var(--ink)}
+.cover{display:block;width:64px;height:96px;object-fit:cover;background:var(--rule);border-radius:2px}
+.book h3{font-size:18px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
+.author{font-size:14px;color:var(--soft);margin:0 0 10px;overflow-wrap:anywhere}
+.meta,.subjects{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
+.tag.series{border-color:var(--gold);color:#9a6a15}
+.stars,.stars-mini{color:var(--gold);letter-spacing:1px}
+.stars-mini{font-size:13px}
 
-  .wrap{max-width:940px;margin:0 auto;padding:0 20px;}
+/* panel */
+.backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
+.backdrop.open{display:flex}
+.panel{max-width:620px;width:100%;padding:24px;margin:auto 0}
+.panel-top{display:grid;grid-template-columns:96px 1fr;gap:20px}
+.panel-top .cover{width:96px;height:144px}
+.panel h2{font-size:clamp(20px,4vw,25px);font-weight:600;margin-bottom:4px;overflow-wrap:anywhere}
+.close{float:right;background:none;font-size:24px;line-height:1;color:var(--soft);padding:2px 8px}
+.close:hover{color:var(--berry)}
+.blurb{font-size:14px;margin:18px 0 0;overflow-wrap:anywhere}
+.subjects{margin-top:14px}
+hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
+.panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
+.rate{display:flex;gap:2px;margin-bottom:10px}
+.rate button{background:none;font-size:26px;line-height:1;color:var(--rule);padding:0 3px}
+.rate button.on{color:var(--gold)}
+textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--rule);border-radius:2px;padding:10px;resize:vertical;min-height:76px;background:var(--paper);color:var(--ink)}
+.counter{font-size:12px;color:var(--soft);text-align:right;margin:4px 0 0}
+.counter.over{color:var(--berry);font-weight:700}
+.save{margin-top:8px;background:var(--berry);color:#fff;border-radius:2px;padding:10px 20px;font-weight:700;font-size:14px}
+.save:hover{background:var(--ink)}
+.save-msg{font-size:13px;color:var(--berry);margin:8px 0 0;min-height:18px}
+.review{border-left:3px solid var(--gold);padding-left:14px;margin-top:16px}
+.review p{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
+.review .stars{font-size:14px;letter-spacing:2px}
 
-  header{padding:34px 0 10px;}
-  .logo{
-    font-family:var(--display);
-    font-weight:900;
-    font-size:26px;
-    letter-spacing:-0.02em;
-    margin:0;
-  }
-  .logo span{color:var(--berry);}
-  .tagline{
-    font-size:13px;
-    color:var(--ink-soft);
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    margin:4px 0 0;
-  }
+.note{font-size:14px;color:var(--soft);padding:26px 0 60px}
+.note strong{color:var(--ink)}
+footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 
-  .hero{
-    border-top:2px solid var(--ink);
-    border-bottom:1px solid var(--rule);
-    padding:38px 0 42px;
-    margin-top:22px;
-  }
-  .sentence{
-    font-family:var(--display);
-    font-weight:400;
-    font-size:clamp(28px,5.2vw,46px);
-    line-height:1.25;
-    letter-spacing:-0.02em;
-    margin:0;
-  }
-  .blank{
-    display:inline-flex;
-    align-items:baseline;
-    gap:6px;
-    border-bottom:3px solid var(--marigold);
-    padding:0 4px;
-  }
-  .blank input{
-    font:inherit;
-    color:var(--berry);
-    font-weight:900;
-    background:none;
-    border:none;
-    padding:0;
-    width:2.2ch;
-    text-align:center;
-  }
-  .blank input:focus{outline:2px solid var(--marigold);outline-offset:4px;}
-  .blank input.wide{width:11ch;text-align:left;color:var(--ink);font-weight:600;}
-
-  .level-hint{margin:16px 0 0;font-size:13px;color:var(--ink-soft);}
-  .level-hint b{color:var(--berry);font-weight:700;}
-
-  .go{
-    margin-top:22px;
-    font-family:var(--body);
-    font-weight:700;
-    font-size:15px;
-    letter-spacing:0.04em;
-    background:var(--ink);
-    color:var(--paper);
-    border:none;
-    border-radius:2px;
-    padding:14px 28px;
-    cursor:pointer;
-    transition:background .15s ease;
-  }
-  .go:hover{background:var(--berry);}
-  .go:focus-visible{outline:3px solid var(--marigold);outline-offset:3px;}
-
-  .results-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    margin:34px 0 14px;
-    gap:16px;
-  }
-  .results-head h2{
-    font-family:var(--display);
-    font-size:19px;
-    font-weight:600;
-    margin:0;
-  }
-  .count{font-size:13px;color:var(--ink-soft);}
-
-  .shelf{
-    list-style:none;
-    margin:0 0 60px;
-    padding:0;
-    display:grid;
-    gap:14px;
-  }
-  .book{
-    display:grid;
-    grid-template-columns:64px 1fr;
-    gap:16px;
-    width:100%;
-    text-align:left;
-    background:var(--card);
-    border:1px solid var(--rule);
-    border-radius:3px;
-    padding:16px;
-    font:inherit;
-    color:inherit;
-    cursor:pointer;
-    transition:border-color .15s ease;
-  }
-  .book:hover{border-color:var(--ink);}
-  .book:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;}
-  .cover{
-    width:64px;height:96px;
-    object-fit:cover;
-    background:var(--rule);
-    border-radius:2px;
-  }
-  .book h3{
-    font-family:var(--display);
-    font-size:18px;
-    font-weight:600;
-    margin:0 0 2px;
-    letter-spacing:-0.01em;
-  }
-  .author{font-size:14px;color:var(--ink-soft);margin:0 0 10px;}
-  .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-  .tag{
-    font-size:11px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    border:1px solid var(--rule);
-    border-radius:2px;
-    padding:3px 8px;
-    color:var(--ink-soft);
-  }
-  .tag.series{border-color:var(--marigold);color:#9a6a15;}
-  .stars-mini{font-size:13px;color:var(--marigold);letter-spacing:1px;}
-
-  .backdrop{
-    position:fixed;inset:0;
-    background:rgba(20,50,59,.45);
-    display:none;
-    align-items:flex-start;
-    justify-content:center;
-    padding:24px 16px;
-    overflow-y:auto;
-    z-index:10;
-  }
-  .backdrop.open{display:flex;}
-  .panel{
-    background:var(--card);
-    border:1px solid var(--rule);
-    border-radius:3px;
-    max-width:620px;
-    width:100%;
-    padding:26px;
-    margin:auto 0;
-  }
-  .panel-top{display:grid;grid-template-columns:96px 1fr;gap:20px;}
-  .panel-top .cover{width:96px;height:144px;}
-  .panel h2{
-    font-family:var(--display);
-    font-size:25px;
-    font-weight:600;
-    letter-spacing:-0.02em;
-    margin:0 0 4px;
-  }
-  .close{
-    float:right;
-    background:none;border:none;
-    font-size:22px;line-height:1;
-    color:var(--ink-soft);
-    cursor:pointer;
-    padding:4px 8px;
-  }
-  .close:hover{color:var(--berry);}
-  .blurb{font-size:14px;margin:18px 0 0;}
-  .subjects{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;}
-
-  .divider{border:none;border-top:1px solid var(--rule);margin:22px 0;}
-
-  .review-head{
-    font-family:var(--display);
-    font-size:17px;font-weight:600;
-    margin:0 0 12px;
-  }
-  .rate{display:flex;gap:4px;margin-bottom:10px;}
-  .rate button{
-    background:none;border:none;cursor:pointer;
-    font-size:26px;line-height:1;
-    color:var(--rule);
-    padding:0 2px;
-  }
-  .rate button.on{color:var(--marigold);}
-  .rate button:focus-visible{outline:2px solid var(--ink);}
-  textarea{
-    width:100%;
-    font:inherit;font-size:14px;
-    border:1px solid var(--rule);
-    border-radius:2px;
-    padding:10px;
-    resize:vertical;
-    min-height:76px;
-    background:var(--paper);
-    color:var(--ink);
-  }
-  textarea:focus{outline:2px solid var(--marigold);}
-  .save{
-    margin-top:10px;
-    background:var(--berry);color:#fff;
-    border:none;border-radius:2px;
-    padding:10px 20px;
-    font:inherit;font-weight:700;font-size:14px;
-    cursor:pointer;
-  }
-  .save:hover{background:var(--ink);}
-
-  .review{
-    border-left:3px solid var(--marigold);
-    padding:2px 0 2px 14px;
-    margin-top:16px;
-  }
-  .review .stars{color:var(--marigold);font-size:14px;letter-spacing:2px;}
-  .review p{margin:4px 0 0;font-size:14px;}
-  .muted{font-size:14px;color:var(--ink-soft);margin:0;}
-
-  .note{font-size:14px;color:var(--ink-soft);padding:26px 0 60px;}
-  .note strong{color:var(--ink);}
-
-  footer{
-    border-top:1px solid var(--rule);
-    padding:20px 0 40px;
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-
-  @media (max-width:560px){
-    .book{grid-template-columns:52px 1fr;gap:12px;}
-    .cover{width:52px;height:78px;}
-    .panel-top{grid-template-columns:72px 1fr;gap:14px;}
-    .panel-top .cover{width:72px;height:108px;}
-  }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+@media(max-width:560px){
+  .book{grid-template-columns:52px 1fr;gap:12px}
+  .cover{width:52px;height:78px}
+  .panel{padding:18px}
+  .panel-top{grid-template-columns:72px 1fr;gap:14px}
+  .panel-top .cover{width:72px;height:108px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <div class="wrap">
-
   <header>
-    <h1 class="logo">Next <span>Chapter</span></h1>
+    <h1>Next <span>Chapter</span></h1>
     <p class="tagline">Book finder for young readers</p>
   </header>
 
   <section class="hero">
     <p class="sentence">
       Find books for a
-      <label class="blank"><input id="age" type="number" min="2" max="18" value="8" aria-label="Reader's age" /></label>
+      <label class="blank"><span class="sr">Reader's age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
       year old who likes
-      <label class="blank"><input id="topic" class="wide" type="text" value="dragons" aria-label="What they like" /></label>.
+      <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
     </p>
-    <p class="level-hint">Searching <b id="level-label">juvenile fiction</b></p>
+    <p class="hint">Searching <b id="level">juvenile fiction</b></p>
     <button class="go" id="search">Find books</button>
   </section>
 
-  <div class="results-head">
-    <h2 id="results-title">Start with a search</h2>
+  <div class="head">
+    <h2 id="title">Start with a search</h2>
     <span class="count" id="count"></span>
   </div>
 
-  <ul class="shelf" id="shelf"></ul>
+  <p class="relaxed" id="relaxed" hidden></p>
+  <ul class="shelf" id="shelf" aria-live="polite"></ul>
 
-  <p class="note">
-    <strong>Week 2.</strong> Age changes the results now, and you can open any book to read
-    about it and leave a review. Reviews live in memory only &mdash; they clear on refresh
-    until Supabase goes in next week.
-  </p>
+  <p class="note"><strong>Week 2.</strong> Age changes what gets searched, books open for detail,
+    reviews work. Reviews are in memory only &mdash; they clear on refresh until the database lands.</p>
 
   <footer>Built by a human. Book data from Open Library.</footer>
-
 </div>
 
 <div class="backdrop" id="backdrop">
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
     <button class="close" id="close" aria-label="Close">&times;</button>
     <div class="panel-top">
-      <img class="cover" id="panel-cover" alt="" />
+      <div id="pCover"></div>
       <div>
-        <h2 id="panel-title"></h2>
-        <p class="author" id="panel-author"></p>
-        <div class="meta" id="panel-meta"></div>
+        <h2 id="pTitle"></h2>
+        <p class="author" id="pAuthor"></p>
+        <div class="meta" id="pMeta"></div>
       </div>
     </div>
-
-    <p class="blurb" id="panel-blurb"></p>
-    <div class="subjects" id="panel-subjects"></div>
-
-    <hr class="divider" />
-
-    <h3 class="review-head">Leave a review</h3>
-    <div class="rate" id="rate" role="group" aria-label="Rating"></div>
-    <textarea id="review-text" placeholder="What did your reader think of it?"></textarea>
-    <button class="save" id="save-review">Save review</button>
-
-    <div id="review-list"></div>
+    <p class="blurb" id="pBlurb"></p>
+    <div class="subjects" id="pSubjects"></div>
+    <hr>
+    <h3>Leave a review</h3>
+    <div class="rate" id="rate" role="group" aria-label="Star rating"></div>
+    <textarea id="rText" maxlength="600" placeholder="What did your reader think of it?"></textarea>
+    <p class="counter" id="counter">0 / 600</p>
+    <button class="save" id="save">Save review</button>
+    <p class="save-msg" id="saveMsg" role="status"></p>
+    <div id="rList"></div>
   </div>
 </div>
 
 <script>
-/* ---------------- state ---------------- */
-let results = [];
-let openBook = null;
-let draftRating = 0;
-const reviews = {};   // { bookKey: [{rating, text}] } — Supabase replaces this in week 3
+"use strict";
+/* Next Chapter — book finder. Data: Open Library.
+   All API text enters the DOM as textContent, never innerHTML, so a
+   wiki-editable title can't become markup. Searches are versioned and
+   aborted so a slow old request can't overwrite a fast new one. */
 
-/* ---------------- elements ---------------- */
-const shelf    = document.getElementById('shelf');
-const title    = document.getElementById('results-title');
-const count    = document.getElementById('count');
-const ageInput = document.getElementById('age');
-const backdrop = document.getElementById('backdrop');
+const API = "https://openlibrary.org/search.json";
+const FIELDS = "key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
+const LIMIT = 12, TIMEOUT = 12000, MAXCHARS = 600;
 
-/* ---------------- age → reading level ---------------- */
-function readingLevel(age){
-  if (age <= 5)  return 'picture books';
-  if (age <= 8)  return 'juvenile fiction easy readers';
-  if (age <= 12) return 'juvenile fiction';
-  return 'young adult fiction';
-}
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
 
-function updateLevelLabel(){
-  document.getElementById('level-label').textContent = readingLevel(Number(ageInput.value) || 8);
-}
-ageInput.addEventListener('input', updateLevelLabel);
-updateLevelLabel();
+let results = [], openBook = null, rating = 0, searchId = 0, inFlight = null, lastFocus = null;
+const reviews = new Map();
 
-/* ---------------- search ---------------- */
-document.getElementById('search').addEventListener('click', findBooks);
-document.getElementById('topic').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') findBooks();
-});
+/* ---- age ---- */
+const age = () => {
+  const n = parseInt($("age").value, 10);
+  return Number.isFinite(n) ? Math.min(18, Math.max(2, n)) : 8;
+};
+const level = a => a <= 5 ? "picture books" : a <= 8 ? "juvenile fiction"
+              : a <= 12 ? "juvenile literature" : "young adult fiction";
+const showLevel = () => $("level").textContent = level(age());
 
-async function findBooks(){
-  const age   = Number(ageInput.value) || 8;
-  const topic = document.getElementById('topic').value.trim() || 'adventure';
+$("age").addEventListener("input", showLevel);
+$("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
+showLevel();
 
-  title.textContent = 'Searching…';
-  count.textContent = '';
-  shelf.innerHTML = '';
+/* ---- search ----
+   Three tiers. Tier 1 alone returns nothing for plenty of reasonable
+   words, which reads as a broken app; falling back and saying so beats
+   both silent failure and a soup of bad matches. */
+const tiers = (t, a) => [
+  [`subject:"${t}" AND subject:"${level(a)}"`, null],
+  [`subject:"${t}" AND subject:"juvenile"`, "Nothing matched that exact reading level, so this is a wider age range."],
+  [t, "No subject matches, so these are general keyword results — check them yourself."]
+];
 
-  const url = 'https://openlibrary.org/search.json'
-    + '?q=' + encodeURIComponent(topic + ' ' + readingLevel(age))
-    + '&fields=key,title,author_name,first_publish_year,cover_i,subject,first_sentence'
-    + '&limit=12';
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Open Library returned ' + res.status);
-    const data = await res.json();
-    results = data.docs || [];
-    render(age, topic);
-  } catch (err) {
-    title.textContent = "Couldn't reach the book service";
-    shelf.innerHTML = '<li class="muted">' + esc(err.message) + ' — check your connection and try again.</li>';
-  }
-}
-
-function render(age, topic){
-  if (!results.length){
-    title.textContent = 'No books found for "' + esc(topic) + '"';
-    count.textContent = '';
-    shelf.innerHTML = '<li class="muted">Try a broader word, like "animals" or "mystery".</li>';
-    return;
-  }
-
-  title.textContent = 'Books about ' + topic;
-  count.textContent = results.length + ' results · ' + readingLevel(age);
-
-  shelf.innerHTML = results.map(function(b, i){
-    const mine  = reviews[bookKey(b)] || [];
-    const avg   = avgRating(mine);
-    const stars = avg ? '<span class="stars-mini">' + '★'.repeat(avg) + '</span>' : '';
-
-    return '<li><button class="book" data-i="' + i + '">'
-      + coverImg(b)
-      + '<div>'
-      + '<h3>' + esc(b.title) + '</h3>'
-      + '<p class="author">' + esc(authorOf(b)) + '</p>'
-      + '<div class="meta">'
-        + (b.first_publish_year ? '<span class="tag">' + b.first_publish_year + '</span>' : '')
-        + (looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '')
-        + stars
-      + '</div></div></button></li>';
-  }).join('');
-
-  shelf.querySelectorAll('.book').forEach(function(btn){
-    btn.addEventListener('click', function(){ showBook(results[btn.dataset.i]); });
+async function fetchTier(q, signal){
+  const url = `${API}?q=${encodeURIComponent(q)}&fields=${FIELDS}&sort=rating&limit=${LIMIT}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`The book service returned error ${res.status}.`);
+  const { docs } = await res.json();
+  // Drop unusable records and de-dupe: the same work often appears
+  // several times under different editions.
+  const seen = new Set();
+  return (Array.isArray(docs) ? docs : []).filter(d => {
+    if (!d || typeof d.title !== "string" || !d.title.trim()) return false;
+    const k = key(d);
+    return seen.has(k) ? false : seen.add(k);
   });
 }
 
-/* ---------------- detail panel ---------------- */
-function showBook(b){
-  openBook = b;
-  draftRating = 0;
+async function search(){
+  const a = age(), topic = $("topic").value.trim().replace(/"/g, "");
 
-  document.getElementById('panel-title').textContent  = b.title;
-  document.getElementById('panel-author').textContent = authorOf(b);
-
-  const img = document.getElementById('panel-cover');
-  if (b.cover_i){
-    img.src = 'https://covers.openlibrary.org/b/id/' + b.cover_i + '-L.jpg';
-    img.style.visibility = 'visible';
-  } else {
-    img.removeAttribute('src');
-    img.style.visibility = 'hidden';
+  if (!topic){
+    show("Tell me what they like first", "", null,
+         "Type something into the blank — try dinosaurs, space, or friendship.");
+    return $("topic").focus();
   }
 
-  document.getElementById('panel-meta').innerHTML =
-    (b.first_publish_year ? '<span class="tag">First published ' + b.first_publish_year + '</span>' : '')
-    + (looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '');
+  inFlight?.abort();
+  const ctrl = inFlight = new AbortController();
+  const mine = ++searchId;
+  const timer = setTimeout(() => ctrl.abort("timeout"), TIMEOUT);
 
-  const sentence = b.first_sentence && b.first_sentence[0];
-  document.getElementById('panel-blurb').textContent =
-    sentence ? 'It opens: ' + sentence : 'No description available yet.';
+  $("search").disabled = true;
+  $("title").textContent = "Searching…";
+  $("count").textContent = "";
+  $("relaxed").hidden = true;
+  $("shelf").replaceChildren(...Array.from({length: 4}, () => el("li", "skeleton")));
 
-  document.getElementById('panel-subjects').innerHTML =
-    (b.subject || []).slice(0, 6).map(function(s){
-      return '<span class="tag">' + esc(s) + '</span>';
-    }).join('');
+  try {
+    let found = [], note = null;
+    for (const [q, n] of tiers(topic, a)){
+      found = await fetchTier(q, ctrl.signal);
+      if (mine !== searchId) return;          // a newer search won
+      if (found.length){ note = n; break; }
+    }
+    results = found;
+    render(a, topic, note);
+  } catch (err) {
+    if (mine !== searchId) return;
+    if (err?.name === "AbortError"){
+      if (ctrl.signal.reason === "timeout")
+        show("That took too long", "", null, "Open Library didn't answer within 12 seconds. Try again.");
+      return;
+    }
+    show(navigator.onLine ? "Couldn't load books" : "You appear to be offline", "", null,
+         err?.message || "Something went wrong reaching the book service.");
+  } finally {
+    clearTimeout(timer);
+    if (mine === searchId){ $("search").disabled = false; inFlight = null; }
+  }
+}
 
-  document.getElementById('review-text').value = '';
-  drawStars();
-  drawReviews();
+/* ---- render ---- */
+function show(title, count, note, message){
+  $("title").textContent = title;
+  $("count").textContent = count;
+  $("relaxed").hidden = !note;
+  if (note) $("relaxed").textContent = note;
+  if (message) $("shelf").replaceChildren(el("li", "muted", message));
+}
 
-  backdrop.classList.add('open');
-  document.getElementById('close').focus();
+function render(a, topic, note){
+  if (!results.length)
+    return show(`Nothing found for "${topic}"`, "", null,
+                "Try a broader word — animals, magic, mystery, sports — or check the spelling.");
+
+  show(`Books about ${topic}`,
+       `${results.length} result${results.length === 1 ? "" : "s"} · ${level(a)}`, note);
+
+  $("shelf").replaceChildren(...results.map((b, i) => {
+    const btn = el("button", "book");
+    btn.type = "button";
+    btn.append(cover(b, "M"));
+
+    const info = el("div");
+    info.append(el("h3", "", b.title), el("p", "author", author(b)));
+
+    const meta = el("div", "meta");
+    meta.append(...tagsFor(b));
+    const avg = average(reviews.get(key(b)));
+    if (avg) meta.append(el("span", "stars-mini", "★".repeat(avg)));
+    info.append(meta);
+
+    btn.append(info);
+    btn.addEventListener("click", () => openPanel(results[i]));
+    return el("li").appendChild(btn).parentNode;
+  }));
+}
+
+const tagsFor = b => [
+  Number.isFinite(b.first_publish_year) && el("span", "tag", String(b.first_publish_year)),
+  isSeries(b) && el("span", "tag series", "Part of a series")
+].filter(Boolean);
+
+// Covers can be absent, and IDs can 404 even when present — so swap in
+// a placeholder on error rather than leaving a broken image.
+function cover(b, size){
+  if (!Number.isFinite(b.cover_i)) return el("div", "cover");
+  const img = el("img", "cover");
+  img.alt = ""; img.loading = "lazy";
+  img.src = `https://covers.openlibrary.org/b/id/${b.cover_i}-${size}.jpg`;
+  img.onerror = () => img.replaceWith(el("div", "cover"));
+  return img;
+}
+
+/* ---- panel ---- */
+function openPanel(b){
+  if (!b) return;
+  openBook = b; rating = 0; lastFocus = document.activeElement;
+
+  $("pTitle").textContent = b.title;
+  $("pAuthor").textContent = author(b);
+  $("pCover").replaceChildren(cover(b, "L"));
+  $("pMeta").replaceChildren(...tagsFor(b));
+  $("pBlurb").textContent = opening(b);
+  $("pSubjects").replaceChildren(
+    ...(b.subject || []).filter(s => typeof s === "string" && s.length < 40)
+      .slice(0, 6).map(s => el("span", "tag", s))
+  );
+
+  $("rText").value = ""; count(); $("saveMsg").textContent = "";
+  stars(); list();
+
+  $("backdrop").classList.add("open");
+  document.body.classList.add("locked");
+  $("close").focus();
 }
 
 function closePanel(){
-  backdrop.classList.remove('open');
+  if (!$("backdrop").classList.contains("open")) return;
+  $("backdrop").classList.remove("open");
+  document.body.classList.remove("locked");
   openBook = null;
-}
-document.getElementById('close').addEventListener('click', closePanel);
-backdrop.addEventListener('click', function(e){ if (e.target === backdrop) closePanel(); });
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
-
-/* ---------------- reviews ---------------- */
-function drawStars(){
-  const rate = document.getElementById('rate');
-  rate.innerHTML = [1,2,3,4,5].map(function(n){
-    return '<button data-n="' + n + '" class="' + (n <= draftRating ? 'on' : '')
-      + '" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + '">★</button>';
-  }).join('');
-
-  rate.querySelectorAll('button').forEach(function(b){
-    b.addEventListener('click', function(){
-      draftRating = Number(b.dataset.n);
-      drawStars();
-    });
-  });
+  if (lastFocus?.isConnected) lastFocus.focus();
 }
 
-document.getElementById('save-review').addEventListener('click', function(){
-  if (!openBook) return;
-  const text = document.getElementById('review-text').value.trim();
-  if (!draftRating && !text) return;
+$("close").onclick = closePanel;
+$("backdrop").addEventListener("mousedown", e => { if (e.target === $("backdrop")) closePanel(); });
 
-  const key = bookKey(openBook);
-  reviews[key] = reviews[key] || [];
-  reviews[key].push({ rating: draftRating, text: text });
-
-  // WEEK 3: replace the two lines above with
-  // await supabase.from('reviews').insert({ book_key: key, rating: draftRating, text: text })
-
-  document.getElementById('review-text').value = '';
-  draftRating = 0;
-  drawStars();
-  drawReviews();
-  render(Number(ageInput.value) || 8, document.getElementById('topic').value.trim() || 'adventure');
+document.addEventListener("keydown", e => {
+  if (!$("backdrop").classList.contains("open")) return;
+  if (e.key === "Escape") return closePanel();
+  if (e.key !== "Tab") return;
+  // keep tabbing inside the dialog
+  const f = $("backdrop").querySelectorAll("button, textarea, input, [href]");
+  if (!f.length) return;
+  const [first, last] = [f[0], f[f.length - 1]];
+  if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 });
 
-function drawReviews(){
-  const list = document.getElementById('review-list');
-  const mine = reviews[bookKey(openBook)] || [];
+/* ---- reviews ---- */
+function stars(){
+  $("rate").replaceChildren(...[1,2,3,4,5].map(n => {
+    const b = el("button", n <= rating ? "on" : "", "★");
+    b.type = "button";
+    b.setAttribute("aria-label", `${n} star${n > 1 ? "s" : ""}`);
+    b.setAttribute("aria-pressed", String(n === rating));
+    // clicking the current rating clears it — otherwise there's no undo
+    b.onclick = () => { rating = rating === n ? 0 : n; stars(); };
+    return b;
+  }));
+}
 
+const count = () => {
+  const n = $("rText").value.length;
+  $("counter").textContent = `${n} / ${MAXCHARS}`;
+  $("counter").classList.toggle("over", n >= MAXCHARS);
+};
+$("rText").addEventListener("input", count);
+
+$("save").onclick = () => {
+  if (!openBook) return;
+  const text = $("rText").value.trim();
+  if (!rating && !text) return $("saveMsg").textContent = "Add a star rating or a few words first.";
+
+  const k = key(openBook);
+  if (!reviews.has(k)) reviews.set(k, []);
+  reviews.get(k).push({ rating, text });
+  /* WEEK 3: replace with
+     await supabase.from("reviews").insert({ book_key: k, rating, text, child_id });
+     wrapped in try/catch — a database write fails in ways a Map never will. */
+
+  $("rText").value = ""; rating = 0;
+  count(); stars(); list();
+  $("saveMsg").textContent = "Saved. (Until you refresh — the database comes next week.)";
+
+  const topic = $("topic").value.trim();
+  if (results.length && topic) render(age(), topic, null);
+};
+
+function list(){
+  const mine = reviews.get(key(openBook)) || [];
   if (!mine.length){
-    list.innerHTML = '<p class="muted" style="margin-top:18px">No reviews yet. Be the first.</p>';
-    return;
+    const p = el("p", "muted", "No reviews yet. Be the first.");
+    p.style.marginTop = "18px";
+    return $("rList").replaceChildren(p);
   }
-
-  list.innerHTML = mine.map(function(r){
-    return '<div class="review">'
-      + '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div>'
-      + (r.text ? '<p>' + esc(r.text) + '</p>' : '')
-      + '</div>';
-  }).join('');
+  $("rList").replaceChildren(...mine.map(r => {
+    const d = el("div", "review");
+    if (r.rating) d.append(el("div", "stars", "★".repeat(r.rating) + "☆".repeat(5 - r.rating)));
+    if (r.text) d.append(el("p", "", r.text));
+    return d;
+  }));
 }
 
-/* ---------------- helpers ---------------- */
-function bookKey(b){ return b ? (b.key || b.title + '|' + authorOf(b)) : ''; }
-function authorOf(b){ return (b.author_name && b.author_name[0]) || 'Unknown author'; }
+/* ---- helpers ---- */
+const key = b => !b ? "" : (b.key || `${b.title}|${author(b)}`);
+const author = b => b?.author_name?.[0]?.trim() || "Unknown author";
+const isSeries = b => /\b(book|volume|vol\.?)\s*\d|#\d|\bseries\b/i.test(b?.title || "");
 
-function avgRating(list){
-  const rated = list.filter(function(r){ return r.rating; });
-  if (!rated.length) return 0;
-  return Math.round(rated.reduce(function(s, r){ return s + r.rating; }, 0) / rated.length);
+const average = list => {
+  const r = (list || []).filter(x => x?.rating > 0);
+  return r.length ? Math.round(r.reduce((s, x) => s + x.rating, 0) / r.length) : 0;
+};
+
+// first_sentence arrives as a string, an array, or {value} depending on the record
+function opening(b){
+  let s = b.first_sentence;
+  if (Array.isArray(s)) s = s[0];
+  if (s && typeof s === "object") s = s.value;
+  return typeof s === "string" && s.trim()
+    ? `It opens: ${s.trim()}`
+    : "No description available for this one yet.";
 }
 
-function coverImg(b){
-  return b.cover_i
-    ? '<img class="cover" src="https://covers.openlibrary.org/b/id/' + b.cover_i + '-M.jpg" alt="" />'
-    : '<div class="cover"></div>';
-}
+/* ---- wiring ---- */
+$("search").onclick = search;
+["topic", "age"].forEach(id =>
+  $(id).addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); search(); } })
+);
 
-// Placeholder heuristic — swap for your own curated series table in week 6.
-function looksLikeSeries(b){
-  return /\b(book|volume|vol\.?)\s*\d|#\d|\bseries\b/i.test(b.title || '');
-}
-
-function esc(s){
-  return String(s).replace(/[&<>"]/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
-  });
-}
-
-/* ------------------------------------------------------------------
-   WEEK 3 — Supabase: accounts, child profiles, persistent reviews.
+/* WEEK 3 — Supabase: accounts, child profiles, persistent reviews.
    WEEK 4 — AI recommendations via a Supabase Edge Function.
-            The Anthropic key stays server-side, never in this file.
------------------------------------------------------------------- */
+            The Anthropic key stays server-side. Never in this file. */
 </script>
 
 </body>
