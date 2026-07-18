@@ -33,7 +33,6 @@
 
   .wrap{max-width:940px;margin:0 auto;padding:0 20px;}
 
-  /* ---------- masthead ---------- */
   header{padding:34px 0 10px;}
   .logo{
     font-family:var(--display);
@@ -51,7 +50,6 @@
     margin:4px 0 0;
   }
 
-  /* ---------- hero: the fill-in-the-blank sentence ---------- */
   .hero{
     border-top:2px solid var(--ink);
     border-bottom:1px solid var(--rule);
@@ -86,8 +84,11 @@
   .blank input:focus{outline:2px solid var(--marigold);outline-offset:4px;}
   .blank input.wide{width:11ch;text-align:left;color:var(--ink);font-weight:600;}
 
+  .level-hint{margin:16px 0 0;font-size:13px;color:var(--ink-soft);}
+  .level-hint b{color:var(--berry);font-weight:700;}
+
   .go{
-    margin-top:30px;
+    margin-top:22px;
     font-family:var(--body);
     font-weight:700;
     font-size:15px;
@@ -103,7 +104,6 @@
   .go:hover{background:var(--berry);}
   .go:focus-visible{outline:3px solid var(--marigold);outline-offset:3px;}
 
-  /* ---------- results ---------- */
   .results-head{
     display:flex;
     justify-content:space-between;
@@ -130,11 +130,19 @@
     display:grid;
     grid-template-columns:64px 1fr;
     gap:16px;
+    width:100%;
+    text-align:left;
     background:var(--card);
     border:1px solid var(--rule);
     border-radius:3px;
     padding:16px;
+    font:inherit;
+    color:inherit;
+    cursor:pointer;
+    transition:border-color .15s ease;
   }
+  .book:hover{border-color:var(--ink);}
+  .book:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;}
   .cover{
     width:64px;height:96px;
     object-fit:cover;
@@ -149,11 +157,7 @@
     letter-spacing:-0.01em;
   }
   .author{font-size:14px;color:var(--ink-soft);margin:0 0 10px;}
-  .meta{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-  }
+  .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .tag{
     font-size:11px;
     letter-spacing:0.08em;
@@ -164,12 +168,97 @@
     color:var(--ink-soft);
   }
   .tag.series{border-color:var(--marigold);color:#9a6a15;}
+  .stars-mini{font-size:13px;color:var(--marigold);letter-spacing:1px;}
 
-  .note{
-    font-size:14px;
-    color:var(--ink-soft);
-    padding:26px 0 60px;
+  .backdrop{
+    position:fixed;inset:0;
+    background:rgba(20,50,59,.45);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:24px 16px;
+    overflow-y:auto;
+    z-index:10;
   }
+  .backdrop.open{display:flex;}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    max-width:620px;
+    width:100%;
+    padding:26px;
+    margin:auto 0;
+  }
+  .panel-top{display:grid;grid-template-columns:96px 1fr;gap:20px;}
+  .panel-top .cover{width:96px;height:144px;}
+  .panel h2{
+    font-family:var(--display);
+    font-size:25px;
+    font-weight:600;
+    letter-spacing:-0.02em;
+    margin:0 0 4px;
+  }
+  .close{
+    float:right;
+    background:none;border:none;
+    font-size:22px;line-height:1;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:4px 8px;
+  }
+  .close:hover{color:var(--berry);}
+  .blurb{font-size:14px;margin:18px 0 0;}
+  .subjects{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;}
+
+  .divider{border:none;border-top:1px solid var(--rule);margin:22px 0;}
+
+  .review-head{
+    font-family:var(--display);
+    font-size:17px;font-weight:600;
+    margin:0 0 12px;
+  }
+  .rate{display:flex;gap:4px;margin-bottom:10px;}
+  .rate button{
+    background:none;border:none;cursor:pointer;
+    font-size:26px;line-height:1;
+    color:var(--rule);
+    padding:0 2px;
+  }
+  .rate button.on{color:var(--marigold);}
+  .rate button:focus-visible{outline:2px solid var(--ink);}
+  textarea{
+    width:100%;
+    font:inherit;font-size:14px;
+    border:1px solid var(--rule);
+    border-radius:2px;
+    padding:10px;
+    resize:vertical;
+    min-height:76px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  textarea:focus{outline:2px solid var(--marigold);}
+  .save{
+    margin-top:10px;
+    background:var(--berry);color:#fff;
+    border:none;border-radius:2px;
+    padding:10px 20px;
+    font:inherit;font-weight:700;font-size:14px;
+    cursor:pointer;
+  }
+  .save:hover{background:var(--ink);}
+
+  .review{
+    border-left:3px solid var(--marigold);
+    padding:2px 0 2px 14px;
+    margin-top:16px;
+  }
+  .review .stars{color:var(--marigold);font-size:14px;letter-spacing:2px;}
+  .review p{margin:4px 0 0;font-size:14px;}
+  .muted{font-size:14px;color:var(--ink-soft);margin:0;}
+
+  .note{font-size:14px;color:var(--ink-soft);padding:26px 0 60px;}
   .note strong{color:var(--ink);}
 
   footer{
@@ -182,6 +271,8 @@
   @media (max-width:560px){
     .book{grid-template-columns:52px 1fr;gap:12px;}
     .cover{width:52px;height:78px;}
+    .panel-top{grid-template-columns:72px 1fr;gap:14px;}
+    .panel-top .cover{width:72px;height:108px;}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
@@ -202,6 +293,7 @@
       year old who likes
       <label class="blank"><input id="topic" class="wide" type="text" value="dragons" aria-label="What they like" /></label>.
     </p>
+    <p class="level-hint">Searching <b id="level-label">juvenile fiction</b></p>
     <button class="go" id="search">Find books</button>
   </section>
 
@@ -212,79 +304,249 @@
 
   <ul class="shelf" id="shelf"></ul>
 
-  <p class="note" id="note">
-    <strong>Day one build.</strong> Search is live and pulling real books from the Open Library API.
-    Next up: save these to a Supabase table, then add the AI recommender and content preferences.
+  <p class="note">
+    <strong>Week 2.</strong> Age changes the results now, and you can open any book to read
+    about it and leave a review. Reviews live in memory only &mdash; they clear on refresh
+    until Supabase goes in next week.
   </p>
 
   <footer>Built by a human. Book data from Open Library.</footer>
 
 </div>
 
-<script>
-const shelf = document.getElementById('shelf');
-const title = document.getElementById('results-title');
-const count = document.getElementById('count');
+<div class="backdrop" id="backdrop">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+    <button class="close" id="close" aria-label="Close">&times;</button>
+    <div class="panel-top">
+      <img class="cover" id="panel-cover" alt="" />
+      <div>
+        <h2 id="panel-title"></h2>
+        <p class="author" id="panel-author"></p>
+        <div class="meta" id="panel-meta"></div>
+      </div>
+    </div>
 
+    <p class="blurb" id="panel-blurb"></p>
+    <div class="subjects" id="panel-subjects"></div>
+
+    <hr class="divider" />
+
+    <h3 class="review-head">Leave a review</h3>
+    <div class="rate" id="rate" role="group" aria-label="Rating"></div>
+    <textarea id="review-text" placeholder="What did your reader think of it?"></textarea>
+    <button class="save" id="save-review">Save review</button>
+
+    <div id="review-list"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+let results = [];
+let openBook = null;
+let draftRating = 0;
+const reviews = {};   // { bookKey: [{rating, text}] } — Supabase replaces this in week 3
+
+/* ---------------- elements ---------------- */
+const shelf    = document.getElementById('shelf');
+const title    = document.getElementById('results-title');
+const count    = document.getElementById('count');
+const ageInput = document.getElementById('age');
+const backdrop = document.getElementById('backdrop');
+
+/* ---------------- age → reading level ---------------- */
+function readingLevel(age){
+  if (age <= 5)  return 'picture books';
+  if (age <= 8)  return 'juvenile fiction easy readers';
+  if (age <= 12) return 'juvenile fiction';
+  return 'young adult fiction';
+}
+
+function updateLevelLabel(){
+  document.getElementById('level-label').textContent = readingLevel(Number(ageInput.value) || 8);
+}
+ageInput.addEventListener('input', updateLevelLabel);
+updateLevelLabel();
+
+/* ---------------- search ---------------- */
 document.getElementById('search').addEventListener('click', findBooks);
-document.getElementById('topic').addEventListener('keydown', e => { if (e.key === 'Enter') findBooks(); });
+document.getElementById('topic').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') findBooks();
+});
 
 async function findBooks(){
-  const age = document.getElementById('age').value;
+  const age   = Number(ageInput.value) || 8;
   const topic = document.getElementById('topic').value.trim() || 'adventure';
 
   title.textContent = 'Searching…';
   count.textContent = '';
   shelf.innerHTML = '';
 
-  // Open Library lets you filter by subject. "juvenile" keeps results age-appropriate-ish.
   const url = 'https://openlibrary.org/search.json'
-    + '?q=' + encodeURIComponent(topic + ' juvenile fiction')
-    + '&fields=title,author_name,first_publish_year,cover_i,subject'
+    + '?q=' + encodeURIComponent(topic + ' ' + readingLevel(age))
+    + '&fields=key,title,author_name,first_publish_year,cover_i,subject,first_sentence'
     + '&limit=12';
 
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('Open Library returned ' + res.status);
     const data = await res.json();
-    render(data.docs || [], age, topic);
+    results = data.docs || [];
+    render(age, topic);
   } catch (err) {
     title.textContent = "Couldn't reach the book service";
-    shelf.innerHTML = '<li class="book"><div></div><div><h3>Try again</h3>'
-      + '<p class="author">' + err.message + '</p></div></li>';
+    shelf.innerHTML = '<li class="muted">' + esc(err.message) + ' — check your connection and try again.</li>';
   }
 }
 
-function render(docs, age, topic){
-  if (!docs.length){
-    title.textContent = 'No books found for "' + topic + '"';
+function render(age, topic){
+  if (!results.length){
+    title.textContent = 'No books found for "' + esc(topic) + '"';
     count.textContent = '';
+    shelf.innerHTML = '<li class="muted">Try a broader word, like "animals" or "mystery".</li>';
     return;
   }
 
   title.textContent = 'Books about ' + topic;
-  count.textContent = docs.length + ' results · reader age ' + age;
+  count.textContent = results.length + ' results · ' + readingLevel(age);
 
-  shelf.innerHTML = docs.map(function(b){
-    const cover = b.cover_i
-      ? '<img class="cover" src="https://covers.openlibrary.org/b/id/' + b.cover_i + '-M.jpg" alt="" />'
-      : '<div class="cover"></div>';
+  shelf.innerHTML = results.map(function(b, i){
+    const mine  = reviews[bookKey(b)] || [];
+    const avg   = avgRating(mine);
+    const stars = avg ? '<span class="stars-mini">' + '★'.repeat(avg) + '</span>' : '';
 
-    const author = (b.author_name && b.author_name[0]) || 'Unknown author';
-    const year   = b.first_publish_year ? '<span class="tag">' + b.first_publish_year + '</span>' : '';
-
-    // TODO: replace with real series data from your own `series` table.
-    const series = looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '';
-
-    return '<li class="book">' + cover + '<div>'
+    return '<li><button class="book" data-i="' + i + '">'
+      + coverImg(b)
+      + '<div>'
       + '<h3>' + esc(b.title) + '</h3>'
-      + '<p class="author">' + esc(author) + '</p>'
-      + '<div class="meta">' + year + series + '</div>'
-      + '</div></li>';
+      + '<p class="author">' + esc(authorOf(b)) + '</p>'
+      + '<div class="meta">'
+        + (b.first_publish_year ? '<span class="tag">' + b.first_publish_year + '</span>' : '')
+        + (looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '')
+        + stars
+      + '</div></div></button></li>';
+  }).join('');
+
+  shelf.querySelectorAll('.book').forEach(function(btn){
+    btn.addEventListener('click', function(){ showBook(results[btn.dataset.i]); });
+  });
+}
+
+/* ---------------- detail panel ---------------- */
+function showBook(b){
+  openBook = b;
+  draftRating = 0;
+
+  document.getElementById('panel-title').textContent  = b.title;
+  document.getElementById('panel-author').textContent = authorOf(b);
+
+  const img = document.getElementById('panel-cover');
+  if (b.cover_i){
+    img.src = 'https://covers.openlibrary.org/b/id/' + b.cover_i + '-L.jpg';
+    img.style.visibility = 'visible';
+  } else {
+    img.removeAttribute('src');
+    img.style.visibility = 'hidden';
+  }
+
+  document.getElementById('panel-meta').innerHTML =
+    (b.first_publish_year ? '<span class="tag">First published ' + b.first_publish_year + '</span>' : '')
+    + (looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '');
+
+  const sentence = b.first_sentence && b.first_sentence[0];
+  document.getElementById('panel-blurb').textContent =
+    sentence ? 'It opens: ' + sentence : 'No description available yet.';
+
+  document.getElementById('panel-subjects').innerHTML =
+    (b.subject || []).slice(0, 6).map(function(s){
+      return '<span class="tag">' + esc(s) + '</span>';
+    }).join('');
+
+  document.getElementById('review-text').value = '';
+  drawStars();
+  drawReviews();
+
+  backdrop.classList.add('open');
+  document.getElementById('close').focus();
+}
+
+function closePanel(){
+  backdrop.classList.remove('open');
+  openBook = null;
+}
+document.getElementById('close').addEventListener('click', closePanel);
+backdrop.addEventListener('click', function(e){ if (e.target === backdrop) closePanel(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
+
+/* ---------------- reviews ---------------- */
+function drawStars(){
+  const rate = document.getElementById('rate');
+  rate.innerHTML = [1,2,3,4,5].map(function(n){
+    return '<button data-n="' + n + '" class="' + (n <= draftRating ? 'on' : '')
+      + '" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + '">★</button>';
+  }).join('');
+
+  rate.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click', function(){
+      draftRating = Number(b.dataset.n);
+      drawStars();
+    });
+  });
+}
+
+document.getElementById('save-review').addEventListener('click', function(){
+  if (!openBook) return;
+  const text = document.getElementById('review-text').value.trim();
+  if (!draftRating && !text) return;
+
+  const key = bookKey(openBook);
+  reviews[key] = reviews[key] || [];
+  reviews[key].push({ rating: draftRating, text: text });
+
+  // WEEK 3: replace the two lines above with
+  // await supabase.from('reviews').insert({ book_key: key, rating: draftRating, text: text })
+
+  document.getElementById('review-text').value = '';
+  draftRating = 0;
+  drawStars();
+  drawReviews();
+  render(Number(ageInput.value) || 8, document.getElementById('topic').value.trim() || 'adventure');
+});
+
+function drawReviews(){
+  const list = document.getElementById('review-list');
+  const mine = reviews[bookKey(openBook)] || [];
+
+  if (!mine.length){
+    list.innerHTML = '<p class="muted" style="margin-top:18px">No reviews yet. Be the first.</p>';
+    return;
+  }
+
+  list.innerHTML = mine.map(function(r){
+    return '<div class="review">'
+      + '<div class="stars">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div>'
+      + (r.text ? '<p>' + esc(r.text) + '</p>' : '')
+      + '</div>';
   }).join('');
 }
 
-// Placeholder heuristic — swap this out once you're curating series yourself.
+/* ---------------- helpers ---------------- */
+function bookKey(b){ return b ? (b.key || b.title + '|' + authorOf(b)) : ''; }
+function authorOf(b){ return (b.author_name && b.author_name[0]) || 'Unknown author'; }
+
+function avgRating(list){
+  const rated = list.filter(function(r){ return r.rating; });
+  if (!rated.length) return 0;
+  return Math.round(rated.reduce(function(s, r){ return s + r.rating; }, 0) / rated.length);
+}
+
+function coverImg(b){
+  return b.cover_i
+    ? '<img class="cover" src="https://covers.openlibrary.org/b/id/' + b.cover_i + '-M.jpg" alt="" />'
+    : '<div class="cover"></div>';
+}
+
+// Placeholder heuristic — swap for your own curated series table in week 6.
 function looksLikeSeries(b){
   return /\b(book|volume|vol\.?)\s*\d|#\d|\bseries\b/i.test(b.title || '');
 }
@@ -296,15 +558,9 @@ function esc(s){
 }
 
 /* ------------------------------------------------------------------
-   WEEK 3 — Supabase goes here.
-   import { createClient } from '@supabase/supabase-js'
-   const supabase = createClient(URL, ANON_KEY)   // anon key is safe in the browser
-   await supabase.from('saved_books').insert({ child_id, title, author })
-
-   WEEK 4 — AI recommendations.
-   Do NOT call the Anthropic API from this file — your key would be public.
-   Make a Supabase Edge Function that takes { age, topic, preferences },
-   calls Claude server-side, and returns JSON your page renders as cards.
+   WEEK 3 — Supabase: accounts, child profiles, persistent reviews.
+   WEEK 4 — AI recommendations via a Supabase Edge Function.
+            The Anthropic key stays server-side, never in this file.
 ------------------------------------------------------------------ */
 </script>
 
