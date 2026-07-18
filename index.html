@@ -300,26 +300,23 @@ const SERIES = {
   }
 };
 
-const findSeries = title => {
-  if (typeof title !== "string") return null;
-  for (const [id, s] of Object.entries(SERIES)) if (s.match.test(title)) return { id, ...s };
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/* Match on the series name, OR on a book title — but a book-title match
+   also needs the author to agree, because titles like "Exile" and "Legacy"
+   are not remotely unique. */
+function findSeries(doc){
+  const t = norm(doc?.title);
+  if (!t) return null;
+  const authors = (doc?.author_name || []).map(norm);
+
+  for (const [id, s] of Object.entries(SERIES)){
+    if (s.match.test(doc.title)) return { id, ...s };
+    if (authors.includes(norm(s.author)) &&
+        s.books.some(b => t.includes(norm(b.title)))) return { id, ...s };
+  }
   return null;
-};
-const seriesNotes = s => [...new Set(s.books.flatMap(b => b.notes || []))];
-
-/* ---- setup ---- */
-const API = "https://openlibrary.org/search.json";
-const FIELDS = "key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
-const LIMIT = 16, TIMEOUT = 12000, MAXCHARS = 600;
-
-const $ = id => document.getElementById(id);
-const el = (tag, cls, text) => {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (text != null) n.textContent = text;
-  return n;
-};
-
+}
 let cards = [], openItem = null, rating = 0, searchId = 0, inFlight = null, lastFocus = null;
 let lastTopic = "", lastNote = null;
 const reviews = new Map();
@@ -421,13 +418,24 @@ async function search(){
    Fire books and buries everything else; one card showing book one is more
    useful than book 7 of something they've never read. */
 function collapse(docs){
-  const out = [], claimed = new Set();
+  const out = [], groups = new Map();
+
   for (const d of docs){
-    const s = findSeries(d.title);
+    const s = findSeries(d);
     if (!s){ out.push({ kind: "book", doc: d }); continue; }
-    if (claimed.has(s.id)) continue;
-    claimed.add(s.id);
-    out.push({ kind: "series", series: s, doc: d });
+
+    if (!groups.has(s.id)){
+      const card = { kind: "series", series: s, doc: d };
+      groups.set(s.id, card);
+      out.push(card);
+      continue;
+    }
+    // Already have this series — but upgrade the cover if this edition is book one.
+    const card = groups.get(s.id), first = norm(s.books[0].title);
+    if (Number.isFinite(d.cover_i) &&
+        norm(d.title).includes(first) && !norm(card.doc.title).includes(first)){
+      card.doc = d;
+    }
   }
   return out;
 }
