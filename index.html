@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Next Chapter — find the right book for your reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14323B;
+    --ink-soft:#4A6670;
+    --paper:#F2EFE4;
+    --card:#FFFDF7;
+    --marigold:#E8A33D;
+    --berry:#8C3A5B;
+    --rule:#D9D3C2;
+
+    --display:"Fraunces", Georgia, serif;
+    --body:"Public Sans", system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.55;
+  }
+
+  .wrap{max-width:940px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- masthead ---------- */
+  header{padding:34px 0 10px;}
+  .logo{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:26px;
+    letter-spacing:-0.02em;
+    margin:0;
+  }
+  .logo span{color:var(--berry);}
+  .tagline{
+    font-size:13px;
+    color:var(--ink-soft);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin:4px 0 0;
+  }
+
+  /* ---------- hero: the fill-in-the-blank sentence ---------- */
+  .hero{
+    border-top:2px solid var(--ink);
+    border-bottom:1px solid var(--rule);
+    padding:38px 0 42px;
+    margin-top:22px;
+  }
+  .sentence{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:clamp(28px,5.2vw,46px);
+    line-height:1.25;
+    letter-spacing:-0.02em;
+    margin:0;
+  }
+  .blank{
+    display:inline-flex;
+    align-items:baseline;
+    gap:6px;
+    border-bottom:3px solid var(--marigold);
+    padding:0 4px;
+  }
+  .blank input{
+    font:inherit;
+    color:var(--berry);
+    font-weight:900;
+    background:none;
+    border:none;
+    padding:0;
+    width:2.2ch;
+    text-align:center;
+  }
+  .blank input:focus{outline:2px solid var(--marigold);outline-offset:4px;}
+  .blank input.wide{width:11ch;text-align:left;color:var(--ink);font-weight:600;}
+
+  .go{
+    margin-top:30px;
+    font-family:var(--body);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.04em;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:2px;
+    padding:14px 28px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .go:hover{background:var(--berry);}
+  .go:focus-visible{outline:3px solid var(--marigold);outline-offset:3px;}
+
+  /* ---------- results ---------- */
+  .results-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin:34px 0 14px;
+    gap:16px;
+  }
+  .results-head h2{
+    font-family:var(--display);
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  .count{font-size:13px;color:var(--ink-soft);}
+
+  .shelf{
+    list-style:none;
+    margin:0 0 60px;
+    padding:0;
+    display:grid;
+    gap:14px;
+  }
+  .book{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:16px;
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:16px;
+  }
+  .cover{
+    width:64px;height:96px;
+    object-fit:cover;
+    background:var(--rule);
+    border-radius:2px;
+  }
+  .book h3{
+    font-family:var(--display);
+    font-size:18px;
+    font-weight:600;
+    margin:0 0 2px;
+    letter-spacing:-0.01em;
+  }
+  .author{font-size:14px;color:var(--ink-soft);margin:0 0 10px;}
+  .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .tag{
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    border:1px solid var(--rule);
+    border-radius:2px;
+    padding:3px 8px;
+    color:var(--ink-soft);
+  }
+  .tag.series{border-color:var(--marigold);color:#9a6a15;}
+
+  .note{
+    font-size:14px;
+    color:var(--ink-soft);
+    padding:26px 0 60px;
+  }
+  .note strong{color:var(--ink);}
+
+  footer{
+    border-top:1px solid var(--rule);
+    padding:20px 0 40px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width:560px){
+    .book{grid-template-columns:52px 1fr;gap:12px;}
+    .cover{width:52px;height:78px;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <h1 class="logo">Next <span>Chapter</span></h1>
+    <p class="tagline">Book finder for young readers</p>
+  </header>
+
+  <section class="hero">
+    <p class="sentence">
+      Find books for a
+      <label class="blank"><input id="age" type="number" min="2" max="18" value="8" aria-label="Reader's age" /></label>
+      year old who likes
+      <label class="blank"><input id="topic" class="wide" type="text" value="dragons" aria-label="What they like" /></label>.
+    </p>
+    <button class="go" id="search">Find books</button>
+  </section>
+
+  <div class="results-head">
+    <h2 id="results-title">Start with a search</h2>
+    <span class="count" id="count"></span>
+  </div>
+
+  <ul class="shelf" id="shelf"></ul>
+
+  <p class="note" id="note">
+    <strong>Day one build.</strong> Search is live and pulling real books from the Open Library API.
+    Next up: save these to a Supabase table, then add the AI recommender and content preferences.
+  </p>
+
+  <footer>Built by a human. Book data from Open Library.</footer>
+
+</div>
+
+<script>
+const shelf = document.getElementById('shelf');
+const title = document.getElementById('results-title');
+const count = document.getElementById('count');
+
+document.getElementById('search').addEventListener('click', findBooks);
+document.getElementById('topic').addEventListener('keydown', e => { if (e.key === 'Enter') findBooks(); });
+
+async function findBooks(){
+  const age = document.getElementById('age').value;
+  const topic = document.getElementById('topic').value.trim() || 'adventure';
+
+  title.textContent = 'Searching…';
+  count.textContent = '';
+  shelf.innerHTML = '';
+
+  // Open Library lets you filter by subject. "juvenile" keeps results age-appropriate-ish.
+  const url = 'https://openlibrary.org/search.json'
+    + '?q=' + encodeURIComponent(topic + ' juvenile fiction')
+    + '&fields=title,author_name,first_publish_year,cover_i,subject'
+    + '&limit=12';
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Open Library returned ' + res.status);
+    const data = await res.json();
+    render(data.docs || [], age, topic);
+  } catch (err) {
+    title.textContent = "Couldn't reach the book service";
+    shelf.innerHTML = '<li class="book"><div></div><div><h3>Try again</h3>'
+      + '<p class="author">' + err.message + '</p></div></li>';
+  }
+}
+
+function render(docs, age, topic){
+  if (!docs.length){
+    title.textContent = 'No books found for "' + topic + '"';
+    count.textContent = '';
+    return;
+  }
+
+  title.textContent = 'Books about ' + topic;
+  count.textContent = docs.length + ' results · reader age ' + age;
+
+  shelf.innerHTML = docs.map(function(b){
+    const cover = b.cover_i
+      ? '<img class="cover" src="https://covers.openlibrary.org/b/id/' + b.cover_i + '-M.jpg" alt="" />'
+      : '<div class="cover"></div>';
+
+    const author = (b.author_name && b.author_name[0]) || 'Unknown author';
+    const year   = b.first_publish_year ? '<span class="tag">' + b.first_publish_year + '</span>' : '';
+
+    // TODO: replace with real series data from your own `series` table.
+    const series = looksLikeSeries(b) ? '<span class="tag series">Part of a series</span>' : '';
+
+    return '<li class="book">' + cover + '<div>'
+      + '<h3>' + esc(b.title) + '</h3>'
+      + '<p class="author">' + esc(author) + '</p>'
+      + '<div class="meta">' + year + series + '</div>'
+      + '</div></li>';
+  }).join('');
+}
+
+// Placeholder heuristic — swap this out once you're curating series yourself.
+function looksLikeSeries(b){
+  return /\b(book|volume|vol\.?)\s*\d|#\d|\bseries\b/i.test(b.title || '');
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+
+/* ------------------------------------------------------------------
+   WEEK 3 — Supabase goes here.
+   import { createClient } from '@supabase/supabase-js'
+   const supabase = createClient(URL, ANON_KEY)   // anon key is safe in the browser
+   await supabase.from('saved_books').insert({ child_id, title, author })
+
+   WEEK 4 — AI recommendations.
+   Do NOT call the Anthropic API from this file — your key would be public.
+   Make a Supabase Edge Function that takes { age, topic, preferences },
+   calls Claude server-side, and returns JSON your page renders as cards.
+------------------------------------------------------------------ */
+</script>
+
+</body>
+</html>
