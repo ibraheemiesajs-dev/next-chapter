@@ -336,7 +336,9 @@ if (!db){
    Open Library is a wiki. Years contain typos (The Hobbit is listed as 1703)
    and first_sentence is whatever edition someone typed, often not English.
    Validate rather than trust. */
-const validYear = y => Number.isFinite(y) && y >= 1450 && y <= new Date().getFullYear() + 1;
+// Floor of 1800: this app is about children's books, and essentially none
+// predate that. Anything earlier is a catalogue typo, not a rare first edition.
+const validYear = y => Number.isFinite(y) && y >= 1800 && y <= new Date().getFullYear() + 1;
 
 function opening(b){
   let s = b.first_sentence;
