@@ -18,7 +18,6 @@ button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea{font:inherit;color:var(--ink)}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 [hidden]{display:none!important}
-
 header{padding:34px 0 10px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
 h1{font-weight:900;font-size:26px}
 h1 span{color:var(--berry)}
@@ -26,16 +25,12 @@ h1 span{color:var(--berry)}
 .account{font-size:13px;color:var(--soft);text-align:right;padding-top:6px}
 .account button{text-decoration:underline;color:var(--berry);font-weight:600}
 .account .who{display:block;margin-bottom:2px;overflow-wrap:anywhere}
-
 .hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:30px 0 34px;margin-top:18px}
-
-/* kids */
 .kids{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;align-items:center}
 .kid{border:1px solid var(--rule);border-radius:20px;padding:6px 15px;font-size:13px;color:var(--soft);transition:.12s}
 .kid[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
 .kid.add{border-style:dashed;color:var(--berry)}
-.kids-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-right:2px}
-
+.kids-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
 .sentence{font-family:var(--display);font-size:clamp(26px,5vw,46px);line-height:1.3;letter-spacing:-.02em;margin:0}
 .blank{display:inline-flex;border-bottom:3px solid var(--gold);padding:0 4px;max-width:100%}
 .blank input{font:inherit;color:var(--berry);font-weight:900;background:none;border:none;padding:0;width:2.4ch;text-align:center;min-width:0;-moz-appearance:textfield}
@@ -46,7 +41,6 @@ h1 span{color:var(--berry)}
 .go{margin-top:20px;font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
 .go:hover{background:var(--berry)}
 .go[disabled]{opacity:.55;cursor:progress}
-
 .prefs{margin:22px 0 0;padding-top:20px;border-top:1px dashed var(--rule)}
 .prefs h4{font-size:14px;font-weight:600;margin-bottom:4px}
 .prefs p{font-size:13px;color:var(--soft);margin:0 0 12px}
@@ -54,16 +48,14 @@ h1 span{color:var(--berry)}
 .chip{font-size:12px;border:1px solid var(--rule);border-radius:20px;padding:5px 13px;color:var(--soft);transition:.12s}
 .chip[data-state=flag]{border-color:var(--gold);background:#FBF1DC;color:#8a5f10;font-weight:600}
 .chip[data-state=avoid]{border-color:var(--berry);background:var(--berry);color:#fff;font-weight:600}
-
 .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:16px;margin:34px 0 14px}
 .head h2{font-size:19px;font-weight:600}
-.count{font-size:13px;color:var(--soft)}
+.count,.n-reviews{font-size:13px;color:var(--soft)}
 .muted{font-size:14px;color:var(--soft);margin:0}
 .banner{font-size:13px;border-radius:2px;padding:9px 12px;margin:0 0 14px}
 .banner.warn{color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold)}
 .banner.info{color:var(--soft);background:var(--card);border:1px solid var(--rule)}
 .banner.bad{color:#7d2340;background:#F7E4EA;border:1px solid var(--berry)}
-
 .shelf{list-style:none;margin:0 0 60px;padding:0;display:grid;gap:14px}
 .skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
 .book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
@@ -72,7 +64,7 @@ h1 span{color:var(--berry)}
 .cover{display:block;width:64px;height:96px;object-fit:cover;background:var(--rule);border-radius:2px}
 .book h3{font-size:18px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
 .author{font-size:14px;color:var(--soft);margin:0 0 10px;overflow-wrap:anywhere}
-.meta,.subjects,.notes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.meta,.subjects,.notes,.shelf-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .notes{margin-top:8px}
 .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
 .tag.series{border-color:var(--gold);color:#9a6a15}
@@ -81,8 +73,6 @@ h1 span{color:var(--berry)}
 .tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
 .notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
-.n-reviews{font-size:12px;color:var(--soft)}
-
 .backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
 .backdrop.open{display:flex}
 .panel{max-width:640px;width:100%;padding:24px;margin:auto 0}
@@ -94,14 +84,12 @@ h1 span{color:var(--berry)}
 .close:hover{color:var(--berry)}
 .blurb{font-size:14px;margin:18px 0 0;overflow-wrap:anywhere}
 .subjects{margin-top:14px}
-hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
-.panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
-
-.shelf-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;align-items:center}
-.shelf-row .lbl{font-size:12px;color:var(--soft);margin-right:2px}
+.shelf-row{margin-top:18px;gap:8px}
+.shelf-row .lbl{font-size:12px;color:var(--soft)}
 .status{border:1px solid var(--rule);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--soft);transition:.12s}
 .status[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
-
+hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
+.panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
 .series-list{list-style:none;margin:0;padding:0}
 .series-row{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
 .series-row:last-child{border-bottom:none}
@@ -110,7 +98,6 @@ hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .series-row .y{font-size:12px;color:var(--soft)}
 .upcoming .t{color:var(--soft)}
 .source{font-size:12px;color:var(--soft);margin:14px 0 0;font-style:italic}
-
 .rate{display:flex;gap:2px;margin-bottom:10px}
 .rate button{font-size:26px;line-height:1;color:var(--rule);padding:0 3px}
 .rate button.on{color:var(--gold)}
@@ -121,22 +108,19 @@ textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2p
 .save:hover{background:var(--ink)}
 .save[disabled]{opacity:.55;cursor:progress}
 .save-msg{font-size:13px;color:var(--berry);margin:8px 0 0;min-height:18px}
-.save-msg.err{color:#7d2340;font-weight:600}
+.save-msg.err,.form-msg{color:#7d2340;font-weight:600}
 .review{border-left:3px solid var(--gold);padding-left:14px;margin-top:16px}
 .review p{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
 .review .stars{color:var(--gold);font-size:14px;letter-spacing:2px}
 .review .when{font-size:12px;color:var(--soft);margin-top:2px}
 .pending{opacity:.55}
-
-/* forms */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px}
 .field input{width:100%;border:1px solid var(--rule);border-radius:2px;padding:10px;background:var(--paper);font-size:15px}
 .row2{display:grid;grid-template-columns:1fr 90px;gap:12px}
-.form-msg{font-size:13px;min-height:18px;margin:6px 0 0;color:#7d2340;font-weight:600}
+.form-msg{font-size:13px;min-height:18px;margin:6px 0 0}
 .alt{font-size:13px;color:var(--soft);margin:14px 0 0}
 .alt button{text-decoration:underline;color:var(--berry);font-weight:600}
-
 .note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
 .note-block strong{color:var(--ink)}
 footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
@@ -148,10 +132,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <body>
 <div class="wrap">
   <header>
-    <div>
-      <h1>Next <span>Chapter</span></h1>
-      <p class="tagline">Book finder for young readers</p>
-    </div>
+    <div><h1>Next <span>Chapter</span></h1><p class="tagline">Book finder for young readers</p></div>
     <div class="account" id="account"></div>
   </header>
 
@@ -159,7 +140,6 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 
   <section class="hero">
     <div class="kids" id="kids" hidden></div>
-
     <p class="sentence">Find books for a
       <label class="blank"><span class="sr">Reader's age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
       year old who likes
@@ -167,7 +147,6 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </p>
     <p class="hint">Searching <b id="level">juvenile fiction</b></p>
     <button class="go" id="search">Find books</button>
-
     <div class="prefs">
       <h4>Content preferences</h4>
       <p id="prefs-note">Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
@@ -184,24 +163,19 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner info" id="hidden-msg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
 
-  <p class="note-block"><strong>Week 3b.</strong> Sign in, add a child, and their age and content
-    preferences load automatically. Save books to each child's shelf. Series and content notes
-    still come from the hand-checked catalogue in this file.</p>
+  <p class="note-block"><strong>Week 3b.</strong> Sign in, add a reader, and their age and content
+    preferences load automatically. Save books to each reader's shelf. Series and content notes
+    come from the hand-checked catalogue in this file.</p>
 
   <footer>Built by a human. Book data from Open Library. Series and content notes hand-entered.</footer>
 </div>
 
-<!-- book / series panel -->
 <div class="backdrop" id="backdrop">
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
     <button class="close" id="close" aria-label="Close">&times;</button>
     <div class="panel-top">
       <div id="pCover"></div>
-      <div>
-        <h2 id="pTitle"></h2>
-        <p class="author" id="pAuthor"></p>
-        <div class="meta" id="pMeta"></div>
-      </div>
+      <div><h2 id="pTitle"></h2><p class="author" id="pAuthor"></p><div class="meta" id="pMeta"></div></div>
     </div>
     <p class="blurb" id="pBlurb"></p>
     <div class="notes" id="pNotes"></div>
@@ -222,7 +196,6 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   </div>
 </div>
 
-<!-- auth -->
 <div class="backdrop" id="authBack">
   <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <button class="close" id="authClose" aria-label="Close">&times;</button>
@@ -231,11 +204,10 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"></div>
     <button class="save" id="authGo">Sign in</button>
     <p class="form-msg" id="authMsg"></p>
-    <p class="alt">No account yet? <button id="authSwap">Create one</button></p>
+    <p class="alt"><span id="authAsk">No account yet? </span><button id="authSwap">Create one</button></p>
   </div>
 </div>
 
-<!-- add child -->
 <div class="backdrop" id="kidBack">
   <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="kidTitle">
     <button class="close" id="kidClose" aria-label="Close">&times;</button>
@@ -253,35 +225,31 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <script>
 "use strict";
 /* Next Chapter. Books: Open Library. Series + content notes: the catalogue below.
-   Accounts, child profiles, saved books and reviews: Supabase.
+   Accounts, profiles, shelves, reviews: Supabase.
    API text always enters via textContent, never innerHTML — Open Library is
    wiki-editable, so a title is never trusted as markup. Searches are versioned
    and aborted so a slow old request can't overwrite a newer one. */
 
-/* ===================================================================
-   The anon key is MEANT to be public — Row Level Security is what
-   protects the data. Never put the service_role key here.
-   =================================================================== */
+/* The anon key is MEANT to be public — Row Level Security protects the data.
+   Never put the service_role key here. */
 const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
 
 /* ===== THE CATALOGUE — the data you own =====
-   No free API knows series order or what's inside a book, so this does.
-   To add a series, copy a block. `match` catches the series name in a title;
-   matching also falls back to book titles + author, since Open Library
-   usually stores "The Dragonet Prophecy" with no mention of Wings of Fire.
-   Only add notes you've actually verified. */
-
+   No free API knows series order or what's inside a book. To add a series,
+   copy a block. `match` catches the series name; matching also falls back to
+   book titles + author, since Open Library usually stores "The Dragonet
+   Prophecy" with no mention of Wings of Fire. Only add verified notes. */
 const CATEGORIES = {
-  violence:  {label:"Violence",             blurb:"Fighting, battles, or physical conflict."},
-  gore:      {label:"Graphic injury",       blurb:"Blood or injury described in detail."},
-  scary:     {label:"Frightening scenes",   blurb:"Suspense or imagery that may unsettle younger readers."},
-  death:     {label:"Death of a character", blurb:"A significant character dies."},
-  romance:   {label:"Romance",              blurb:"Romantic relationships or crushes."},
-  lgbtqia:   {label:"LGBTQIA characters",   blurb:"Queer characters or relationships appear."},
-  language:  {label:"Strong language",      blurb:"Swearing or crude language."},
-  substances:{label:"Alcohol or drugs",     blurb:"Substance use appears on the page."},
-  religion:  {label:"Religious themes",     blurb:"Faith or religious practice is a theme."}
+  violence:{label:"Violence",blurb:"Fighting, battles, or physical conflict."},
+  gore:{label:"Graphic injury",blurb:"Blood or injury described in detail."},
+  scary:{label:"Frightening scenes",blurb:"Suspense or imagery that may unsettle younger readers."},
+  death:{label:"Death of a character",blurb:"A significant character dies."},
+  romance:{label:"Romance",blurb:"Romantic relationships or crushes."},
+  lgbtqia:{label:"LGBTQIA characters",blurb:"Queer characters or relationships appear."},
+  language:{label:"Strong language",blurb:"Swearing or crude language."},
+  substances:{label:"Alcohol or drugs",blurb:"Substance use appears on the page."},
+  religion:{label:"Religious themes",blurb:"Faith or religious practice is a theme."}
 };
 
 const SERIES = {
@@ -301,14 +269,12 @@ const SERIES = {
     {n:13,title:"The Poison Jungle",year:2019,notes:["violence","death","lgbtqia"]},
     {n:14,title:"The Dangerous Gift",year:2021,notes:["violence","lgbtqia"]},
     {n:15,title:"The Flames of Hope",year:2022,notes:["violence","death","lgbtqia"]}]},
-
   "percy-jackson":{title:"Percy Jackson and the Olympians",author:"Rick Riordan",match:/percy jackson/i,ages:"9–13",books:[
     {n:1,title:"The Lightning Thief",year:2005,notes:["violence","death","religion"]},
     {n:2,title:"The Sea of Monsters",year:2006,notes:["violence","religion"]},
     {n:3,title:"The Titan's Curse",year:2007,notes:["violence","death","religion"]},
     {n:4,title:"The Battle of the Labyrinth",year:2008,notes:["violence","death","religion"]},
     {n:5,title:"The Last Olympian",year:2009,notes:["violence","death","religion"]}]},
-
   "harry-potter":{title:"Harry Potter",author:"J. K. Rowling",match:/harry potter/i,ages:"9–14 (rising through the series)",books:[
     {n:1,title:"The Philosopher's Stone",year:1997,notes:["violence","scary"]},
     {n:2,title:"The Chamber of Secrets",year:1998,notes:["violence","scary"]},
@@ -317,7 +283,6 @@ const SERIES = {
     {n:5,title:"The Order of the Phoenix",year:2003,notes:["violence","death","scary"]},
     {n:6,title:"The Half-Blood Prince",year:2005,notes:["violence","death","romance"]},
     {n:7,title:"The Deathly Hallows",year:2007,notes:["violence","death","gore","romance"]}]},
-
   "keeper-lost-cities":{title:"Keeper of the Lost Cities",author:"Shannon Messenger",match:/keeper of the lost cities/i,ages:"9–13",books:[
     {n:1,title:"Keeper of the Lost Cities",year:2012,notes:["violence"]},
     {n:2,title:"Exile",year:2013,notes:["violence"]},
@@ -328,7 +293,6 @@ const SERIES = {
     {n:7,title:"Flashback",year:2018,notes:["violence","romance"]},
     {n:8,title:"Legacy",year:2019,notes:["violence","romance"]},
     {n:9,title:"Unlocked",year:2020,notes:["violence","romance"]}]},
-
   "hunger-games":{title:"The Hunger Games",author:"Suzanne Collins",match:/hunger games/i,ages:"13+",books:[
     {n:1,title:"The Hunger Games",year:2008,notes:["violence","gore","death","romance"]},
     {n:2,title:"Catching Fire",year:2009,notes:["violence","gore","death","romance"]},
@@ -336,11 +300,11 @@ const SERIES = {
 };
 
 /* ===== setup ===== */
-const API = "https://openlibrary.org/search.json";
-const FIELDS = "key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
-const LIMIT = 20, TIMEOUT = 12000, MAXCHARS = 600;
-const STATES = [null, "flag", "avoid"];
-const SHELF_STATUSES = [["want","Want to read"],["reading","Reading"],["finished","Finished"]];
+const API="https://openlibrary.org/search.json";
+const FIELDS="key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
+const LIMIT=20, TIMEOUT=12000, MAXCHARS=600;
+const STATES=[null,"flag","avoid"];
+const SHELF=[["want","Want to read"],["reading","Reading"],["finished","Finished"]];
 
 const $ = id => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -350,53 +314,60 @@ const el = (tag, cls, text) => {
   return n;
 };
 
-let cards = [], openItem = null, rating = 0, searchId = 0, inFlight = null, lastFocus = null;
-let lastTopic = "", lastNote = null;
-let user = null, children = [], activeChild = null, authMode = "in";
-const reviews = new Map();      // bookKey -> [rows]
-const saved = new Map();        // bookKey -> status, for the active child
-const prefs = new Map();        // categoryId -> "flag" | "avoid"
+let cards=[], openItem=null, rating=0, searchId=0, inFlight=null, lastFocus=null;
+let lastTopic="", lastNote=null;
+let user=null, children=[], activeChild=null, authMode="in";
+const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map();
 
 /* ===== database =====
-   The app has to work when this fails. A dead database should cost you
-   reviews, not the whole site — so every call is wrapped and `db` stays
-   null if setup is incomplete. */
-let db = null;
+   The app must work when this fails. A dead database costs you reviews,
+   not the whole site — every call is wrapped, and db stays null if unset. */
+let db=null;
 if (!SUPABASE_ANON_KEY.startsWith("PASTE") && window.supabase){
   try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-  catch (e) { console.error("Supabase init failed:", e); }
+  catch(e){ console.error("Supabase init failed:", e); }
 }
 if (!db){
   $("db-warn").textContent = "Not connected to the database — sign-in and saved reviews are off. Add your Supabase anon key near the top of the file.";
   $("db-warn").hidden = false;
 }
 
+/* ===== data quality =====
+   Open Library is a wiki. Years contain typos (The Hobbit is listed as 1703)
+   and first_sentence is whatever edition someone typed, often not English.
+   Validate rather than trust. */
+const validYear = y => Number.isFinite(y) && y >= 1450 && y <= new Date().getFullYear() + 1;
+
+function opening(b){
+  let s = b.first_sentence;
+  if (Array.isArray(s)) s = s[0];
+  if (s && typeof s === "object") s = s.value;
+  if (typeof s !== "string" || !s.trim()) return "No description available for this one yet.";
+  if (/[ãõçñáéíóúâêîôûäëïöüß]/i.test(s)) return "No description available for this one yet.";
+  return `It opens: ${s.trim()}`;
+}
+
 /* ===== auth ===== */
 function renderAccount(){
   const box = $("account");
   box.replaceChildren();
-  if (!db) return;
-
-  if (user){
-    box.append(el("span", "who", user.email));
-    const out = el("button", "", "Sign out");
-    out.onclick = signOut;
-    box.append(out);
-  } else {
-    const go = el("button", "", "Sign in");
-    go.onclick = () => openAuth();
-    box.append(go);
+  if (db){
+    if (user){
+      box.append(el("span","who",user.email));
+      const out = el("button","","Sign out"); out.onclick = signOut; box.append(out);
+    } else {
+      const go = el("button","","Sign in"); go.onclick = () => openAuth(); box.append(go);
+    }
   }
-  renderKids();
-  renderReviewForm();
+  renderKids(); renderReviewForm();
 }
 
-function openAuth(mode = "in"){
+function openAuth(mode="in"){
   authMode = mode;
-  $("authTitle").textContent = mode === "in" ? "Sign in" : "Create an account";
-  $("authGo").textContent = mode === "in" ? "Sign in" : "Create account";
-  $("authSwap").textContent = mode === "in" ? "Create one" : "Sign in instead";
-  $("authSwap").previousSibling.textContent = mode === "in" ? "No account yet? " : "Already have one? ";
+  $("authTitle").textContent = mode==="in" ? "Sign in" : "Create an account";
+  $("authGo").textContent   = mode==="in" ? "Sign in" : "Create account";
+  $("authSwap").textContent = mode==="in" ? "Create one" : "Sign in instead";
+  $("authAsk").textContent  = mode==="in" ? "No account yet? " : "Already have one? ";
   $("authMsg").textContent = "";
   $("authBack").classList.add("open");
   document.body.classList.add("locked");
@@ -408,55 +379,42 @@ $("authBack").addEventListener("mousedown", e => { if (e.target === $("authBack"
 $("authSwap").onclick = () => openAuth(authMode === "in" ? "up" : "in");
 
 $("authGo").onclick = async () => {
-  const email = $("email").value.trim(), password = $("pw").value;
-  const msg = $("authMsg");
+  const email = $("email").value.trim(), password = $("pw").value, msg = $("authMsg");
   if (!email || !password) return msg.textContent = "Email and password, please.";
-  if (password.length < 6) return msg.textContent = "Password needs at least 6 characters.";
-
-  $("authGo").disabled = true;
-  msg.textContent = "";
+  if (password.length < 6)  return msg.textContent = "Password needs at least 6 characters.";
+  $("authGo").disabled = true; msg.textContent = "";
   try {
-    const fn = authMode === "in" ? "signInWithPassword" : "signUp";
-    const { error } = await db.auth[fn]({ email, password });
+    const { error } = await db.auth[authMode === "in" ? "signInWithPassword" : "signUp"]({ email, password });
     if (error) throw error;
-    closeAuth();
-    $("pw").value = "";
-  } catch (e) {
-    msg.textContent = e?.message || "That didn't work. Try again.";
-  } finally {
-    $("authGo").disabled = false;
-  }
+    closeAuth(); $("pw").value = "";
+  } catch(e){ msg.textContent = e?.message || "That didn't work. Try again."; }
+  finally { $("authGo").disabled = false; }
 };
 
 async function signOut(){
   await db.auth.signOut();
   children = []; activeChild = null;
-  saved.clear(); prefs.clear();
-  syncChips();
+  saved.clear(); prefs.clear(); syncChips();
+  $("prefs-note").textContent = "Tap once to flag, twice to hide. Untapped means it won't affect results.";
   if (cards.length) draw();
 }
 
-/* onAuthStateChange fires on load with any restored session, so this doubles
-   as startup. No separate "am I logged in?" check needed. */
-if (db){
-  db.auth.onAuthStateChange(async (_evt, session) => {
-    user = session?.user || null;
-    renderAccount();
-    if (user) await loadChildren();
-    else renderKids();
-  });
-}
+/* Fires on load with any restored session, so this doubles as startup —
+   no separate "am I logged in?" check needed. */
+if (db) db.auth.onAuthStateChange(async (_e, session) => {
+  user = session?.user || null;
+  renderAccount();
+  if (user) await loadChildren(); else renderKids();
+});
 
 /* ===== children ===== */
 async function loadChildren(){
   try {
-    const { data, error } = await db.from("children")
-      .select("id, name, age, prefs").order("created_at");
+    const { data, error } = await db.from("children").select("id, name, age, prefs").order("created_at");
     if (error) throw error;
     children = data || [];
-    if (children.length && !activeChild) await selectChild(children[0]);
-    else renderKids();
-  } catch (e) { console.error("Couldn't load children:", e); }
+    if (children.length && !activeChild) await selectChild(children[0]); else renderKids();
+  } catch(e){ console.error("Couldn't load children:", e); }
 }
 
 function renderKids(){
@@ -464,33 +422,25 @@ function renderKids(){
   box.replaceChildren();
   if (!user){ box.hidden = true; return; }
   box.hidden = false;
-
-  box.append(el("span", "kids-label", "Reading for"));
-
+  box.append(el("span","kids-label","Reading for"));
   children.forEach(c => {
-    const b = el("button", "kid", `${c.name}, ${c.age}`);
+    const b = el("button","kid",`${c.name}, ${c.age}`);
     b.type = "button";
     b.setAttribute("aria-pressed", String(activeChild?.id === c.id));
     b.onclick = () => selectChild(c);
     box.append(b);
   });
-
-  const add = el("button", "kid add", children.length ? "+ Add another" : "+ Add a reader");
-  add.type = "button";
-  add.onclick = openKid;
+  const add = el("button","kid add", children.length ? "+ Add another" : "+ Add a reader");
+  add.type = "button"; add.onclick = openKid;
   box.append(add);
 }
 
 async function selectChild(c){
   activeChild = c;
-  $("age").value = c.age;
-  showLevel();
-
-  // Their saved preferences become the active filters.
+  $("age").value = c.age; showLevel();
   prefs.clear();
-  Object.entries(c.prefs || {}).forEach(([k, v]) => { if (v) prefs.set(k, v); });
+  Object.entries(c.prefs || {}).forEach(([k,v]) => { if (v) prefs.set(k,v); });
   syncChips();
-
   $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
   renderKids();
   await loadSaved();
@@ -498,8 +448,7 @@ async function selectChild(c){
 }
 
 function openKid(){
-  $("kidMsg").textContent = "";
-  $("kidName").value = "";
+  $("kidMsg").textContent = ""; $("kidName").value = "";
   $("kidBack").classList.add("open");
   document.body.classList.add("locked");
   $("kidName").focus();
@@ -509,27 +458,21 @@ $("kidClose").onclick = closeKid;
 $("kidBack").addEventListener("mousedown", e => { if (e.target === $("kidBack")) closeKid(); });
 
 $("kidGo").onclick = async () => {
-  const name = $("kidName").value.trim();
-  const age = parseInt($("kidAge").value, 10);
-  const msg = $("kidMsg");
+  const name = $("kidName").value.trim(), a = parseInt($("kidAge").value,10), msg = $("kidMsg");
   if (!name) return msg.textContent = "Give them a name.";
-  if (!Number.isFinite(age) || age < 2 || age > 18) return msg.textContent = "Age should be between 2 and 18.";
-
+  if (!Number.isFinite(a) || a < 2 || a > 18) return msg.textContent = "Age should be between 2 and 18.";
   $("kidGo").disabled = true;
   try {
     const { data, error } = await db.from("children")
-      .insert({ parent_id: user.id, name, age, prefs: {} }).select().single();
+      .insert({ parent_id:user.id, name, age:a, prefs:{} }).select().single();
     if (error) throw error;
-    children.push(data);
-    closeKid();
-    await selectChild(data);
-  } catch (e) {
-    msg.textContent = e?.message || "Couldn't add that reader.";
-  } finally { $("kidGo").disabled = false; }
+    children.push(data); closeKid(); await selectChild(data);
+  } catch(e){ msg.textContent = e?.message || "Couldn't add that reader."; }
+  finally { $("kidGo").disabled = false; }
 };
 
-/* Preferences save per child. Debounced because tapping through three states
-   would otherwise fire a write on every single tap. */
+/* Debounced: cycling a chip through three states would otherwise fire a
+   database write on every single tap. */
 let prefTimer = null;
 function savePrefs(){
   if (!db || !user || !activeChild) return;
@@ -537,15 +480,14 @@ function savePrefs(){
   prefTimer = setTimeout(async () => {
     const obj = Object.fromEntries(prefs);
     try {
-      const { error } = await db.from("children")
-        .update({ prefs: obj }).eq("id", activeChild.id);
+      const { error } = await db.from("children").update({ prefs: obj }).eq("id", activeChild.id);
       if (error) throw error;
       activeChild.prefs = obj;
-    } catch (e) { console.error("Couldn't save preferences:", e); }
+    } catch(e){ console.error("Couldn't save preferences:", e); }
   }, 700);
 }
 
-/* ===== saved books ===== */
+/* ===== shelves ===== */
 async function loadSaved(){
   saved.clear();
   if (!db || !activeChild) return;
@@ -554,42 +496,34 @@ async function loadSaved(){
       .select("book_key, status").eq("child_id", activeChild.id);
     if (error) throw error;
     (data || []).forEach(r => saved.set(r.book_key, r.status));
-  } catch (e) { console.error("Couldn't load shelf:", e); }
+  } catch(e){ console.error("Couldn't load shelf:", e); }
 }
 
-async function setStatus(bookKey, bookTitle, coverId, status){
+async function setStatus(k, title, coverId, status){
   if (!db || !activeChild) return;
-  const previous = saved.get(bookKey) || null;
+  const prev = saved.get(k) || null;
 
-  if (previous === status){                       // tapping the same one removes it
-    saved.delete(bookKey);
-    drawShelfRow();
+  if (prev === status){                       // tapping the same one removes it
+    saved.delete(k); drawShelfRow();
     try {
       const { error } = await db.from("saved_books").delete()
-        .eq("child_id", activeChild.id).eq("book_key", bookKey);
+        .eq("child_id", activeChild.id).eq("book_key", k);
       if (error) throw error;
-    } catch (e) {
-      saved.set(bookKey, previous); drawShelfRow();
-      console.error("Couldn't remove from shelf:", e);
-    }
+    } catch(e){ saved.set(k, prev); drawShelfRow(); console.error(e); }
     if (cards.length) draw();
     return;
   }
 
-  saved.set(bookKey, status);
-  drawShelfRow();
+  saved.set(k, status); drawShelfRow();
   try {
-    // upsert on (child_id, book_key) — the unique constraint makes this
-    // an insert the first time and an update after.
-    const { error } = await db.from("saved_books").upsert({
-      child_id: activeChild.id, book_key: bookKey,
-      book_title: bookTitle, cover_id: coverId ?? null, status
-    }, { onConflict: "child_id,book_key" });
+    // the unique (child_id, book_key) constraint makes this insert-or-update
+    const { error } = await db.from("saved_books").upsert(
+      { child_id:activeChild.id, book_key:k, book_title:title, cover_id:coverId ?? null, status },
+      { onConflict: "child_id,book_key" });
     if (error) throw error;
-  } catch (e) {
-    previous ? saved.set(bookKey, previous) : saved.delete(bookKey);
-    drawShelfRow();
-    console.error("Couldn't save to shelf:", e);
+  } catch(e){
+    prev ? saved.set(k, prev) : saved.delete(k);
+    drawShelfRow(); console.error(e);
   }
   if (cards.length) draw();
 }
@@ -598,23 +532,20 @@ function drawShelfRow(){
   const box = $("pShelf");
   box.replaceChildren();
   if (!openItem) return;
-
-  if (!user || !activeChild){
-    box.append(el("span", "lbl", user ? "Add a reader to save books." : "Sign in to save books."));
-    return;
-  }
+  if (!user || !activeChild)
+    return box.append(el("span","lbl", user ? "Add a reader to save books." : "Sign in to save books."));
 
   const k = cardKey(openItem);
   const t = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
   const coverId = Number.isFinite(openItem.doc?.cover_i) ? openItem.doc.cover_i : null;
   const now = saved.get(k) || null;
 
-  box.append(el("span", "lbl", `${activeChild.name}'s shelf`));
-  SHELF_STATUSES.forEach(([value, label]) => {
-    const b = el("button", "status", label);
+  box.append(el("span","lbl",`${activeChild.name}'s shelf`));
+  SHELF.forEach(([v,label]) => {
+    const b = el("button","status",label);
     b.type = "button";
-    b.setAttribute("aria-pressed", String(now === value));
-    b.onclick = () => setStatus(k, t, coverId, value);
+    b.setAttribute("aria-pressed", String(now === v));
+    b.onclick = () => setStatus(k, t, coverId, v);
     box.append(b);
   });
 }
@@ -623,88 +554,83 @@ function drawShelfRow(){
 async function loadReviews(keys){
   if (!db || !keys.length) return;
   try {
-    // One request for every book on screen. Looping a query per book would
-    // be a dozen round trips for a single page — the N+1 problem.
+    // One request for the whole page. A query per book would be a dozen
+    // round trips — the N+1 problem.
     const { data, error } = await db.from("reviews")
       .select("book_key, rating, body, created_at")
-      .in("book_key", keys)
-      .order("created_at", { ascending: false });
+      .in("book_key", keys).order("created_at", { ascending:false });
     if (error) throw error;
     keys.forEach(k => reviews.set(k, []));
     (data || []).forEach(r => {
       if (!reviews.has(r.book_key)) reviews.set(r.book_key, []);
       reviews.get(r.book_key).push(r);
     });
-  } catch (e) { console.error("Couldn't load reviews:", e); }
+  } catch(e){ console.error("Couldn't load reviews:", e); }
 }
 
 function renderReviewForm(){
-  const inOk = !!(db && user);
-  $("reviewForm").hidden = !inOk;
-  $("signInPrompt").hidden = inOk;
+  const ok = !!(db && user);
+  $("reviewForm").hidden = !ok;
+  $("signInPrompt").hidden = ok;
 }
 
 /* ===== series matching =====
-   Strip punctuation and case so "The Titan's Curse" and "Titans Curse" match.
-   A book-title match must also agree on the author, because titles like
-   "Exile", "Legacy" and "Nightfall" belong to hundreds of unrelated books. */
-const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+   Normalise punctuation so "The Titan's Curse" and "Titans Curse" match.
+   A book-title match must also agree on the author — titles like "Exile",
+   "Legacy" and "Nightfall" belong to hundreds of unrelated books. */
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 
 function findSeries(doc){
   const t = norm(doc?.title);
   if (!t) return null;
   const authors = (doc?.author_name || []).map(norm);
-  for (const [id, s] of Object.entries(SERIES)){
+  for (const [id,s] of Object.entries(SERIES)){
     if (s.match.test(doc.title)) return { id, ...s };
-    if (authors.includes(norm(s.author)) && s.books.some(b => t.includes(norm(b.title))))
-      return { id, ...s };
+    if (authors.includes(norm(s.author)) && s.books.some(b => t.includes(norm(b.title)))) return { id, ...s };
   }
   return null;
 }
 const seriesNotes = s => [...new Set(s.books.flatMap(b => b.notes || []))];
 
-/* ===== preference chips ===== */
-const chipEls = new Map();
-$("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id, c]) => {
-  const b = el("button", "chip", c.label);
-  b.type = "button";
-  b.title = c.blurb;
+/* ===== chips ===== */
+$("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id,c]) => {
+  const b = el("button","chip",c.label);
+  b.type = "button"; b.title = c.blurb;
   b.setAttribute("aria-label", `${c.label}. ${c.blurb}`);
   b.onclick = () => {
     const next = STATES[(STATES.indexOf(prefs.get(id) || null) + 1) % 3];
-    if (next){ prefs.set(id, next); b.dataset.state = next; }
+    if (next){ prefs.set(id,next); b.dataset.state = next; }
     else { prefs.delete(id); delete b.dataset.state; }
     savePrefs();
     if (cards.length) draw();
   };
-  chipEls.set(id, b);
+  chipEls.set(id,b);
   return b;
 }));
 
-function syncChips(){
-  chipEls.forEach((b, id) => {
-    const s = prefs.get(id);
-    if (s) b.dataset.state = s; else delete b.dataset.state;
-  });
-}
+const syncChips = () => chipEls.forEach((b,id) => {
+  const s = prefs.get(id);
+  if (s) b.dataset.state = s; else delete b.dataset.state;
+});
 
 /* ===== age ===== */
 const age = () => {
-  const n = parseInt($("age").value, 10);
-  return Number.isFinite(n) ? Math.min(18, Math.max(2, n)) : 8;
+  const n = parseInt($("age").value,10);
+  return Number.isFinite(n) ? Math.min(18, Math.max(2,n)) : 8;
 };
-const level = a => a <= 5 ? "picture books" : a <= 8 ? "juvenile fiction"
-              : a <= 12 ? "juvenile literature" : "young adult fiction";
+const level = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
+              : a<=12 ? "juvenile literature" : "young adult fiction";
 const showLevel = () => $("level").textContent = level(age());
 $("age").addEventListener("input", showLevel);
 $("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
 showLevel();
 
-/* ===== search: three tiers, widening until something comes back ===== */
-const tiers = (t, a) => [
-  [`subject:"${t}" AND subject:"${level(a)}"`, null],
-  [`subject:"${t}" AND subject:"juvenile"`, "Nothing matched that exact reading level, so this is a wider age range."],
-  [t, "No subject matches, so these are general keyword results — check them yourself."]
+/* ===== search: three tiers, widening until something comes back.
+   language:eng keeps out the Portuguese and Spanish editions. ===== */
+const tiers = (t,a) => [
+  [`subject:"${t}" AND subject:"${level(a)}" AND language:eng`, null],
+  [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
+  [`${t} AND language:eng`, "No subject matches, so these are general keyword results — check them yourself."]
 ];
 
 async function fetchTier(q, signal){
@@ -720,9 +646,9 @@ async function fetchTier(q, signal){
 }
 
 async function search(){
-  const a = age(), topic = $("topic").value.trim().replace(/"/g, "");
+  const a = age(), topic = $("topic").value.trim().replace(/"/g,"");
   if (!topic){
-    banner("Tell me what they like first", "", null, "Try dinosaurs, space, or friendship.");
+    banner("Tell me what they like first","",null,"Try dinosaurs, space, or friendship.");
     return $("topic").focus();
   }
 
@@ -735,27 +661,27 @@ async function search(){
   $("title").textContent = "Searching…";
   $("count").textContent = "";
   $("relaxed").hidden = $("hidden-msg").hidden = true;
-  $("shelf").replaceChildren(...Array.from({length:4}, () => el("li", "skeleton")));
+  $("shelf").replaceChildren(...Array.from({length:4}, () => el("li","skeleton")));
 
   try {
     let docs = [], note = null;
-    for (const [q, n] of tiers(topic, a)){
+    for (const [q,n] of tiers(topic,a)){
       docs = await fetchTier(q, ctrl.signal);
-      if (mine !== searchId) return;          // a newer search won
+      if (mine !== searchId) return;            // a newer search won
       if (docs.length){ note = n; break; }
     }
     cards = collapse(docs);
-    draw(topic, note);                        // paint immediately…
-    await loadReviews(cards.map(cardKey));    // …then fill in review counts
+    draw(topic, note);                          // paint immediately…
+    await loadReviews(cards.map(cardKey));      // …then fill in review counts
     if (mine === searchId && cards.length) draw();
-  } catch (err) {
+  } catch(err){
     if (mine !== searchId) return;
     if (err?.name === "AbortError"){
       if (ctrl.signal.reason === "timeout")
-        banner("That took too long", "", null, "Open Library didn't answer within 12 seconds. Try again.");
+        banner("That took too long","",null,"Open Library didn't answer within 12 seconds. Try again.");
       return;
     }
-    banner(navigator.onLine ? "Couldn't load books" : "You appear to be offline", "", null,
+    banner(navigator.onLine ? "Couldn't load books" : "You appear to be offline","",null,
            err?.message || "Something went wrong reaching the book service.");
   } finally {
     clearTimeout(timer);
@@ -763,8 +689,8 @@ async function search(){
   }
 }
 
-/* One card per series. A dragons search returns nine Wings of Fire editions and
-   buries everything else; pointing at book one beats showing book 7. */
+/* One card per series — a dragons search returns nine Wings of Fire editions
+   and buries everything else. Pointing at book one beats showing book 7. */
 function collapse(docs){
   const out = [], groups = new Map();
   for (const d of docs){
@@ -772,13 +698,11 @@ function collapse(docs){
     if (!s){ out.push({ kind:"book", doc:d }); continue; }
     if (!groups.has(s.id)){
       const card = { kind:"series", series:s, doc:d };
-      groups.set(s.id, card);
-      out.push(card);
-      continue;
+      groups.set(s.id, card); out.push(card); continue;
     }
     const card = groups.get(s.id), first = norm(s.books[0].title);
     if (Number.isFinite(d.cover_i) && norm(d.title).includes(first) && !norm(card.doc.title).includes(first))
-      card.doc = d;                            // upgrade to a book-one cover
+      card.doc = d;                              // upgrade to a book-one cover
   }
   return out;
 }
@@ -790,7 +714,7 @@ function banner(title, count, note, message){
   $("relaxed").hidden = !note;
   if (note) $("relaxed").textContent = note;
   $("hidden-msg").hidden = true;
-  if (message) $("shelf").replaceChildren(el("li", "muted", message));
+  if (message) $("shelf").replaceChildren(el("li","muted",message));
 }
 
 function draw(topic = lastTopic, note = lastNote){
@@ -798,49 +722,45 @@ function draw(topic = lastTopic, note = lastNote){
   const a = age();
 
   if (!cards.length)
-    return banner(`Nothing found for "${topic}"`, "", null,
+    return banner(`Nothing found for "${topic}"`,"",null,
                   "Try a broader word — animals, magic, mystery, sports — or check the spelling.");
 
-  const avoided = [...prefs].filter(([, s]) => s === "avoid").map(([id]) => id);
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
   const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(n)));
   const hid = cards.length - visible.length;
 
-  banner(`Books about ${topic}`, `${visible.length} result${visible.length === 1 ? "" : "s"} · ${level(a)}`, note);
+  banner(`Books about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
 
   if (hid){
-    $("hidden-msg").textContent = `${hid} result${hid === 1 ? "" : "s"} hidden by your content preferences.`;
+    $("hidden-msg").textContent = `${hid} result${hid===1?"":"s"} hidden by your content preferences.`;
     $("hidden-msg").hidden = false;
   }
   if (!visible.length)
-    return $("shelf").replaceChildren(el("li", "muted", "Everything found was hidden by your preferences. Try loosening one."));
+    return $("shelf").replaceChildren(el("li","muted","Everything found was hidden by your preferences. Try loosening one."));
 
   $("shelf").replaceChildren(...visible.map(c => {
-    const li = el("li"), btn = el("button", "book"), isS = c.kind === "series";
+    const li = el("li"), btn = el("button","book"), isS = c.kind === "series", k = cardKey(c);
     btn.type = "button";
-    btn.append(cover(c.doc, "M"));
+    btn.append(cover(c.doc,"M"));
 
     const info = el("div");
-    info.append(el("h3", "", isS ? c.series.title : c.doc.title),
-                el("p", "author", isS ? c.series.author : author(c.doc)));
+    info.append(el("h3","", isS ? c.series.title : c.doc.title),
+                el("p","author", isS ? c.series.author : author(c.doc)));
 
-    const meta = el("div", "meta"), k = cardKey(c);
+    const meta = el("div","meta");
     if (isS){
-      meta.append(el("span", "tag series", `${c.series.books.length} books · view series`));
-      if (c.series.ages) meta.append(el("span", "tag", `Ages ${c.series.ages}`));
-    } else if (Number.isFinite(c.doc.first_publish_year)){
-      meta.append(el("span", "tag", String(c.doc.first_publish_year)));
+      meta.append(el("span","tag series",`${c.series.books.length} books · view series`));
+      if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
+    } else if (validYear(c.doc.first_publish_year)){
+      meta.append(el("span","tag",String(c.doc.first_publish_year)));
     }
+    if (saved.has(k))
+      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k))?.[1] || "Saved"));
 
-    if (saved.has(k)){
-      const label = SHELF_STATUSES.find(s => s[0] === saved.get(k))?.[1] || "Saved";
-      meta.append(el("span", "tag saved", label));
-    }
-
-    const mine = reviews.get(k) || [];
-    const avg = average(mine);
+    const mine = reviews.get(k) || [], avg = average(mine);
     if (avg){
-      meta.append(el("span", "stars-mini", "★".repeat(avg)));
-      meta.append(el("span", "n-reviews", `${mine.length} review${mine.length === 1 ? "" : "s"}`));
+      meta.append(el("span","stars-mini","★".repeat(avg)));
+      meta.append(el("span","n-reviews",`${mine.length} review${mine.length===1?"":"s"}`));
     }
     info.append(meta);
 
@@ -858,10 +778,10 @@ function draw(topic = lastTopic, note = lastNote){
    reader decide; the same tag serves a family avoiding romance and a family
    looking for representation. */
 function noteRow(ids, forSeries){
-  const row = el("div", "notes");
-  row.append(el("span", "notes-label", forSeries ? "Across the series" : "Includes"));
+  const row = el("div","notes");
+  row.append(el("span","notes-label", forSeries ? "Across the series" : "Includes"));
   ids.forEach(id => {
-    const t = el("span", "tag note", CATEGORIES[id]?.label || id);
+    const t = el("span","tag note", CATEGORIES[id]?.label || id);
     t.title = CATEGORIES[id]?.blurb || "";
     if (prefs.get(id) === "flag") t.classList.add("avoided");
     row.append(t);
@@ -870,11 +790,11 @@ function noteRow(ids, forSeries){
 }
 
 function cover(b, size){
-  if (!Number.isFinite(b?.cover_i)) return el("div", "cover");
-  const img = el("img", "cover");
+  if (!Number.isFinite(b?.cover_i)) return el("div","cover");
+  const img = el("img","cover");
   img.alt = ""; img.loading = "lazy";
   img.src = `https://covers.openlibrary.org/b/id/${b.cover_i}-${size}.jpg`;
-  img.onerror = () => img.replaceWith(el("div", "cover"));   // cover IDs can 404
+  img.onerror = () => img.replaceWith(el("div","cover"));   // cover IDs can 404
   return img;
 }
 
@@ -884,31 +804,29 @@ async function openPanel(c){
   openItem = c; rating = 0; lastFocus = document.activeElement;
   const isS = c.kind === "series";
 
-  $("pTitle").textContent = isS ? c.series.title : c.doc.title;
+  $("pTitle").textContent  = isS ? c.series.title : c.doc.title;
   $("pAuthor").textContent = isS ? c.series.author : author(c.doc);
-  $("pCover").replaceChildren(cover(c.doc, "L"));
+  $("pCover").replaceChildren(cover(c.doc,"L"));
 
   const meta = $("pMeta");
   meta.replaceChildren();
   if (isS){
     const y = c.series.books.map(b => b.year).filter(Boolean);
-    if (y.length) meta.append(el("span", "tag", `${Math.min(...y)}–${Math.max(...y)}`));
-    if (c.series.ages) meta.append(el("span", "tag", `Ages ${c.series.ages}`));
-  } else if (Number.isFinite(c.doc.first_publish_year)){
-    meta.append(el("span", "tag", `First published ${c.doc.first_publish_year}`));
+    if (y.length) meta.append(el("span","tag",`${Math.min(...y)}–${Math.max(...y)}`));
+    if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
+  } else if (validYear(c.doc.first_publish_year)){
+    meta.append(el("span","tag",`First published ${c.doc.first_publish_year}`));
   }
 
   $("pBlurb").textContent = isS ? `Start with book one: ${c.series.books[0].title}.` : opening(c.doc);
 
   const notes = notesOf(c);
-  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, isS)] : []));
+  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes,isS)] : []));
   $("pSubjects").replaceChildren(...(c.doc.subject || [])
-    .filter(s => typeof s === "string" && s.length < 40).slice(0, 6)
-    .map(s => el("span", "tag", s)));
+    .filter(s => typeof s === "string" && s.length < 40).slice(0,6).map(s => el("span","tag",s)));
   $("pSeries").replaceChildren(...(isS ? seriesBlock(c.series) : []));
 
-  drawShelfRow();
-  renderReviewForm();
+  drawShelfRow(); renderReviewForm();
   $("rText").value = ""; count();
   $("saveMsg").textContent = ""; $("saveMsg").classList.remove("err");
   stars(); list();
@@ -923,17 +841,16 @@ async function openPanel(c){
 }
 
 function seriesBlock(s){
-  const out = [el("hr"), el("h3", "", "Reading order")], ul = el("ul", "series-list");
+  const out = [el("hr"), el("h3","","Reading order")], ul = el("ul","series-list");
   s.books.forEach(b => {
-    const row = el("li", "series-row" + (b.year ? "" : " upcoming")), right = el("div");
-    row.append(el("span", "num", String(b.n)));
-    right.append(el("div", "t", b.title),
-                 el("div", "y", b.year ? String(b.year) : "Announced — no release date yet"));
-    if (b.notes?.length) right.append(noteRow(b.notes, false));
-    row.append(right);
-    ul.append(row);
+    const row = el("li","series-row" + (b.year ? "" : " upcoming")), right = el("div");
+    row.append(el("span","num",String(b.n)));
+    right.append(el("div","t",b.title),
+                 el("div","y", b.year ? String(b.year) : "Announced — no release date yet"));
+    if (b.notes?.length) right.append(noteRow(b.notes,false));
+    row.append(right); ul.append(row);
   });
-  out.push(ul, el("p", "source",
+  out.push(ul, el("p","source",
     "Reading order and content notes are hand-entered and checked, not pulled from a database. Spot something wrong? Fix it in the catalogue."));
   return out;
 }
@@ -952,15 +869,13 @@ document.addEventListener("keydown", e => {
   const open = [...document.querySelectorAll(".backdrop.open")].pop();
   if (!open) return;
   if (e.key === "Escape"){
-    if (open.id === "backdrop") closePanel();
-    else if (open.id === "authBack") closeAuth();
-    else closeKid();
+    open.id === "backdrop" ? closePanel() : open.id === "authBack" ? closeAuth() : closeKid();
     return;
   }
   if (e.key !== "Tab") return;
   const f = open.querySelectorAll("button, textarea, input, [href]");
   if (!f.length) return;
-  const first = f[0], last = f[f.length - 1];
+  const first = f[0], last = f[f.length-1];
   if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 });
@@ -969,7 +884,7 @@ function stars(){
   $("rate").replaceChildren(...[1,2,3,4,5].map(n => {
     const b = el("button", n <= rating ? "on" : "", "★");
     b.type = "button";
-    b.setAttribute("aria-label", `${n} star${n > 1 ? "s" : ""}`);
+    b.setAttribute("aria-label", `${n} star${n>1?"s":""}`);
     b.setAttribute("aria-pressed", String(n === rating));
     b.onclick = () => { rating = rating === n ? 0 : n; stars(); };   // click current to clear
     return b;
@@ -985,53 +900,38 @@ $("rText").addEventListener("input", count);
 
 $("save").onclick = async () => {
   if (!openItem) return;
-  const body = $("rText").value.trim();
-  const msg = $("saveMsg");
+  const body = $("rText").value.trim(), msg = $("saveMsg");
   msg.classList.remove("err");
-
-  if (!db || !user){
-    msg.textContent = "Sign in to leave a review.";
-    msg.classList.add("err");
-    return;
-  }
+  if (!db || !user){ msg.textContent = "Sign in to leave a review."; msg.classList.add("err"); return; }
   if (!rating && !body){ msg.textContent = "Add a star rating or a few words first."; return; }
 
   const k = cardKey(openItem);
-  const titleText = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
-  const submitted = { rating, body, created_at: new Date().toISOString(), pending: true };
+  const t = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
+  const draft = { rating, body, created_at:new Date().toISOString(), pending:true };
 
-  /* Optimistic update: show it instantly, then confirm with the server. If the
-     write fails we take it back out — a review that looks saved but isn't is
-     the worst possible outcome. */
+  /* Optimistic: show it instantly, then confirm. If the write fails we take it
+     back out — a review that looks saved but isn't is the worst outcome. */
   if (!reviews.has(k)) reviews.set(k, []);
-  reviews.get(k).unshift(submitted);
-  list();
-
-  $("save").disabled = true;
-  msg.textContent = "Saving…";
+  reviews.get(k).unshift(draft); list();
+  $("save").disabled = true; msg.textContent = "Saving…";
 
   try {
     const { data, error } = await db.from("reviews").insert({
-      book_key: k, book_title: titleText,
-      rating: rating || null, body: body || null,
-      user_id: user.id                       // the RLS policy checks this matches auth.uid()
+      book_key:k, book_title:t, rating:rating||null, body:body||null,
+      user_id:user.id                         // RLS checks this matches auth.uid()
     }).select().single();
     if (error) throw error;
-
     const arr = reviews.get(k);
-    arr[arr.indexOf(submitted)] = data;      // swap placeholder for the real row
+    arr[arr.indexOf(draft)] = data;
     $("rText").value = ""; rating = 0;
-    count(); stars();
-    msg.textContent = "Saved.";
-  } catch (e) {
-    const arr = reviews.get(k), i = arr.indexOf(submitted);
-    if (i > -1) arr.splice(i, 1);            // roll it back
+    count(); stars(); msg.textContent = "Saved.";
+  } catch(e){
+    const arr = reviews.get(k), i = arr.indexOf(draft);
+    if (i > -1) arr.splice(i,1);              // roll it back
     msg.textContent = "Couldn't save that. Check your connection and try again.";
-    msg.classList.add("err");
-    console.error("Save failed:", e);
+    msg.classList.add("err"); console.error(e);
   } finally {
-    $("save").disabled = false;
-    list();
+    $("save").disabled = false; list();
     if (cards.length) draw();
   }
 };
@@ -1039,15 +939,15 @@ $("save").onclick = async () => {
 function list(){
   const mine = reviews.get(cardKey(openItem)) || [];
   if (!mine.length){
-    const p = el("p", "muted", "No reviews yet. Be the first.");
+    const p = el("p","muted","No reviews yet. Be the first.");
     p.style.marginTop = "18px";
     return $("rList").replaceChildren(p);
   }
   $("rList").replaceChildren(...mine.map(r => {
-    const d = el("div", "review" + (r.pending ? " pending" : ""));
-    if (r.rating) d.append(el("div", "stars", "★".repeat(r.rating) + "☆".repeat(5 - r.rating)));
-    if (r.body) d.append(el("p", "", r.body));
-    d.append(el("div", "when", r.pending ? "Saving…" : when(r.created_at)));
+    const d = el("div","review" + (r.pending ? " pending" : ""));
+    if (r.rating) d.append(el("div","stars","★".repeat(r.rating) + "☆".repeat(5 - r.rating)));
+    if (r.body) d.append(el("p","",r.body));
+    d.append(el("div","when", r.pending ? "Saving…" : when(r.created_at)));
     return d;
   }));
 }
@@ -1059,43 +959,32 @@ const key = b => !b ? "" : (b.key || `${b.title}|${author(b)}`);
 const author = b => b?.author_name?.[0]?.trim() || "Unknown author";
 const average = l => {
   const r = (l || []).filter(x => x?.rating > 0);
-  return r.length ? Math.round(r.reduce((s, x) => s + x.rating, 0) / r.length) : 0;
+  return r.length ? Math.round(r.reduce((s,x) => s + x.rating, 0) / r.length) : 0;
 };
 
 function when(iso){
   const d = new Date(iso);
   if (isNaN(d)) return "";
-  const mins = Math.floor((Date.now() - d) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
-  return d.toLocaleDateString();
-}
-
-// first_sentence arrives as a string, an array, or {value} depending on the record
-function opening(b){
-  let s = b.first_sentence;
-  if (Array.isArray(s)) s = s[0];
-  if (s && typeof s === "object") s = s.value;
-  return typeof s === "string" && s.trim() ? `It opens: ${s.trim()}`
-       : "No description available for this one yet.";
+  const m = Math.floor((Date.now() - d) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} minute${m===1?"":"s"} ago`;
+  const h = Math.floor(m/60);
+  return h < 24 ? `${h} hour${h===1?"":"s"} ago` : d.toLocaleDateString();
 }
 
 /* ===== wiring ===== */
 $("search").onclick = search;
-["topic", "age"].forEach(id =>
-  $(id).addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); search(); } }));
-["email", "pw"].forEach(id =>
-  $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("authGo").click(); }));
-["kidName", "kidAge"].forEach(id =>
-  $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("kidGo").click(); }));
+["topic","age"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter"){ e.preventDefault(); search(); } }));
+["email","pw"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") $("authGo").click(); }));
+["kidName","kidAge"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") $("kidGo").click(); }));
 
 renderAccount();
 
 /* WEEK 4 — AI recommendations via a Supabase Edge Function. The Anthropic key
-            stays server-side, and AI-suggested content notes must be labelled
-            unverified — a wrong note is worse than none. */
+            stays server-side, and AI-suggested notes must be labelled unverified. */
 </script>
 </body>
 </html>
