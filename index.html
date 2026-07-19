@@ -38,8 +38,11 @@ h1 span{color:var(--berry)}
 .blank input.wide{width:11ch;max-width:60vw;text-align:left;color:var(--ink);font-weight:600}
 .hint{margin:16px 0 0;font-size:13px;color:var(--soft);min-height:20px}
 .hint b{color:var(--berry)}
-.go{margin-top:20px;font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.go{font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
 .go:hover{background:var(--berry)}
+.go.alt2{background:none;color:var(--ink);border:1px solid var(--ink)}
+.go.alt2:hover{background:var(--ink);color:var(--paper)}
 .go[disabled]{opacity:.55;cursor:progress}
 .prefs{margin:22px 0 0;padding-top:20px;border-top:1px dashed var(--rule)}
 .prefs h4{font-size:14px;font-weight:600;margin-bottom:4px}
@@ -56,23 +59,34 @@ h1 span{color:var(--berry)}
 .banner.warn{color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold)}
 .banner.info{color:var(--soft);background:var(--card);border:1px solid var(--rule)}
 .banner.bad{color:#7d2340;background:#F7E4EA;border:1px solid var(--berry)}
-.shelf{list-style:none;margin:0 0 60px;padding:0;display:grid;gap:14px}
+.shelf{list-style:none;margin:0 0 40px;padding:0;display:grid;gap:14px}
 .skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
 .book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
 .book{display:grid;grid-template-columns:64px 1fr;gap:16px;width:100%;text-align:left;padding:16px;transition:border-color .15s}
 .book:hover{border-color:var(--ink)}
+.book.ai{border-left:3px solid var(--berry)}
 .cover{display:block;width:64px;height:96px;object-fit:cover;background:var(--rule);border-radius:2px}
 .book h3{font-size:18px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
 .author{font-size:14px;color:var(--soft);margin:0 0 10px;overflow-wrap:anywhere}
-.meta,.subjects,.notes,.shelf-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.why{font-size:14px;margin:0 0 8px}
+.fit{font-size:13px;color:var(--soft);margin:0 0 10px}
+.meta,.subjects,.notes,.shelf-row,.links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .notes{margin-top:8px}
 .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
 .tag.series{border-color:var(--gold);color:#9a6a15}
 .tag.saved{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.tag.ai{border-color:var(--berry);color:var(--berry)}
 .tag.note{border-color:#B9C4C8;color:var(--ink);text-transform:none;letter-spacing:0;font-size:12px}
 .tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
 .notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
+.rating{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rating .val{font-family:var(--display);font-weight:900;font-size:19px}
+.rating .of{font-size:12px;color:var(--soft)}
+.rating .src{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.ai-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin:0 0 6px}
+.ai-head h2{font-size:19px;font-weight:600}
+.ai-note{font-size:13px;color:var(--soft);margin:0 0 14px;font-style:italic}
 .backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
 .backdrop.open{display:flex}
 .panel{max-width:640px;width:100%;padding:24px;margin:auto 0}
@@ -88,6 +102,14 @@ h1 span{color:var(--berry)}
 .shelf-row .lbl{font-size:12px;color:var(--soft)}
 .status{border:1px solid var(--rule);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--soft);transition:.12s}
 .status[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
+.get{margin-top:20px;padding-top:18px;border-top:1px solid var(--rule)}
+.get h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-family:var(--body);font-weight:700;margin-bottom:10px}
+.get .links{gap:8px}
+.get a{display:inline-block;border:1px solid var(--rule);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);text-decoration:none;transition:.12s}
+.get a:hover{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.get a.free{border-color:var(--gold);color:#8a5f10;font-weight:600}
+.get a.free:hover{background:var(--gold);color:var(--ink)}
+.get .why{font-size:12px;color:var(--soft);margin:10px 0 0;font-style:italic}
 hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
 .series-list{list-style:none;margin:0;padding:0}
@@ -146,12 +168,25 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
       <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
     </p>
     <p class="hint">Searching <b id="level">juvenile fiction</b></p>
-    <button class="go" id="search">Find books</button>
+    <div class="actions">
+      <button class="go" id="search">Search the catalogue</button>
+      <button class="go alt2" id="ask">Ask the librarian</button>
+    </div>
     <div class="prefs">
       <h4>Content preferences</h4>
       <p id="prefs-note">Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
       <div class="chips" id="chips"></div>
     </div>
+  </section>
+
+  <section id="aiSection" hidden>
+    <div class="ai-head">
+      <h2 id="aiTitle">The librarian suggests</h2>
+      <span class="count" id="aiCount"></span>
+    </div>
+    <p class="ai-note">Suggested by AI and unverified. Reading levels and content are its best guess, not a checked fact — treat them as a starting point.</p>
+    <p class="banner bad" id="aiErr" hidden></p>
+    <ul class="shelf" id="aiShelf"></ul>
   </section>
 
   <div class="head">
@@ -163,11 +198,11 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner info" id="hidden-msg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
 
-  <p class="note-block"><strong>Week 3b.</strong> Sign in, add a reader, and their age and content
-    preferences load automatically. Save books to each reader's shelf. Series and content notes
-    come from the hand-checked catalogue in this file.</p>
+  <p class="note-block"><strong>Week 5.</strong> Every book now shows a real description, a reader
+    rating, and where to borrow or buy it — libraries first. Ratings come from Google Books, with
+    Open Library as a fallback.</p>
 
-  <footer>Built by a human. Book data from Open Library. Series and content notes hand-entered.</footer>
+  <footer>Built by a human. Books from Open Library and Google Books. Series and content notes hand-entered.</footer>
 </div>
 
 <div class="backdrop" id="backdrop">
@@ -175,12 +210,18 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <button class="close" id="close" aria-label="Close">&times;</button>
     <div class="panel-top">
       <div id="pCover"></div>
-      <div><h2 id="pTitle"></h2><p class="author" id="pAuthor"></p><div class="meta" id="pMeta"></div></div>
+      <div>
+        <h2 id="pTitle"></h2>
+        <p class="author" id="pAuthor"></p>
+        <div class="meta" id="pMeta"></div>
+        <div id="pRating"></div>
+      </div>
     </div>
     <p class="blurb" id="pBlurb"></p>
     <div class="notes" id="pNotes"></div>
     <div class="subjects" id="pSubjects"></div>
     <div class="shelf-row" id="pShelf"></div>
+    <div id="pGet"></div>
     <div id="pSeries"></div>
     <hr>
     <h3>Leave a review</h3>
@@ -224,14 +265,21 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
-/* Next Chapter. Books: Open Library. Series + content notes: the catalogue below.
+/* Next Chapter.
+   Catalogue + covers: Open Library. Descriptions + ratings: Google Books.
    Accounts, profiles, shelves, reviews: Supabase.
-   API text always enters via textContent, never innerHTML — Open Library is
-   wiki-editable, so a title is never trusted as markup. Searches are versioned
-   and aborted so a slow old request can't overwrite a newer one. */
+   Recommendations: an Edge Function that calls Claude server-side.
+
+   Note on ratings: Goodreads closed its API in 2020 and Common Sense Media
+   has never had one, so neither can be read programmatically. Google Books
+   is the closest available source; Common Sense is linked to instead, which
+   sends parents to the authoritative page rather than a stale copy of it.
+
+   All API text enters the DOM via textContent, never innerHTML — Open Library
+   is wiki-editable, so a title is never trusted as markup. */
 
 /* The anon key is MEANT to be public — Row Level Security protects the data.
-   Never put the service_role key here. */
+   Never put the service_role or Anthropic key here. */
 const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
 
@@ -301,7 +349,8 @@ const SERIES = {
 
 /* ===== setup ===== */
 const API="https://openlibrary.org/search.json";
-const FIELDS="key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
+const GBOOKS="https://www.googleapis.com/books/v1/volumes";
+const FIELDS="key,title,author_name,cover_i,subject,first_sentence,isbn,ia,ebook_access";
 const LIMIT=20, TIMEOUT=12000, MAXCHARS=600;
 const STATES=[null,"flag","avoid"];
 const SHELF=[["want","Want to read"],["reading","Reading"],["finished","Finished"]];
@@ -314,10 +363,10 @@ const el = (tag, cls, text) => {
   return n;
 };
 
-let cards=[], openItem=null, rating=0, searchId=0, inFlight=null, lastFocus=null;
-let lastTopic="", lastNote=null;
+let cards=[], aiCards=[], openItem=null, rating=0, searchId=0, inFlight=null, lastFocus=null;
+let lastTopic="", lastNote=null, panelToken=0;
 let user=null, children=[], activeChild=null, authMode="in";
-const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map();
+const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map(), infoCache=new Map();
 
 /* ===== database =====
    The app must work when this fails. A dead database costs you reviews,
@@ -328,25 +377,129 @@ if (!SUPABASE_ANON_KEY.startsWith("PASTE") && window.supabase){
   catch(e){ console.error("Supabase init failed:", e); }
 }
 if (!db){
-  $("db-warn").textContent = "Not connected to the database — sign-in and saved reviews are off. Add your Supabase anon key near the top of the file.";
+  $("db-warn").textContent = "Not connected to the database — sign-in, saved reviews and AI recommendations are off. Add your Supabase anon key near the top of the file.";
   $("db-warn").hidden = false;
 }
 
-/* ===== data quality =====
-   Open Library is a wiki. Years contain typos (The Hobbit is listed as 1703)
-   and first_sentence is whatever edition someone typed, often not English.
-   Validate rather than trust. */
-// Floor of 1800: this app is about children's books, and essentially none
-// predate that. Anything earlier is a catalogue typo, not a rare first edition.
-const validYear = y => Number.isFinite(y) && y >= 1800 && y <= new Date().getFullYear() + 1;
+/* ===== language filtering =====
+   `language:eng` matches works that have ANY English edition, but Open Library
+   shows the title from the primary record — which is how an Italian Geronimo
+   Stilton slips through. So the title gets checked too: accents English rarely
+   uses, plus function words common elsewhere and vanishingly rare in English. */
+const FOREIGN = /\b(della|delle|degli|nella|nel|dello|sulla|che|gli|il|una|del|los|las|para|por|con|des|dans|avec|pour|les|und|für|mit|eine|einen|vom|não|você|dos|uma)\b/i;
+const ACCENTS = /[ãõçñáéíóúâêîôûäëïöüßàèìòù]/i;
+const looksEnglish = s => typeof s === "string" && !ACCENTS.test(s) && !FOREIGN.test(s);
 
-function opening(b){
-  let s = b.first_sentence;
-  if (Array.isArray(s)) s = s[0];
-  if (s && typeof s === "object") s = s.value;
-  if (typeof s !== "string" || !s.trim()) return "No description available for this one yet.";
-  if (/[ãõçñáéíóúâêîôûäëïöüß]/i.test(s)) return "No description available for this one yet.";
-  return `It opens: ${s.trim()}`;
+/* ===== external info: description + rating =====
+   Goodreads has no API. Google Books does, it's free and needs no key, and it
+   carries real blurbs plus community ratings. Open Library's own ratings are
+   the fallback. Cached per book — reopening a panel shouldn't refetch. */
+const isbnOf = doc => {
+  const list = Array.isArray(doc?.isbn) ? doc.isbn : [];
+  return list.find(i => String(i).length === 13) || list[0] || null;
+};
+
+async function externalInfo(doc){
+  const k = key(doc);
+  if (infoCache.has(k)) return infoCache.get(k);
+
+  const info = { description:null, rating:null, count:0, source:null };
+  const isbn = isbnOf(doc);
+
+  try {
+    const q = isbn
+      ? `isbn:${isbn}`
+      : `intitle:"${(doc?.title || "").replace(/"/g,"")}"` +
+        (author(doc) !== "Unknown author" ? `+inauthor:"${author(doc).replace(/"/g,"")}"` : "");
+
+    const res = await fetch(`${GBOOKS}?q=${encodeURIComponent(q)}&maxResults=1&country=US`);
+    if (res.ok){
+      const data = await res.json();
+      const v = data?.items?.[0]?.volumeInfo;
+      if (v){
+        if (typeof v.description === "string" && v.description.trim())
+          info.description = v.description.replace(/<[^>]*>/g, "").trim();   // Google returns light HTML
+        if (typeof v.averageRating === "number"){
+          info.rating = v.averageRating;
+          info.count = v.ratingsCount || 0;
+          info.source = "Google Books";
+        }
+      }
+    }
+  } catch(e){ /* a missing blurb shouldn't break the panel */ }
+
+  // Fall back to Open Library's own ratings when Google has none.
+  if (info.rating == null && typeof doc?.key === "string" && doc.key.startsWith("/works/")){
+    try {
+      const res = await fetch(`https://openlibrary.org${doc.key}/ratings.json`);
+      if (res.ok){
+        const r = await res.json();
+        if (r?.summary?.average){
+          info.rating = Math.round(r.summary.average * 10) / 10;
+          info.count = r.summary.count || 0;
+          info.source = "Open Library";
+        }
+      }
+    } catch(e){ /* ignore */ }
+  }
+
+  infoCache.set(k, info);
+  return info;
+}
+
+function ratingBlock(info){
+  const box = el("div", "rating");
+  if (info.rating == null) return box;
+  box.append(el("span","val", String(info.rating)));
+  box.append(el("span","of","out of 5"));
+  if (info.count) box.append(el("span","src", `${info.count} rating${info.count===1?"":"s"} · ${info.source}`));
+  else box.append(el("span","src", info.source));
+  return box;
+}
+
+/* ===== where to get it =====
+   Libraries first, deliberately. For children's books "your library has this"
+   is usually a better answer than a price, and it costs the family nothing. */
+function whereToGet(doc){
+  const box = el("div","get");
+  box.append(el("h4","","Where to get it"));
+  const links = el("div","links");
+
+  const add = (label, url, cls) => {
+    const a = el("a", cls || "", label);
+    a.href = url; a.target = "_blank";
+    a.rel = "noopener noreferrer";     // stops the new tab reaching back into yours
+    links.append(a);
+  };
+
+  const isbn = isbnOf(doc);
+  const title = doc?.title || "";
+  const q = encodeURIComponent(`${title} ${author(doc)}`.trim());
+
+  if (doc?.ebook_access === "public" || doc?.ebook_access === "borrowable"){
+    const ia = Array.isArray(doc.ia) ? doc.ia[0] : null;
+    if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow the ebook free",
+                `https://archive.org/details/${encodeURIComponent(ia)}`, "free");
+  }
+
+  add("Find in a library", isbn
+    ? `https://search.worldcat.org/search?q=bn:${encodeURIComponent(isbn)}`
+    : `https://search.worldcat.org/search?q=${q}`);
+
+  // Common Sense Media has no API, so link out rather than cache their reviews.
+  add("Common Sense Media review",
+      `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`);
+
+  add("Bookshop.org", `https://bookshop.org/beta-search?keywords=${encodeURIComponent(isbn || title)}`);
+  add("Compare prices", `https://www.google.com/search?tbm=bks&q=${isbn ? encodeURIComponent(isbn) : q}`);
+
+  if (typeof doc?.key === "string" && doc.key.startsWith("/works/"))
+    add("On Open Library", `https://openlibrary.org${doc.key}`);
+
+  box.append(links);
+  if (!isbn) box.append(el("p","why",
+    "No ISBN on this record, so these searches use the title and author and may be less exact."));
+  return box;
 }
 
 /* ===== auth ===== */
@@ -398,11 +551,10 @@ async function signOut(){
   children = []; activeChild = null;
   saved.clear(); prefs.clear(); syncChips();
   $("prefs-note").textContent = "Tap once to flag, twice to hide. Untapped means it won't affect results.";
-  if (cards.length) draw();
+  refresh();
 }
 
-/* Fires on load with any restored session, so this doubles as startup —
-   no separate "am I logged in?" check needed. */
+/* Fires on load with any restored session, so this doubles as startup. */
 if (db) db.auth.onAuthStateChange(async (_e, session) => {
   user = session?.user || null;
   renderAccount();
@@ -446,7 +598,7 @@ async function selectChild(c){
   $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
   renderKids();
   await loadSaved();
-  if (cards.length) draw();
+  refresh();
 }
 
 function openKid(){
@@ -512,8 +664,7 @@ async function setStatus(k, title, coverId, status){
         .eq("child_id", activeChild.id).eq("book_key", k);
       if (error) throw error;
     } catch(e){ saved.set(k, prev); drawShelfRow(); console.error(e); }
-    if (cards.length) draw();
-    return;
+    refresh(); return;
   }
 
   saved.set(k, status); drawShelfRow();
@@ -527,8 +678,10 @@ async function setStatus(k, title, coverId, status){
     prev ? saved.set(k, prev) : saved.delete(k);
     drawShelfRow(); console.error(e);
   }
-  if (cards.length) draw();
+  refresh();
 }
+
+const refresh = () => { if (cards.length) draw(); if (aiCards.length) drawAi(); };
 
 function drawShelfRow(){
   const box = $("pShelf");
@@ -576,6 +729,113 @@ function renderReviewForm(){
   $("signInPrompt").hidden = ok;
 }
 
+/* ===== AI recommendations =====
+   The Anthropic key lives in the Edge Function's environment, never here.
+   invoke() attaches the session token automatically. */
+$("ask").onclick = async () => {
+  const topic = $("topic").value.trim();
+  if (!topic){ $("topic").focus(); return; }
+  if (!db){
+    $("aiSection").hidden = false;
+    $("aiErr").textContent = "Not connected — add your Supabase anon key first.";
+    $("aiErr").hidden = false;
+    return;
+  }
+
+  const avoid = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => CATEGORIES[id]?.label || id);
+  const seek  = [...prefs].filter(([,s]) => s === "flag").map(([id]) => CATEGORIES[id]?.label || id);
+
+  $("ask").disabled = true;
+  $("aiSection").hidden = false;
+  $("aiErr").hidden = true;
+  $("aiTitle").textContent = "Thinking…";
+  $("aiCount").textContent = "";
+  $("aiShelf").replaceChildren(...Array.from({length:3}, () => el("li","skeleton")));
+
+  try {
+    const { data, error } = await db.functions.invoke("recommend", {
+      body: { age: age(), topic, avoid, seek }
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    const books = Array.isArray(data?.books) ? data.books : [];
+    // The model returns titles and authors only — look each up so we get covers,
+    // and so an invented title quietly ends up with no match.
+    aiCards = (await Promise.all(books.slice(0,6).map(lookUp))).filter(Boolean);
+
+    $("aiTitle").textContent = `The librarian suggests for a ${age()}-year-old`;
+    $("aiCount").textContent = `${aiCards.length} book${aiCards.length===1?"":"s"}`;
+    drawAi();
+    await loadReviews(aiCards.map(cardKey));
+    drawAi();
+  } catch(e){
+    $("aiTitle").textContent = "The librarian suggests";
+    $("aiShelf").replaceChildren();
+    $("aiErr").textContent = "Couldn't get recommendations. " + (e?.message || "Try again in a moment.");
+    $("aiErr").hidden = false;
+    console.error(e);
+  } finally { $("ask").disabled = false; }
+};
+
+async function lookUp(rec){
+  const title = String(rec?.title || "").trim();
+  if (!title) return null;
+  const auth = String(rec?.author || "").trim();
+
+  let doc = null;
+  try {
+    const q = `title:"${title.replace(/"/g,"")}"` + (auth ? ` AND author:"${auth.replace(/"/g,"")}"` : "");
+    const res = await fetch(`${API}?q=${encodeURIComponent(q)}&fields=${FIELDS}&limit=1`);
+    if (res.ok){
+      const { docs } = await res.json();
+      doc = docs?.[0] || null;
+    }
+  } catch(e){ /* a missing cover shouldn't drop the recommendation */ }
+
+  return {
+    kind: "ai",
+    doc: doc || { title, author_name: auth ? [auth] : [] },
+    why: String(rec?.why || "").slice(0,300),
+    fit: String(rec?.fit || "").slice(0,300),
+    found: !!doc
+  };
+}
+
+function drawAi(){
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
+
+  $("aiShelf").replaceChildren(...aiCards.map(c => {
+    const li = el("li"), btn = el("button","book ai"), k = cardKey(c);
+    btn.type = "button";
+    btn.append(cover(c.doc,"M"));
+
+    const info = el("div");
+    info.append(el("h3","", c.doc.title), el("p","author", author(c.doc)));
+    if (c.why) info.append(el("p","why", c.why));
+    if (c.fit) info.append(el("p","fit", c.fit));
+
+    const meta = el("div","meta");
+    meta.append(el("span","tag ai","AI suggestion"));
+    if (!c.found) meta.append(el("span","tag","Not found in the catalogue"));
+    if (saved.has(k)) meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k))?.[1] || "Saved"));
+
+    const mine = reviews.get(k) || [], avg = average(mine);
+    if (avg) meta.append(el("span","stars-mini","★".repeat(avg)));
+
+    const s = findSeries(c.doc), notes = s ? seriesNotes(s) : [];
+    if (notes.length && notes.some(n => avoided.includes(n)))
+      meta.append(el("span","tag","Conflicts with your preferences"));
+    info.append(meta);
+    if (notes.length) info.append(noteRow(notes, true));
+
+    btn.append(info);
+    btn.onclick = () => openPanel(c);
+    li.append(btn);
+    return li;
+  }));
+}
+
 /* ===== series matching =====
    Normalise punctuation so "The Titan's Curse" and "Titans Curse" match.
    A book-title match must also agree on the author — titles like "Exile",
@@ -603,8 +863,7 @@ $("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id,c]) => {
     const next = STATES[(STATES.indexOf(prefs.get(id) || null) + 1) % 3];
     if (next){ prefs.set(id,next); b.dataset.state = next; }
     else { prefs.delete(id); delete b.dataset.state; }
-    savePrefs();
-    if (cards.length) draw();
+    savePrefs(); refresh();
   };
   chipEls.set(id,b);
   return b;
@@ -627,8 +886,7 @@ $("age").addEventListener("input", showLevel);
 $("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
 showLevel();
 
-/* ===== search: three tiers, widening until something comes back.
-   language:eng keeps out the Portuguese and Spanish editions. ===== */
+/* ===== catalogue search: three tiers, widening until something comes back ===== */
 const tiers = (t,a) => [
   [`subject:"${t}" AND subject:"${level(a)}" AND language:eng`, null],
   [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
@@ -642,6 +900,7 @@ async function fetchTier(q, signal){
   const seen = new Set();
   return (Array.isArray(docs) ? docs : []).filter(d => {
     if (!d || typeof d.title !== "string" || !d.title.trim()) return false;
+    if (!looksEnglish(d.title)) return false;         // drop foreign-language editions
     const k = key(d);
     return seen.has(k) ? false : seen.add(k);
   });
@@ -753,8 +1012,6 @@ function draw(topic = lastTopic, note = lastNote){
     if (isS){
       meta.append(el("span","tag series",`${c.series.books.length} books · view series`));
       if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
-    } else if (validYear(c.doc.first_publish_year)){
-      meta.append(el("span","tag",String(c.doc.first_publish_year)));
     }
     if (saved.has(k))
       meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k))?.[1] || "Saved"));
@@ -804,11 +1061,13 @@ function cover(b, size){
 async function openPanel(c){
   if (!c) return;
   openItem = c; rating = 0; lastFocus = document.activeElement;
-  const isS = c.kind === "series";
+  const mine = ++panelToken;                    // guards the async fills below
+  const isS = c.kind === "series", isAi = c.kind === "ai";
 
   $("pTitle").textContent  = isS ? c.series.title : c.doc.title;
   $("pAuthor").textContent = isS ? c.series.author : author(c.doc);
   $("pCover").replaceChildren(cover(c.doc,"L"));
+  $("pRating").replaceChildren();
 
   const meta = $("pMeta");
   meta.replaceChildren();
@@ -816,16 +1075,23 @@ async function openPanel(c){
     const y = c.series.books.map(b => b.year).filter(Boolean);
     if (y.length) meta.append(el("span","tag",`${Math.min(...y)}–${Math.max(...y)}`));
     if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
-  } else if (validYear(c.doc.first_publish_year)){
-    meta.append(el("span","tag",`First published ${c.doc.first_publish_year}`));
+  }
+  if (isAi){
+    meta.append(el("span","tag ai","AI suggestion — unverified"));
+    if (!c.found) meta.append(el("span","tag","Not found in the catalogue"));
   }
 
-  $("pBlurb").textContent = isS ? `Start with book one: ${c.series.books[0].title}.` : opening(c.doc);
+  $("pBlurb").textContent = isS ? `Start with book one: ${c.series.books[0].title}.`
+                          : isAi ? [c.why, c.fit].filter(Boolean).join(" ")
+                          : "Loading description…";
 
-  const notes = notesOf(c);
-  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes,isS)] : []));
+  const s = isAi ? findSeries(c.doc) : null;
+  const notes = isS ? seriesNotes(c.series) : s ? seriesNotes(s) : [];
+  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, true)] : []));
+
   $("pSubjects").replaceChildren(...(c.doc.subject || [])
-    .filter(s => typeof s === "string" && s.length < 40).slice(0,6).map(s => el("span","tag",s)));
+    .filter(x => typeof x === "string" && x.length < 40).slice(0,6).map(x => el("span","tag",x)));
+  $("pGet").replaceChildren(whereToGet(c.doc));
   $("pSeries").replaceChildren(...(isS ? seriesBlock(c.series) : []));
 
   drawShelfRow(); renderReviewForm();
@@ -837,9 +1103,28 @@ async function openPanel(c){
   document.body.classList.add("locked");
   $("close").focus();
 
+  // Fill in the slow bits. panelToken stops a late response landing in a
+  // panel the user has already navigated away from.
   const k = cardKey(c);
-  await loadReviews([k]);
-  if (openItem && cardKey(openItem) === k) list();
+  loadReviews([k]).then(() => { if (mine === panelToken) list(); });
+
+  if (!isS){
+    const info = await externalInfo(c.doc);
+    if (mine !== panelToken) return;
+    $("pRating").replaceChildren(ratingBlock(info));
+    if (!isAi)
+      $("pBlurb").textContent = info.description || fallbackBlurb(c.doc);
+  }
+}
+
+// Only used when Google Books has no description for a title.
+function fallbackBlurb(b){
+  let s = b.first_sentence;
+  if (Array.isArray(s)) s = s[0];
+  if (s && typeof s === "object") s = s.value;
+  if (typeof s !== "string" || !s.trim() || !looksEnglish(s))
+    return "No description available for this one yet.";
+  return `It opens: ${s.trim()}`;
 }
 
 function seriesBlock(s){
@@ -861,7 +1146,7 @@ function closePanel(){
   if (!$("backdrop").classList.contains("open")) return;
   $("backdrop").classList.remove("open");
   document.body.classList.remove("locked");
-  openItem = null;
+  openItem = null; panelToken++;
   if (lastFocus?.isConnected) lastFocus.focus();
 }
 $("close").onclick = closePanel;
@@ -875,7 +1160,7 @@ document.addEventListener("keydown", e => {
     return;
   }
   if (e.key !== "Tab") return;
-  const f = open.querySelectorAll("button, textarea, input, [href]");
+  const f = open.querySelectorAll("button, textarea, input, a[href]");
   if (!f.length) return;
   const first = f[0], last = f[f.length-1];
   if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
@@ -933,8 +1218,7 @@ $("save").onclick = async () => {
     msg.textContent = "Couldn't save that. Check your connection and try again.";
     msg.classList.add("err"); console.error(e);
   } finally {
-    $("save").disabled = false; list();
-    if (cards.length) draw();
+    $("save").disabled = false; list(); refresh();
   }
 };
 
@@ -984,9 +1268,6 @@ $("search").onclick = search;
   if (e.key === "Enter") $("kidGo").click(); }));
 
 renderAccount();
-
-/* WEEK 4 — AI recommendations via a Supabase Edge Function. The Anthropic key
-            stays server-side, and AI-suggested notes must be labelled unverified. */
 </script>
 </body>
 </html>
