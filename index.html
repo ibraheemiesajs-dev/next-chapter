@@ -15,13 +15,27 @@ body.locked{overflow:hidden}
 .wrap{max-width:940px;margin:0 auto;padding:0 20px}
 h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em;margin:0}
 button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font:inherit;color:var(--ink)}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 [hidden]{display:none!important}
-header{padding:34px 0 10px}
+
+header{padding:34px 0 10px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
 h1{font-weight:900;font-size:26px}
 h1 span{color:var(--berry)}
 .tagline{font-size:13px;color:var(--soft);letter-spacing:.14em;text-transform:uppercase;margin:4px 0 0}
-.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:38px 0 34px;margin-top:22px}
+.account{font-size:13px;color:var(--soft);text-align:right;padding-top:6px}
+.account button{text-decoration:underline;color:var(--berry);font-weight:600}
+.account .who{display:block;margin-bottom:2px;overflow-wrap:anywhere}
+
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:30px 0 34px;margin-top:18px}
+
+/* kids */
+.kids{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;align-items:center}
+.kid{border:1px solid var(--rule);border-radius:20px;padding:6px 15px;font-size:13px;color:var(--soft);transition:.12s}
+.kid[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
+.kid.add{border-style:dashed;color:var(--berry)}
+.kids-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-right:2px}
+
 .sentence{font-family:var(--display);font-size:clamp(26px,5vw,46px);line-height:1.3;letter-spacing:-.02em;margin:0}
 .blank{display:inline-flex;border-bottom:3px solid var(--gold);padding:0 4px;max-width:100%}
 .blank input{font:inherit;color:var(--berry);font-weight:900;background:none;border:none;padding:0;width:2.4ch;text-align:center;min-width:0;-moz-appearance:textfield}
@@ -32,6 +46,7 @@ h1 span{color:var(--berry)}
 .go{margin-top:20px;font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
 .go:hover{background:var(--berry)}
 .go[disabled]{opacity:.55;cursor:progress}
+
 .prefs{margin:22px 0 0;padding-top:20px;border-top:1px dashed var(--rule)}
 .prefs h4{font-size:14px;font-weight:600;margin-bottom:4px}
 .prefs p{font-size:13px;color:var(--soft);margin:0 0 12px}
@@ -39,6 +54,7 @@ h1 span{color:var(--berry)}
 .chip{font-size:12px;border:1px solid var(--rule);border-radius:20px;padding:5px 13px;color:var(--soft);transition:.12s}
 .chip[data-state=flag]{border-color:var(--gold);background:#FBF1DC;color:#8a5f10;font-weight:600}
 .chip[data-state=avoid]{border-color:var(--berry);background:var(--berry);color:#fff;font-weight:600}
+
 .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:16px;margin:34px 0 14px}
 .head h2{font-size:19px;font-weight:600}
 .count{font-size:13px;color:var(--soft)}
@@ -47,6 +63,7 @@ h1 span{color:var(--berry)}
 .banner.warn{color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold)}
 .banner.info{color:var(--soft);background:var(--card);border:1px solid var(--rule)}
 .banner.bad{color:#7d2340;background:#F7E4EA;border:1px solid var(--berry)}
+
 .shelf{list-style:none;margin:0 0 60px;padding:0;display:grid;gap:14px}
 .skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
 .book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
@@ -59,14 +76,17 @@ h1 span{color:var(--berry)}
 .notes{margin-top:8px}
 .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
 .tag.series{border-color:var(--gold);color:#9a6a15}
+.tag.saved{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .tag.note{border-color:#B9C4C8;color:var(--ink);text-transform:none;letter-spacing:0;font-size:12px}
 .tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
 .notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
 .n-reviews{font-size:12px;color:var(--soft)}
+
 .backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
 .backdrop.open{display:flex}
 .panel{max-width:640px;width:100%;padding:24px;margin:auto 0}
+.panel.small{max-width:400px}
 .panel-top{display:grid;grid-template-columns:96px 1fr;gap:20px}
 .panel-top .cover{width:96px;height:144px}
 .panel h2{font-size:clamp(20px,4vw,25px);font-weight:600;margin-bottom:4px;overflow-wrap:anywhere}
@@ -76,6 +96,12 @@ h1 span{color:var(--berry)}
 .subjects{margin-top:14px}
 hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
+
+.shelf-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;align-items:center}
+.shelf-row .lbl{font-size:12px;color:var(--soft);margin-right:2px}
+.status{border:1px solid var(--rule);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--soft);transition:.12s}
+.status[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
+
 .series-list{list-style:none;margin:0;padding:0}
 .series-row{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
 .series-row:last-child{border-bottom:none}
@@ -84,10 +110,11 @@ hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .series-row .y{font-size:12px;color:var(--soft)}
 .upcoming .t{color:var(--soft)}
 .source{font-size:12px;color:var(--soft);margin:14px 0 0;font-style:italic}
+
 .rate{display:flex;gap:2px;margin-bottom:10px}
 .rate button{font-size:26px;line-height:1;color:var(--rule);padding:0 3px}
 .rate button.on{color:var(--gold)}
-textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--rule);border-radius:2px;padding:10px;resize:vertical;min-height:76px;background:var(--paper);color:var(--ink)}
+textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2px;padding:10px;resize:vertical;min-height:76px;background:var(--paper)}
 .counter{font-size:12px;color:var(--soft);text-align:right;margin:4px 0 0}
 .counter.over{color:var(--berry);font-weight:700}
 .save{margin-top:8px;background:var(--berry);color:#fff;border-radius:2px;padding:10px 20px;font-weight:700;font-size:14px}
@@ -100,6 +127,16 @@ textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--rule);bor
 .review .stars{color:var(--gold);font-size:14px;letter-spacing:2px}
 .review .when{font-size:12px;color:var(--soft);margin-top:2px}
 .pending{opacity:.55}
+
+/* forms */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px}
+.field input{width:100%;border:1px solid var(--rule);border-radius:2px;padding:10px;background:var(--paper);font-size:15px}
+.row2{display:grid;grid-template-columns:1fr 90px;gap:12px}
+.form-msg{font-size:13px;min-height:18px;margin:6px 0 0;color:#7d2340;font-weight:600}
+.alt{font-size:13px;color:var(--soft);margin:14px 0 0}
+.alt button{text-decoration:underline;color:var(--berry);font-weight:600}
+
 .note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
 .note-block strong{color:var(--ink)}
 footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
@@ -111,11 +148,18 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <body>
 <div class="wrap">
   <header>
-    <h1>Next <span>Chapter</span></h1>
-    <p class="tagline">Book finder for young readers</p>
+    <div>
+      <h1>Next <span>Chapter</span></h1>
+      <p class="tagline">Book finder for young readers</p>
+    </div>
+    <div class="account" id="account"></div>
   </header>
 
+  <p class="banner bad" id="db-warn" hidden></p>
+
   <section class="hero">
+    <div class="kids" id="kids" hidden></div>
+
     <p class="sentence">Find books for a
       <label class="blank"><span class="sr">Reader's age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
       year old who likes
@@ -123,14 +167,13 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </p>
     <p class="hint">Searching <b id="level">juvenile fiction</b></p>
     <button class="go" id="search">Find books</button>
+
     <div class="prefs">
       <h4>Content preferences</h4>
-      <p>Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
+      <p id="prefs-note">Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
       <div class="chips" id="chips"></div>
     </div>
   </section>
-
-  <p class="banner bad" id="db-warn" hidden></p>
 
   <div class="head">
     <h2 id="title">Start with a search</h2>
@@ -141,13 +184,14 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner info" id="hidden-msg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
 
-  <p class="note-block"><strong>Week 3a.</strong> Reviews are saved to a database now — they
-    survive refresh and everyone sees them. Series and content notes still come from the
-    hand-checked catalogue in this file.</p>
+  <p class="note-block"><strong>Week 3b.</strong> Sign in, add a child, and their age and content
+    preferences load automatically. Save books to each child's shelf. Series and content notes
+    still come from the hand-checked catalogue in this file.</p>
 
   <footer>Built by a human. Book data from Open Library. Series and content notes hand-entered.</footer>
 </div>
 
+<!-- book / series panel -->
 <div class="backdrop" id="backdrop">
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
     <button class="close" id="close" aria-label="Close">&times;</button>
@@ -162,15 +206,46 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <p class="blurb" id="pBlurb"></p>
     <div class="notes" id="pNotes"></div>
     <div class="subjects" id="pSubjects"></div>
+    <div class="shelf-row" id="pShelf"></div>
     <div id="pSeries"></div>
     <hr>
     <h3>Leave a review</h3>
-    <div class="rate" id="rate" role="group" aria-label="Star rating"></div>
-    <textarea id="rText" maxlength="600" placeholder="What did your reader think of it?"></textarea>
-    <p class="counter" id="counter">0 / 600</p>
-    <button class="save" id="save">Save review</button>
-    <p class="save-msg" id="saveMsg" role="status"></p>
+    <div id="reviewForm">
+      <div class="rate" id="rate" role="group" aria-label="Star rating"></div>
+      <textarea id="rText" maxlength="600" placeholder="What did your reader think of it?"></textarea>
+      <p class="counter" id="counter">0 / 600</p>
+      <button class="save" id="save">Save review</button>
+      <p class="save-msg" id="saveMsg" role="status"></p>
+    </div>
+    <p class="muted" id="signInPrompt" hidden>Sign in to leave a review.</p>
     <div id="rList"></div>
+  </div>
+</div>
+
+<!-- auth -->
+<div class="backdrop" id="authBack">
+  <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="close" id="authClose" aria-label="Close">&times;</button>
+    <h2 id="authTitle">Sign in</h2>
+    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div>
+    <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"></div>
+    <button class="save" id="authGo">Sign in</button>
+    <p class="form-msg" id="authMsg"></p>
+    <p class="alt">No account yet? <button id="authSwap">Create one</button></p>
+  </div>
+</div>
+
+<!-- add child -->
+<div class="backdrop" id="kidBack">
+  <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="kidTitle">
+    <button class="close" id="kidClose" aria-label="Close">&times;</button>
+    <h2 id="kidTitle">Add a reader</h2>
+    <div class="row2">
+      <div class="field"><label for="kidName">Name</label><input id="kidName" maxlength="40"></div>
+      <div class="field"><label for="kidAge">Age</label><input id="kidAge" type="number" min="2" max="18" value="8"></div>
+    </div>
+    <button class="save" id="kidGo">Add</button>
+    <p class="form-msg" id="kidMsg"></p>
   </div>
 </div>
 
@@ -178,27 +253,24 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <script>
 "use strict";
 /* Next Chapter. Books: Open Library. Series + content notes: the catalogue below.
-   Reviews: Supabase.
+   Accounts, child profiles, saved books and reviews: Supabase.
    API text always enters via textContent, never innerHTML — Open Library is
    wiki-editable, so a title is never trusted as markup. Searches are versioned
    and aborted so a slow old request can't overwrite a newer one. */
 
 /* ===================================================================
-   PASTE YOUR SUPABASE DETAILS HERE
-   Dashboard → API Keys → copy the "anon" / "publishable" key.
    The anon key is MEANT to be public — Row Level Security is what
-   protects the data. Never paste the service_role / secret key here;
-   that one ignores RLS entirely.
+   protects the data. Never put the service_role key here.
    =================================================================== */
 const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE";
 
 /* ===== THE CATALOGUE — the data you own =====
    No free API knows series order or what's inside a book, so this does.
    To add a series, copy a block. `match` catches the series name in a title;
-   matching also falls back to individual book titles + author, since Open
-   Library usually stores "The Dragonet Prophecy" with no mention of Wings of
-   Fire. year:null = announced, not out. Only add notes you've verified. */
+   matching also falls back to book titles + author, since Open Library
+   usually stores "The Dragonet Prophecy" with no mention of Wings of Fire.
+   Only add notes you've actually verified. */
 
 const CATEGORIES = {
   violence:  {label:"Violence",             blurb:"Fighting, battles, or physical conflict."},
@@ -268,6 +340,7 @@ const API = "https://openlibrary.org/search.json";
 const FIELDS = "key,title,author_name,first_publish_year,cover_i,subject,first_sentence";
 const LIMIT = 20, TIMEOUT = 12000, MAXCHARS = 600;
 const STATES = [null, "flag", "avoid"];
+const SHELF_STATUSES = [["want","Want to read"],["reading","Reading"],["finished","Finished"]];
 
 const $ = id => document.getElementById(id);
 const el = (tag, cls, text) => {
@@ -279,58 +352,296 @@ const el = (tag, cls, text) => {
 
 let cards = [], openItem = null, rating = 0, searchId = 0, inFlight = null, lastFocus = null;
 let lastTopic = "", lastNote = null;
-const reviews = new Map();     // bookKey -> [{rating, body, created_at}]  (a cache of the table)
-const prefs = new Map();
+let user = null, children = [], activeChild = null, authMode = "in";
+const reviews = new Map();      // bookKey -> [rows]
+const saved = new Map();        // bookKey -> status, for the active child
+const prefs = new Map();        // categoryId -> "flag" | "avoid"
 
 /* ===== database =====
    The app has to work when this fails. A dead database should cost you
-   reviews, not the whole site — so every call is wrapped, and `db` stays
+   reviews, not the whole site — so every call is wrapped and `db` stays
    null if setup is incomplete. */
 let db = null;
-
 if (!SUPABASE_ANON_KEY.startsWith("PASTE") && window.supabase){
-  try {
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch (e) {
-    console.error("Supabase init failed:", e);
-  }
+  try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch (e) { console.error("Supabase init failed:", e); }
 }
 if (!db){
-  $("db-warn").textContent = "Reviews aren't connected to the database yet, so they'll disappear on refresh. Add your Supabase anon key near the top of the file.";
+  $("db-warn").textContent = "Not connected to the database — sign-in and saved reviews are off. Add your Supabase anon key near the top of the file.";
   $("db-warn").hidden = false;
 }
 
-/* Fetch every review for a batch of books in ONE request. Looping a query
-   per book would be a dozen round trips for a single screen. */
+/* ===== auth ===== */
+function renderAccount(){
+  const box = $("account");
+  box.replaceChildren();
+  if (!db) return;
+
+  if (user){
+    box.append(el("span", "who", user.email));
+    const out = el("button", "", "Sign out");
+    out.onclick = signOut;
+    box.append(out);
+  } else {
+    const go = el("button", "", "Sign in");
+    go.onclick = () => openAuth();
+    box.append(go);
+  }
+  renderKids();
+  renderReviewForm();
+}
+
+function openAuth(mode = "in"){
+  authMode = mode;
+  $("authTitle").textContent = mode === "in" ? "Sign in" : "Create an account";
+  $("authGo").textContent = mode === "in" ? "Sign in" : "Create account";
+  $("authSwap").textContent = mode === "in" ? "Create one" : "Sign in instead";
+  $("authSwap").previousSibling.textContent = mode === "in" ? "No account yet? " : "Already have one? ";
+  $("authMsg").textContent = "";
+  $("authBack").classList.add("open");
+  document.body.classList.add("locked");
+  $("email").focus();
+}
+const closeAuth = () => { $("authBack").classList.remove("open"); document.body.classList.remove("locked"); };
+$("authClose").onclick = closeAuth;
+$("authBack").addEventListener("mousedown", e => { if (e.target === $("authBack")) closeAuth(); });
+$("authSwap").onclick = () => openAuth(authMode === "in" ? "up" : "in");
+
+$("authGo").onclick = async () => {
+  const email = $("email").value.trim(), password = $("pw").value;
+  const msg = $("authMsg");
+  if (!email || !password) return msg.textContent = "Email and password, please.";
+  if (password.length < 6) return msg.textContent = "Password needs at least 6 characters.";
+
+  $("authGo").disabled = true;
+  msg.textContent = "";
+  try {
+    const fn = authMode === "in" ? "signInWithPassword" : "signUp";
+    const { error } = await db.auth[fn]({ email, password });
+    if (error) throw error;
+    closeAuth();
+    $("pw").value = "";
+  } catch (e) {
+    msg.textContent = e?.message || "That didn't work. Try again.";
+  } finally {
+    $("authGo").disabled = false;
+  }
+};
+
+async function signOut(){
+  await db.auth.signOut();
+  children = []; activeChild = null;
+  saved.clear(); prefs.clear();
+  syncChips();
+  if (cards.length) draw();
+}
+
+/* onAuthStateChange fires on load with any restored session, so this doubles
+   as startup. No separate "am I logged in?" check needed. */
+if (db){
+  db.auth.onAuthStateChange(async (_evt, session) => {
+    user = session?.user || null;
+    renderAccount();
+    if (user) await loadChildren();
+    else renderKids();
+  });
+}
+
+/* ===== children ===== */
+async function loadChildren(){
+  try {
+    const { data, error } = await db.from("children")
+      .select("id, name, age, prefs").order("created_at");
+    if (error) throw error;
+    children = data || [];
+    if (children.length && !activeChild) await selectChild(children[0]);
+    else renderKids();
+  } catch (e) { console.error("Couldn't load children:", e); }
+}
+
+function renderKids(){
+  const box = $("kids");
+  box.replaceChildren();
+  if (!user){ box.hidden = true; return; }
+  box.hidden = false;
+
+  box.append(el("span", "kids-label", "Reading for"));
+
+  children.forEach(c => {
+    const b = el("button", "kid", `${c.name}, ${c.age}`);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(activeChild?.id === c.id));
+    b.onclick = () => selectChild(c);
+    box.append(b);
+  });
+
+  const add = el("button", "kid add", children.length ? "+ Add another" : "+ Add a reader");
+  add.type = "button";
+  add.onclick = openKid;
+  box.append(add);
+}
+
+async function selectChild(c){
+  activeChild = c;
+  $("age").value = c.age;
+  showLevel();
+
+  // Their saved preferences become the active filters.
+  prefs.clear();
+  Object.entries(c.prefs || {}).forEach(([k, v]) => { if (v) prefs.set(k, v); });
+  syncChips();
+
+  $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
+  renderKids();
+  await loadSaved();
+  if (cards.length) draw();
+}
+
+function openKid(){
+  $("kidMsg").textContent = "";
+  $("kidName").value = "";
+  $("kidBack").classList.add("open");
+  document.body.classList.add("locked");
+  $("kidName").focus();
+}
+const closeKid = () => { $("kidBack").classList.remove("open"); document.body.classList.remove("locked"); };
+$("kidClose").onclick = closeKid;
+$("kidBack").addEventListener("mousedown", e => { if (e.target === $("kidBack")) closeKid(); });
+
+$("kidGo").onclick = async () => {
+  const name = $("kidName").value.trim();
+  const age = parseInt($("kidAge").value, 10);
+  const msg = $("kidMsg");
+  if (!name) return msg.textContent = "Give them a name.";
+  if (!Number.isFinite(age) || age < 2 || age > 18) return msg.textContent = "Age should be between 2 and 18.";
+
+  $("kidGo").disabled = true;
+  try {
+    const { data, error } = await db.from("children")
+      .insert({ parent_id: user.id, name, age, prefs: {} }).select().single();
+    if (error) throw error;
+    children.push(data);
+    closeKid();
+    await selectChild(data);
+  } catch (e) {
+    msg.textContent = e?.message || "Couldn't add that reader.";
+  } finally { $("kidGo").disabled = false; }
+};
+
+/* Preferences save per child. Debounced because tapping through three states
+   would otherwise fire a write on every single tap. */
+let prefTimer = null;
+function savePrefs(){
+  if (!db || !user || !activeChild) return;
+  clearTimeout(prefTimer);
+  prefTimer = setTimeout(async () => {
+    const obj = Object.fromEntries(prefs);
+    try {
+      const { error } = await db.from("children")
+        .update({ prefs: obj }).eq("id", activeChild.id);
+      if (error) throw error;
+      activeChild.prefs = obj;
+    } catch (e) { console.error("Couldn't save preferences:", e); }
+  }, 700);
+}
+
+/* ===== saved books ===== */
+async function loadSaved(){
+  saved.clear();
+  if (!db || !activeChild) return;
+  try {
+    const { data, error } = await db.from("saved_books")
+      .select("book_key, status").eq("child_id", activeChild.id);
+    if (error) throw error;
+    (data || []).forEach(r => saved.set(r.book_key, r.status));
+  } catch (e) { console.error("Couldn't load shelf:", e); }
+}
+
+async function setStatus(bookKey, bookTitle, coverId, status){
+  if (!db || !activeChild) return;
+  const previous = saved.get(bookKey) || null;
+
+  if (previous === status){                       // tapping the same one removes it
+    saved.delete(bookKey);
+    drawShelfRow();
+    try {
+      const { error } = await db.from("saved_books").delete()
+        .eq("child_id", activeChild.id).eq("book_key", bookKey);
+      if (error) throw error;
+    } catch (e) {
+      saved.set(bookKey, previous); drawShelfRow();
+      console.error("Couldn't remove from shelf:", e);
+    }
+    if (cards.length) draw();
+    return;
+  }
+
+  saved.set(bookKey, status);
+  drawShelfRow();
+  try {
+    // upsert on (child_id, book_key) — the unique constraint makes this
+    // an insert the first time and an update after.
+    const { error } = await db.from("saved_books").upsert({
+      child_id: activeChild.id, book_key: bookKey,
+      book_title: bookTitle, cover_id: coverId ?? null, status
+    }, { onConflict: "child_id,book_key" });
+    if (error) throw error;
+  } catch (e) {
+    previous ? saved.set(bookKey, previous) : saved.delete(bookKey);
+    drawShelfRow();
+    console.error("Couldn't save to shelf:", e);
+  }
+  if (cards.length) draw();
+}
+
+function drawShelfRow(){
+  const box = $("pShelf");
+  box.replaceChildren();
+  if (!openItem) return;
+
+  if (!user || !activeChild){
+    box.append(el("span", "lbl", user ? "Add a reader to save books." : "Sign in to save books."));
+    return;
+  }
+
+  const k = cardKey(openItem);
+  const t = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
+  const coverId = Number.isFinite(openItem.doc?.cover_i) ? openItem.doc.cover_i : null;
+  const now = saved.get(k) || null;
+
+  box.append(el("span", "lbl", `${activeChild.name}'s shelf`));
+  SHELF_STATUSES.forEach(([value, label]) => {
+    const b = el("button", "status", label);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(now === value));
+    b.onclick = () => setStatus(k, t, coverId, value);
+    box.append(b);
+  });
+}
+
+/* ===== reviews ===== */
 async function loadReviews(keys){
   if (!db || !keys.length) return;
   try {
-    const { data, error } = await db
-      .from("reviews")
+    // One request for every book on screen. Looping a query per book would
+    // be a dozen round trips for a single page — the N+1 problem.
+    const { data, error } = await db.from("reviews")
       .select("book_key, rating, body, created_at")
       .in("book_key", keys)
       .order("created_at", { ascending: false });
     if (error) throw error;
-
     keys.forEach(k => reviews.set(k, []));
     (data || []).forEach(r => {
       if (!reviews.has(r.book_key)) reviews.set(r.book_key, []);
       reviews.get(r.book_key).push(r);
     });
-  } catch (e) {
-    console.error("Couldn't load reviews:", e);   // stay quiet; books still show
-  }
+  } catch (e) { console.error("Couldn't load reviews:", e); }
 }
 
-async function saveReview(bookKey, bookTitle, ratingValue, body){
-  if (!db) throw new Error("no-db");
-  const { data, error } = await db
-    .from("reviews")
-    .insert({ book_key: bookKey, book_title: bookTitle, rating: ratingValue, body })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+function renderReviewForm(){
+  const inOk = !!(db && user);
+  $("reviewForm").hidden = !inOk;
+  $("signInPrompt").hidden = inOk;
 }
 
 /* ===== series matching =====
@@ -353,6 +664,7 @@ function findSeries(doc){
 const seriesNotes = s => [...new Set(s.books.flatMap(b => b.notes || []))];
 
 /* ===== preference chips ===== */
+const chipEls = new Map();
 $("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id, c]) => {
   const b = el("button", "chip", c.label);
   b.type = "button";
@@ -362,10 +674,19 @@ $("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id, c]) => {
     const next = STATES[(STATES.indexOf(prefs.get(id) || null) + 1) % 3];
     if (next){ prefs.set(id, next); b.dataset.state = next; }
     else { prefs.delete(id); delete b.dataset.state; }
+    savePrefs();
     if (cards.length) draw();
   };
+  chipEls.set(id, b);
   return b;
 }));
+
+function syncChips(){
+  chipEls.forEach((b, id) => {
+    const s = prefs.get(id);
+    if (s) b.dataset.state = s; else delete b.dataset.state;
+  });
+}
 
 /* ===== age ===== */
 const age = () => {
@@ -502,7 +823,7 @@ function draw(topic = lastTopic, note = lastNote){
     info.append(el("h3", "", isS ? c.series.title : c.doc.title),
                 el("p", "author", isS ? c.series.author : author(c.doc)));
 
-    const meta = el("div", "meta");
+    const meta = el("div", "meta"), k = cardKey(c);
     if (isS){
       meta.append(el("span", "tag series", `${c.series.books.length} books · view series`));
       if (c.series.ages) meta.append(el("span", "tag", `Ages ${c.series.ages}`));
@@ -510,7 +831,12 @@ function draw(topic = lastTopic, note = lastNote){
       meta.append(el("span", "tag", String(c.doc.first_publish_year)));
     }
 
-    const mine = reviews.get(cardKey(c)) || [];
+    if (saved.has(k)){
+      const label = SHELF_STATUSES.find(s => s[0] === saved.get(k))?.[1] || "Saved";
+      meta.append(el("span", "tag saved", label));
+    }
+
+    const mine = reviews.get(k) || [];
     const avg = average(mine);
     if (avg){
       meta.append(el("span", "stars-mini", "★".repeat(avg)));
@@ -581,15 +907,16 @@ async function openPanel(c){
     .map(s => el("span", "tag", s)));
   $("pSeries").replaceChildren(...(isS ? seriesBlock(c.series) : []));
 
-  $("rText").value = ""; count(); $("saveMsg").textContent = "";
-  $("saveMsg").classList.remove("err");
+  drawShelfRow();
+  renderReviewForm();
+  $("rText").value = ""; count();
+  $("saveMsg").textContent = ""; $("saveMsg").classList.remove("err");
   stars(); list();
 
   $("backdrop").classList.add("open");
   document.body.classList.add("locked");
   $("close").focus();
 
-  // Refresh this book's reviews in case someone else added one since the search.
   const k = cardKey(c);
   await loadReviews([k]);
   if (openItem && cardKey(openItem) === k) list();
@@ -622,17 +949,22 @@ $("close").onclick = closePanel;
 $("backdrop").addEventListener("mousedown", e => { if (e.target === $("backdrop")) closePanel(); });
 
 document.addEventListener("keydown", e => {
-  if (!$("backdrop").classList.contains("open")) return;
-  if (e.key === "Escape") return closePanel();
+  const open = [...document.querySelectorAll(".backdrop.open")].pop();
+  if (!open) return;
+  if (e.key === "Escape"){
+    if (open.id === "backdrop") closePanel();
+    else if (open.id === "authBack") closeAuth();
+    else closeKid();
+    return;
+  }
   if (e.key !== "Tab") return;
-  const f = $("backdrop").querySelectorAll("button, textarea, input, [href]");
+  const f = open.querySelectorAll("button, textarea, input, [href]");
   if (!f.length) return;
   const first = f[0], last = f[f.length - 1];
   if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
   else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 });
 
-/* ===== reviews ===== */
 function stars(){
   $("rate").replaceChildren(...[1,2,3,4,5].map(n => {
     const b = el("button", n <= rating ? "on" : "", "★");
@@ -657,18 +989,20 @@ $("save").onclick = async () => {
   const msg = $("saveMsg");
   msg.classList.remove("err");
 
-  if (!rating && !body){
-    msg.textContent = "Add a star rating or a few words first.";
+  if (!db || !user){
+    msg.textContent = "Sign in to leave a review.";
+    msg.classList.add("err");
     return;
   }
+  if (!rating && !body){ msg.textContent = "Add a star rating or a few words first."; return; }
 
   const k = cardKey(openItem);
   const titleText = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
   const submitted = { rating, body, created_at: new Date().toISOString(), pending: true };
 
-  /* Optimistic update: show it instantly, then confirm with the server.
-     If the write fails we take it back out — a review that looks saved
-     but isn't is the worst possible outcome. */
+  /* Optimistic update: show it instantly, then confirm with the server. If the
+     write fails we take it back out — a review that looks saved but isn't is
+     the worst possible outcome. */
   if (!reviews.has(k)) reviews.set(k, []);
   reviews.get(k).unshift(submitted);
   list();
@@ -677,19 +1011,22 @@ $("save").onclick = async () => {
   msg.textContent = "Saving…";
 
   try {
-    const saved = await saveReview(k, titleText, rating || null, body || null);
+    const { data, error } = await db.from("reviews").insert({
+      book_key: k, book_title: titleText,
+      rating: rating || null, body: body || null,
+      user_id: user.id                       // the RLS policy checks this matches auth.uid()
+    }).select().single();
+    if (error) throw error;
+
     const arr = reviews.get(k);
-    arr[arr.indexOf(submitted)] = saved;      // swap the placeholder for the real row
+    arr[arr.indexOf(submitted)] = data;      // swap placeholder for the real row
     $("rText").value = ""; rating = 0;
     count(); stars();
     msg.textContent = "Saved.";
   } catch (e) {
-    const arr = reviews.get(k);
-    const i = arr.indexOf(submitted);
-    if (i > -1) arr.splice(i, 1);             // roll it back
-    msg.textContent = e?.message === "no-db"
-      ? "Not connected to the database — add your Supabase key to save reviews."
-      : "Couldn't save that. Check your connection and try again.";
+    const arr = reviews.get(k), i = arr.indexOf(submitted);
+    if (i > -1) arr.splice(i, 1);            // roll it back
+    msg.textContent = "Couldn't save that. Check your connection and try again.";
     msg.classList.add("err");
     console.error("Save failed:", e);
   } finally {
@@ -749,11 +1086,16 @@ function opening(b){
 $("search").onclick = search;
 ["topic", "age"].forEach(id =>
   $(id).addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); search(); } }));
+["email", "pw"].forEach(id =>
+  $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("authGo").click(); }));
+["kidName", "kidAge"].forEach(id =>
+  $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("kidGo").click(); }));
 
-/* WEEK 3b — accounts and child profiles: sign-in, saved books per child,
-             preferences that stick. Tighten the insert policy to logged-in users.
-   WEEK 4  — AI recommendations via a Supabase Edge Function. The Anthropic key
-             stays server-side, and AI-suggested notes must be labelled unverified. */
+renderAccount();
+
+/* WEEK 4 — AI recommendations via a Supabase Edge Function. The Anthropic key
+            stays server-side, and AI-suggested content notes must be labelled
+            unverified — a wrong note is worse than none. */
 </script>
 </body>
 </html>
