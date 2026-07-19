@@ -46,6 +46,7 @@ h1 span{color:var(--berry)}
 .banner{font-size:13px;border-radius:2px;padding:9px 12px;margin:0 0 14px}
 .banner.warn{color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold)}
 .banner.info{color:var(--soft);background:var(--card);border:1px solid var(--rule)}
+.banner.bad{color:#7d2340;background:#F7E4EA;border:1px solid var(--berry)}
 .shelf{list-style:none;margin:0 0 60px;padding:0;display:grid;gap:14px}
 .skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
 .book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
@@ -62,6 +63,7 @@ h1 span{color:var(--berry)}
 .tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
 .notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
+.n-reviews{font-size:12px;color:var(--soft)}
 .backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
 .backdrop.open{display:flex}
 .panel{max-width:640px;width:100%;padding:24px;margin:auto 0}
@@ -90,10 +92,14 @@ textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--rule);bor
 .counter.over{color:var(--berry);font-weight:700}
 .save{margin-top:8px;background:var(--berry);color:#fff;border-radius:2px;padding:10px 20px;font-weight:700;font-size:14px}
 .save:hover{background:var(--ink)}
+.save[disabled]{opacity:.55;cursor:progress}
 .save-msg{font-size:13px;color:var(--berry);margin:8px 0 0;min-height:18px}
+.save-msg.err{color:#7d2340;font-weight:600}
 .review{border-left:3px solid var(--gold);padding-left:14px;margin-top:16px}
 .review p{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
 .review .stars{color:var(--gold);font-size:14px;letter-spacing:2px}
+.review .when{font-size:12px;color:var(--soft);margin-top:2px}
+.pending{opacity:.55}
 .note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
 .note-block strong{color:var(--ink)}
 footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
@@ -124,6 +130,8 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </div>
   </section>
 
+  <p class="banner bad" id="db-warn" hidden></p>
+
   <div class="head">
     <h2 id="title">Start with a search</h2>
     <span class="count" id="count"></span>
@@ -133,9 +141,9 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner info" id="hidden-msg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
 
-  <p class="note-block"><strong>Week 2.</strong> Series and content notes come from a small
-    hand-checked catalogue in this file. Books outside it show no notes, meaning "not checked yet,"
-    not "nothing in it." Reviews clear on refresh until the database lands.</p>
+  <p class="note-block"><strong>Week 3a.</strong> Reviews are saved to a database now — they
+    survive refresh and everyone sees them. Series and content notes still come from the
+    hand-checked catalogue in this file.</p>
 
   <footer>Built by a human. Book data from Open Library. Series and content notes hand-entered.</footer>
 </div>
@@ -166,12 +174,24 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 /* Next Chapter. Books: Open Library. Series + content notes: the catalogue below.
+   Reviews: Supabase.
    API text always enters via textContent, never innerHTML — Open Library is
    wiki-editable, so a title is never trusted as markup. Searches are versioned
    and aborted so a slow old request can't overwrite a newer one. */
+
+/* ===================================================================
+   PASTE YOUR SUPABASE DETAILS HERE
+   Dashboard → API Keys → copy the "anon" / "publishable" key.
+   The anon key is MEANT to be public — Row Level Security is what
+   protects the data. Never paste the service_role / secret key here;
+   that one ignores RLS entirely.
+   =================================================================== */
+const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
 
 /* ===== THE CATALOGUE — the data you own =====
    No free API knows series order or what's inside a book, so this does.
@@ -259,8 +279,59 @@ const el = (tag, cls, text) => {
 
 let cards = [], openItem = null, rating = 0, searchId = 0, inFlight = null, lastFocus = null;
 let lastTopic = "", lastNote = null;
-const reviews = new Map();
+const reviews = new Map();     // bookKey -> [{rating, body, created_at}]  (a cache of the table)
 const prefs = new Map();
+
+/* ===== database =====
+   The app has to work when this fails. A dead database should cost you
+   reviews, not the whole site — so every call is wrapped, and `db` stays
+   null if setup is incomplete. */
+let db = null;
+
+if (!SUPABASE_ANON_KEY.startsWith("PASTE") && window.supabase){
+  try {
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) {
+    console.error("Supabase init failed:", e);
+  }
+}
+if (!db){
+  $("db-warn").textContent = "Reviews aren't connected to the database yet, so they'll disappear on refresh. Add your Supabase anon key near the top of the file.";
+  $("db-warn").hidden = false;
+}
+
+/* Fetch every review for a batch of books in ONE request. Looping a query
+   per book would be a dozen round trips for a single screen. */
+async function loadReviews(keys){
+  if (!db || !keys.length) return;
+  try {
+    const { data, error } = await db
+      .from("reviews")
+      .select("book_key, rating, body, created_at")
+      .in("book_key", keys)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    keys.forEach(k => reviews.set(k, []));
+    (data || []).forEach(r => {
+      if (!reviews.has(r.book_key)) reviews.set(r.book_key, []);
+      reviews.get(r.book_key).push(r);
+    });
+  } catch (e) {
+    console.error("Couldn't load reviews:", e);   // stay quiet; books still show
+  }
+}
+
+async function saveReview(bookKey, bookTitle, ratingValue, body){
+  if (!db) throw new Error("no-db");
+  const { data, error } = await db
+    .from("reviews")
+    .insert({ book_key: bookKey, book_title: bookTitle, rating: ratingValue, body })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
 
 /* ===== series matching =====
    Strip punctuation and case so "The Titan's Curse" and "Titans Curse" match.
@@ -353,7 +424,9 @@ async function search(){
       if (docs.length){ note = n; break; }
     }
     cards = collapse(docs);
-    draw(topic, note);
+    draw(topic, note);                        // paint immediately…
+    await loadReviews(cards.map(cardKey));    // …then fill in review counts
+    if (mine === searchId && cards.length) draw();
   } catch (err) {
     if (mine !== searchId) return;
     if (err?.name === "AbortError"){
@@ -436,8 +509,13 @@ function draw(topic = lastTopic, note = lastNote){
     } else if (Number.isFinite(c.doc.first_publish_year)){
       meta.append(el("span", "tag", String(c.doc.first_publish_year)));
     }
-    const avg = average(reviews.get(cardKey(c)));
-    if (avg) meta.append(el("span", "stars-mini", "★".repeat(avg)));
+
+    const mine = reviews.get(cardKey(c)) || [];
+    const avg = average(mine);
+    if (avg){
+      meta.append(el("span", "stars-mini", "★".repeat(avg)));
+      meta.append(el("span", "n-reviews", `${mine.length} review${mine.length === 1 ? "" : "s"}`));
+    }
     info.append(meta);
 
     const notes = notesOf(c);
@@ -475,7 +553,7 @@ function cover(b, size){
 }
 
 /* ===== panel ===== */
-function openPanel(c){
+async function openPanel(c){
   if (!c) return;
   openItem = c; rating = 0; lastFocus = document.activeElement;
   const isS = c.kind === "series";
@@ -504,11 +582,17 @@ function openPanel(c){
   $("pSeries").replaceChildren(...(isS ? seriesBlock(c.series) : []));
 
   $("rText").value = ""; count(); $("saveMsg").textContent = "";
+  $("saveMsg").classList.remove("err");
   stars(); list();
 
   $("backdrop").classList.add("open");
   document.body.classList.add("locked");
   $("close").focus();
+
+  // Refresh this book's reviews in case someone else added one since the search.
+  const k = cardKey(c);
+  await loadReviews([k]);
+  if (openItem && cardKey(openItem) === k) list();
 }
 
 function seriesBlock(s){
@@ -567,21 +651,52 @@ const count = () => {
 };
 $("rText").addEventListener("input", count);
 
-$("save").onclick = () => {
+$("save").onclick = async () => {
   if (!openItem) return;
-  const text = $("rText").value.trim();
-  if (!rating && !text) return $("saveMsg").textContent = "Add a star rating or a few words first.";
+  const body = $("rText").value.trim();
+  const msg = $("saveMsg");
+  msg.classList.remove("err");
+
+  if (!rating && !body){
+    msg.textContent = "Add a star rating or a few words first.";
+    return;
+  }
 
   const k = cardKey(openItem);
-  if (!reviews.has(k)) reviews.set(k, []);
-  reviews.get(k).push({ rating, text });
-  /* WEEK 3: await supabase.from("reviews").insert({book_key:k, rating, text, child_id})
-     wrapped in try/catch — a database write fails in ways a Map never will. */
+  const titleText = openItem.kind === "series" ? openItem.series.title : openItem.doc.title;
+  const submitted = { rating, body, created_at: new Date().toISOString(), pending: true };
 
-  $("rText").value = ""; rating = 0;
-  count(); stars(); list();
-  $("saveMsg").textContent = "Saved. (Until you refresh — the database comes next week.)";
-  if (cards.length) draw();
+  /* Optimistic update: show it instantly, then confirm with the server.
+     If the write fails we take it back out — a review that looks saved
+     but isn't is the worst possible outcome. */
+  if (!reviews.has(k)) reviews.set(k, []);
+  reviews.get(k).unshift(submitted);
+  list();
+
+  $("save").disabled = true;
+  msg.textContent = "Saving…";
+
+  try {
+    const saved = await saveReview(k, titleText, rating || null, body || null);
+    const arr = reviews.get(k);
+    arr[arr.indexOf(submitted)] = saved;      // swap the placeholder for the real row
+    $("rText").value = ""; rating = 0;
+    count(); stars();
+    msg.textContent = "Saved.";
+  } catch (e) {
+    const arr = reviews.get(k);
+    const i = arr.indexOf(submitted);
+    if (i > -1) arr.splice(i, 1);             // roll it back
+    msg.textContent = e?.message === "no-db"
+      ? "Not connected to the database — add your Supabase key to save reviews."
+      : "Couldn't save that. Check your connection and try again.";
+    msg.classList.add("err");
+    console.error("Save failed:", e);
+  } finally {
+    $("save").disabled = false;
+    list();
+    if (cards.length) draw();
+  }
 };
 
 function list(){
@@ -592,9 +707,10 @@ function list(){
     return $("rList").replaceChildren(p);
   }
   $("rList").replaceChildren(...mine.map(r => {
-    const d = el("div", "review");
+    const d = el("div", "review" + (r.pending ? " pending" : ""));
     if (r.rating) d.append(el("div", "stars", "★".repeat(r.rating) + "☆".repeat(5 - r.rating)));
-    if (r.text) d.append(el("p", "", r.text));
+    if (r.body) d.append(el("p", "", r.body));
+    d.append(el("div", "when", r.pending ? "Saving…" : when(r.created_at)));
     return d;
   }));
 }
@@ -608,6 +724,17 @@ const average = l => {
   const r = (l || []).filter(x => x?.rating > 0);
   return r.length ? Math.round(r.reduce((s, x) => s + x.rating, 0) / r.length) : 0;
 };
+
+function when(iso){
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const mins = Math.floor((Date.now() - d) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  return d.toLocaleDateString();
+}
 
 // first_sentence arrives as a string, an array, or {value} depending on the record
 function opening(b){
@@ -623,10 +750,10 @@ $("search").onclick = search;
 ["topic", "age"].forEach(id =>
   $(id).addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); search(); } }));
 
-/* WEEK 3 — Supabase: accounts, child profiles, persistent reviews, and moving the
-            catalogue into tables you can edit without redeploying.
-   WEEK 4 — AI recommendations via a Supabase Edge Function. The key stays
-            server-side, and AI-suggested notes must be labelled unverified. */
+/* WEEK 3b — accounts and child profiles: sign-in, saved books per child,
+             preferences that stick. Tighten the insert policy to logged-in users.
+   WEEK 4  — AI recommendations via a Supabase Edge Function. The Anthropic key
+             stays server-side, and AI-suggested notes must be labelled unverified. */
 </script>
 </body>
 </html>
