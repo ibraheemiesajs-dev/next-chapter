@@ -68,7 +68,9 @@ h1 span{color:var(--berry)}
 .book.ai{border-left:3px solid var(--berry)}
 .cover{display:block;width:64px;height:96px;object-fit:cover;background:var(--rule);border-radius:2px}
 .book h3{font-size:18px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
-.author{font-size:14px;color:var(--soft);margin:0 0 10px;overflow-wrap:anywhere}
+.author{font-size:14px;color:var(--soft);margin:0 0 6px;overflow-wrap:anywhere}
+.startwith{font-size:13px;color:var(--ink);margin:0 0 10px}
+.startwith b{font-weight:600}
 .why{font-size:14px;margin:0 0 8px}
 .fit{font-size:13px;color:var(--soft);margin:0 0 10px}
 .meta,.subjects,.notes,.shelf-row,.links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -112,6 +114,8 @@ h1 span{color:var(--berry)}
 .get .why{font-size:12px;color:var(--soft);margin:10px 0 0;font-style:italic}
 hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
+
+/* reading order, with branching sub-series */
 .series-list{list-style:none;margin:0;padding:0}
 .series-row{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
 .series-row:last-child{border-bottom:none}
@@ -119,7 +123,15 @@ hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
 .series-row .t{font-weight:600;font-size:15px;overflow-wrap:anywhere}
 .series-row .y{font-size:12px;color:var(--soft)}
 .upcoming .t{color:var(--soft)}
+.todo{font-size:13px;color:var(--soft);font-style:italic;padding:11px 0 0}
+.branch{position:relative;margin:0 0 4px 12px;padding:2px 0 6px 22px;border-left:2px solid var(--gold)}
+.branch::before{content:"";position:absolute;left:0;top:16px;width:14px;height:2px;background:var(--gold)}
+.branch h5{font-family:var(--body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9a6a15;font-weight:700;margin:8px 0 2px}
+.branch .when-in{font-size:12px;color:var(--soft);margin:0 0 6px;font-style:italic}
+.branch .series-row{grid-template-columns:1fr;padding:8px 0;border-bottom:1px dotted var(--rule)}
+.branch .series-row:last-child{border-bottom:none}
 .source{font-size:12px;color:var(--soft);margin:14px 0 0;font-style:italic}
+
 .rate{display:flex;gap:2px;margin-bottom:10px}
 .rate button{font-size:26px;line-height:1;color:var(--rule);padding:0 3px}
 .rate button.on{color:var(--gold)}
@@ -199,9 +211,9 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
   <button class="go alt2 more" id="more" hidden>Show more books</button>
 
-  <p class="note-block"><strong>Week 5.</strong> Searches now run against Open Library and Google
-    Books together, with duplicates merged. Content notes come from the hand-checked catalogue in
-    this file — books not in it show nothing, which means "not checked yet."</p>
+  <p class="note-block"><strong>Week 5.</strong> Series collapse to a single card showing where to
+    start; open one for the full reading order, including side stories that branch off the main
+    sequence. Content notes come from the hand-checked catalogue in this file.</p>
 
   <footer>Built by a human. Books from Open Library and Google Books. Series and content notes hand-entered.</footer>
 </div>
@@ -273,22 +285,27 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 
    Goodreads closed its API in 2020 and Common Sense Media never had one, so
    neither can be read programmatically. Google Books is the closest available
-   source; Common Sense is linked to instead, sending parents to the real page
-   rather than a stale copy of it.
+   source; Common Sense is linked to instead.
 
    All API text enters the DOM via textContent, never innerHTML — these are
    public, editable catalogues, so a title is never trusted as markup. */
 
 /* The anon key is MEANT to be public — Row Level Security protects the data.
-   Never put the service_role or Anthropic key here. */
+   Never put the service_role or Anthropic key here.
+   Paste the key BETWEEN the quotes, on one line, with no extra quote marks. */
 const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
 
 /* ================= THE CATALOGUE — the data you own =================
-   No free API knows series order or what's inside a book. Two shapes:
-   SERIES for anything with a reading order, BOOKS for standalone titles.
-   Only add a content note you've actually verified — a wrong note is worse
-   than no note. ================================================== */
+   Three shapes:
+     SERIES  — anything with a reading order
+     branches — side stories that hang off the main sequence (prequels,
+                novellas, companion books) rather than sitting inside it
+     BOOKS   — standalone titles
+
+   Only add a content note you have actually verified. A wrong note is worse
+   than no note, because a parent will trust it.
+   ================================================================== */
 
 const CATEGORIES = {
   violence:{label:"Violence",blurb:"Fighting, battles, or physical conflict."},
@@ -303,28 +320,69 @@ const CATEGORIES = {
 };
 
 const SERIES = {
-  "wings-of-fire":{title:"Wings of Fire",author:"Tui T. Sutherland",match:/wings of fire/i,ages:"8–12",books:[
-    {n:1,title:"The Dragonet Prophecy",year:2012,notes:["violence","death","scary"]},
-    {n:2,title:"The Lost Heir",year:2013,notes:["violence","death"]},
-    {n:3,title:"The Hidden Kingdom",year:2013,notes:["violence","death"]},
-    {n:4,title:"The Dark Secret",year:2013,notes:["violence","death","scary"]},
-    {n:5,title:"The Brightest Night",year:2014,notes:["violence","death"]},
-    {n:6,title:"Moon Rising",year:2014,notes:["violence","scary"]},
-    {n:7,title:"Winter Turning",year:2015,notes:["violence"]},
-    {n:8,title:"Escaping Peril",year:2015,notes:["violence","death"]},
-    {n:9,title:"Talons of Power",year:2016,notes:["violence","scary"]},
-    {n:10,title:"Darkness of Dragons",year:2017,notes:["violence","death"]},
-    {n:11,title:"The Lost Continent",year:2018,notes:["violence"]},
-    {n:12,title:"The Hive Queen",year:2018,notes:["violence","death"]},
-    {n:13,title:"The Poison Jungle",year:2019,notes:["violence","death","lgbtqia"]},
-    {n:14,title:"The Dangerous Gift",year:2021,notes:["violence","lgbtqia"]},
-    {n:15,title:"The Flames of Hope",year:2022,notes:["violence","death","lgbtqia"]}]},
+  "wings-of-fire":{title:"Wings of Fire",author:"Tui T. Sutherland",match:/wings of fire/i,ages:"8–12",
+    /* Main arcs run 1–15. A newer arc has begun — add book 16 here once you've
+       checked the exact title. Don't guess it. */
+    todo:"Newer books exist beyond 15 — verify the titles and add them.",
+    books:[
+      {n:1,title:"The Dragonet Prophecy",year:2012,notes:["violence","death","scary"]},
+      {n:2,title:"The Lost Heir",year:2013,notes:["violence","death"]},
+      {n:3,title:"The Hidden Kingdom",year:2013,notes:["violence","death"]},
+      {n:4,title:"The Dark Secret",year:2013,notes:["violence","death","scary"]},
+      {n:5,title:"The Brightest Night",year:2014,notes:["violence","death"]},
+      {n:6,title:"Moon Rising",year:2014,notes:["violence","scary"]},
+      {n:7,title:"Winter Turning",year:2015,notes:["violence"]},
+      {n:8,title:"Escaping Peril",year:2015,notes:["violence","death"]},
+      {n:9,title:"Talons of Power",year:2016,notes:["violence","scary"]},
+      {n:10,title:"Darkness of Dragons",year:2017,notes:["violence","death"]},
+      {n:11,title:"The Lost Continent",year:2018,notes:["violence"]},
+      {n:12,title:"The Hive Queen",year:2018,notes:["violence","death"]},
+      {n:13,title:"The Poison Jungle",year:2019,notes:["violence","death","lgbtqia"]},
+      {n:14,title:"The Dangerous Gift",year:2021,notes:["violence","lgbtqia"]},
+      {n:15,title:"The Flames of Hope",year:2022,notes:["violence","death","lgbtqia"]}],
+    branches:[
+      {after:5, title:"Legends", note:"Standalone companions. Read after book 5 to avoid spoilers.",
+        books:[
+          {title:"Darkstalker",year:2016,notes:["violence","death","scary"]},
+          {title:"Dragonslayer",year:2020,notes:["violence","death"]}]},
+      {after:5, title:"Winglets", note:"Short novellas that fill in side characters.",
+        books:[
+          {title:"Prisoners",year:2015,notes:["violence"]},
+          {title:"Assassin",year:2016,notes:["violence","death"]},
+          {title:"Deserter",year:2016,notes:["violence"]},
+          {title:"Runaway",year:2016,notes:["violence"]}]}
+    ]},
+
+  "how-to-train-your-dragon":{title:"How to Train Your Dragon",author:"Cressida Cowell",match:/how to train your dragon/i,ages:"8–12",books:[
+    {n:1,title:"How to Train Your Dragon",year:2003,notes:["violence"]},
+    {n:2,title:"How to Be a Pirate",year:2004,notes:["violence"]},
+    {n:3,title:"How to Speak Dragonese",year:2005,notes:["violence"]},
+    {n:4,title:"How to Cheat a Dragon's Curse",year:2006,notes:["violence","scary"]},
+    {n:5,title:"How to Twist a Dragon's Tale",year:2007,notes:["violence"]},
+    {n:6,title:"A Hero's Guide to Deadly Dragons",year:2007,notes:["violence"]},
+    {n:7,title:"How to Ride a Dragon's Storm",year:2008,notes:["violence"]},
+    {n:8,title:"How to Break a Dragon's Heart",year:2009,notes:["violence","death"]},
+    {n:9,title:"How to Steal a Dragon's Sword",year:2011,notes:["violence"]},
+    {n:10,title:"How to Seize a Dragon's Jewel",year:2012,notes:["violence","scary"]},
+    {n:11,title:"How to Betray a Dragon's Hero",year:2013,notes:["violence","death"]},
+    {n:12,title:"How to Fight a Dragon's Fury",year:2015,notes:["violence","death"]}]},
+
   "percy-jackson":{title:"Percy Jackson and the Olympians",author:"Rick Riordan",match:/percy jackson/i,ages:"9–13",books:[
     {n:1,title:"The Lightning Thief",year:2005,notes:["violence","death","religion"]},
     {n:2,title:"The Sea of Monsters",year:2006,notes:["violence","religion"]},
     {n:3,title:"The Titan's Curse",year:2007,notes:["violence","death","religion"]},
     {n:4,title:"The Battle of the Labyrinth",year:2008,notes:["violence","death","religion"]},
-    {n:5,title:"The Last Olympian",year:2009,notes:["violence","death","religion"]}]},
+    {n:5,title:"The Last Olympian",year:2009,notes:["violence","death","religion"]}],
+    branches:[
+      {after:5, title:"The Heroes of Olympus", note:"Direct sequel series. Read after book 5.",
+        books:[
+          {title:"The Lost Hero",year:2010,notes:["violence","death","religion"]},
+          {title:"The Son of Neptune",year:2011,notes:["violence","death","religion"]},
+          {title:"The Mark of Athena",year:2012,notes:["violence","death","romance","religion"]},
+          {title:"The House of Hades",year:2013,notes:["violence","death","romance","lgbtqia","religion"]},
+          {title:"The Blood of Olympus",year:2014,notes:["violence","death","romance","lgbtqia","religion"]}]}
+    ]},
+
   "harry-potter":{title:"Harry Potter",author:"J. K. Rowling",match:/harry potter/i,ages:"9–14 (rising through the series)",books:[
     {n:1,title:"The Philosopher's Stone",year:1997,notes:["violence","scary"]},
     {n:2,title:"The Chamber of Secrets",year:1998,notes:["violence","scary"]},
@@ -333,6 +391,7 @@ const SERIES = {
     {n:5,title:"The Order of the Phoenix",year:2003,notes:["violence","death","scary"]},
     {n:6,title:"The Half-Blood Prince",year:2005,notes:["violence","death","romance"]},
     {n:7,title:"The Deathly Hallows",year:2007,notes:["violence","death","gore","romance"]}]},
+
   "keeper-lost-cities":{title:"Keeper of the Lost Cities",author:"Shannon Messenger",match:/keeper of the lost cities/i,ages:"9–13",books:[
     {n:1,title:"Keeper of the Lost Cities",year:2012,notes:["violence"]},
     {n:2,title:"Exile",year:2013,notes:["violence"]},
@@ -343,10 +402,17 @@ const SERIES = {
     {n:7,title:"Flashback",year:2018,notes:["violence","romance"]},
     {n:8,title:"Legacy",year:2019,notes:["violence","romance"]},
     {n:9,title:"Unlocked",year:2020,notes:["violence","romance"]}]},
+
   "hunger-games":{title:"The Hunger Games",author:"Suzanne Collins",match:/hunger games/i,ages:"13+",books:[
     {n:1,title:"The Hunger Games",year:2008,notes:["violence","gore","death","romance"]},
     {n:2,title:"Catching Fire",year:2009,notes:["violence","gore","death","romance"]},
-    {n:3,title:"Mockingjay",year:2010,notes:["violence","gore","death","substances"]}]},
+    {n:3,title:"Mockingjay",year:2010,notes:["violence","gore","death","substances"]}],
+    branches:[
+      {after:3, title:"Prequels", note:"Set decades earlier. Read after the main trilogy.",
+        books:[
+          {title:"The Ballad of Songbirds and Snakes",year:2020,notes:["violence","gore","death","substances"]}]}
+    ]},
+
   "narnia":{title:"The Chronicles of Narnia",author:"C. S. Lewis",match:/chronicles of narnia|narnia/i,ages:"8–12",books:[
     {n:1,title:"The Lion, the Witch and the Wardrobe",year:1950,notes:["violence","death","religion"]},
     {n:2,title:"Prince Caspian",year:1951,notes:["violence","religion"]},
@@ -371,7 +437,8 @@ const BOOKS = {
   matilda:{title:"Matilda",author:"Roald Dahl",match:/^matilda\b/i,ages:"7–11",notes:["violence"]},
   bfg:{title:"The BFG",author:"Roald Dahl",match:/^the bfg\b/i,ages:"6–10",notes:["scary"]},
   numberstars:{title:"Number the Stars",author:"Lois Lowry",match:/number the stars/i,ages:"9–12",notes:["violence","death"]},
-  outsiders:{title:"The Outsiders",author:"S.E. Hinton",match:/^the outsiders\b/i,ages:"12–16",notes:["violence","death","substances","language"]}
+  outsiders:{title:"The Outsiders",author:"S.E. Hinton",match:/^the outsiders\b/i,ages:"12–16",notes:["violence","death","substances","language"]},
+  eragon:{title:"Eragon",author:"Christopher Paolini",match:/^eragon\b/i,ages:"11–15",notes:["violence","gore","death"]}
 };
 
 /* ===== setup ===== */
@@ -399,7 +466,7 @@ const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map(), in
    The app must work when this fails. A dead database costs you reviews,
    not the whole site — every call is wrapped, and db stays null if unset. */
 let db=null;
-if (!SUPABASE_ANON_KEY.startsWith("PASTE") && window.supabase){
+if (SUPABASE_ANON_KEY && window.supabase){
   try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
   catch(e){ console.error("Supabase init failed:", e); }
 }
@@ -426,22 +493,37 @@ const author = b => b?.author_name?.[0]?.trim() || "Unknown author";
 const key = b => !b ? "" : `${norm(b.title)}|${norm(author(b))}`;
 const cardKey = c => !c ? "" : (c.kind === "series" ? `series:${c.series.id}` : key(c.doc));
 
+/* Author names vary by edition — "Tui T. Sutherland" and "Tui Sutherland" are
+   the same person. Dropping single-letter tokens removes middle initials so
+   both compare equal. Without this, book 3 of a series escapes its group. */
+const normName = s => norm(s).split(" ").filter(w => w.length > 1).join(" ");
+
 /* ===== catalogue lookups ===== */
 function findSeries(doc){
   const t = norm(doc?.title);
   if (!t) return null;
-  const authors = (doc?.author_name || []).map(norm);
+  const authors = (doc?.author_name || []).map(normName);
   for (const [id,s] of Object.entries(SERIES)){
     if (s.match.test(doc.title)) return { id, ...s };
     // A book-title match must agree on the author — "Exile", "Legacy" and
     // "Nightfall" belong to hundreds of unrelated books.
-    if (authors.includes(norm(s.author)) && s.books.some(b => t.includes(norm(b.title)))) return { id, ...s };
+    if (authors.includes(normName(s.author))){
+      if (s.books.some(b => t.includes(norm(b.title)))) return { id, ...s };
+      if ((s.branches || []).some(br => br.books.some(b => t.includes(norm(b.title))))) return { id, ...s };
+    }
   }
   return null;
 }
 const findBook = doc => typeof doc?.title === "string"
   ? Object.values(BOOKS).find(b => b.match.test(doc.title)) || null : null;
-const seriesNotes = s => [...new Set(s.books.flatMap(b => b.notes || []))];
+
+// Everything in the series, main sequence and branches alike.
+const seriesNotes = s => [...new Set([
+  ...s.books.flatMap(b => b.notes || []),
+  ...(s.branches || []).flatMap(br => br.books.flatMap(b => b.notes || []))
+])];
+const seriesCount = s => s.books.length + (s.branches || []).reduce((n,br) => n + br.books.length, 0);
+
 const notesOf = c => {
   if (c.kind === "series") return seriesNotes(c.series);
   const s = findSeries(c.doc);
@@ -900,8 +982,7 @@ showLevel();
 
 /* ===== search =====
    Two catalogues, merged. Open Library has better library and borrowing data;
-   Google Books has far more records and real blurbs. Together they cover much
-   more than either alone. */
+   Google Books has far more records and real blurbs. */
 const tiers = (t,a) => [
   [`subject:"${t}" AND subject:"${level(a)}" AND language:eng`, null],
   [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
@@ -915,8 +996,9 @@ async function fetchOL(q, signal, from = 0){
   return (Array.isArray(docs) ? docs : []).filter(d => d && typeof d.title === "string" && d.title.trim());
 }
 
-/* Google's records use a different shape, so translate them into the same
-   one Open Library uses. Everything downstream then works unchanged. */
+/* Google's records use a different shape, so translate them into the same one
+   Open Library uses. Everything downstream then works unchanged — when you add
+   a third source, you write one more adapter and nothing else moves. */
 function toDoc(item){
   const v = item?.volumeInfo || {};
   return {
@@ -934,14 +1016,12 @@ function toDoc(item){
 
 async function fetchGB(topic, a, signal, from = 0){
   const subject = a <= 12 ? "juvenile fiction" : "young adult fiction";
-  const q = `${topic} subject:"${subject}"`;
-  const url = `${GB}?q=${encodeURIComponent(q)}&maxResults=40&startIndex=${from}` +
+  const url = `${GB}?q=${encodeURIComponent(`${topic} subject:"${subject}"`)}&maxResults=40&startIndex=${from}` +
               `&printType=books&langRestrict=en&orderBy=relevance&country=US`;
   try {
     const res = await fetch(url, { signal });
     if (!res.ok) return [];                        // Google failing shouldn't kill the search
-    const items = (await res.json())?.items || [];
-    return items.map(toDoc).filter(d => d.title);
+    return ((await res.json())?.items || []).map(toDoc).filter(d => d.title);
   } catch(e){
     if (e?.name === "AbortError") throw e;
     return [];
@@ -1031,7 +1111,6 @@ $("more").onclick = async () => {
       fetchGB(topic, a, undefined, offset)
     ]);
     offset += LIMIT;
-
     const have = new Set(cards.map(cardKey));
     const fresh = collapse(merge(ol, gb)).filter(c => !have.has(cardKey(c)));
     cards = cards.concat(fresh);
@@ -1042,8 +1121,9 @@ $("more").onclick = async () => {
   finally { $("more").disabled = false; }
 };
 
-/* One card per series — a dragons search returns nine Wings of Fire editions
-   and buries everything else. Pointing at book one beats showing book 7. */
+/* One card per series. A dragons search returns nine Wings of Fire editions
+   and buries everything else; showing the series once, pointing at book one,
+   is far more useful than scattering book 3 and book 9 across the page. */
 function collapse(docs){
   const out = [], groups = new Map();
   for (const d of docs){
@@ -1105,9 +1185,15 @@ function draw(topic = lastTopic, note = lastNote){
     info.append(el("h3","", isS ? c.series.title : c.doc.title),
                 el("p","author", isS ? c.series.author : author(c.doc)));
 
+    if (isS){
+      const start = el("p","startwith","Start with ");
+      start.append(el("b","",c.series.books[0].title));
+      info.append(start);
+    }
+
     const meta = el("div","meta"), single = isS ? null : findBook(c.doc);
     if (isS){
-      meta.append(el("span","tag series",`${c.series.books.length} books · view series`));
+      meta.append(el("span","tag series",`${seriesCount(c.series)} books · view series`));
       if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
     } else if (single?.ages){
       meta.append(el("span","tag",`Ages ${single.ages}`));
@@ -1231,19 +1317,53 @@ function fallbackBlurb(b){
   return `It opens: ${s.trim()}`;
 }
 
+/* Reading order. Branches are drawn indented with a connector line so it's
+   visible at a glance that they hang off the main sequence rather than
+   interrupting it. */
 function seriesBlock(s){
-  const out = [el("hr"), el("h3","","Reading order")], ul = el("ul","series-list");
+  const out = [el("hr"), el("h3","","Reading order")];
+  const ul = el("ul","series-list");
+  const branches = s.branches || [];
+
   s.books.forEach(b => {
     const row = el("li","series-row" + (b.year ? "" : " upcoming")), right = el("div");
     row.append(el("span","num",String(b.n)));
     right.append(el("div","t",b.title),
                  el("div","y", b.year ? String(b.year) : "Announced — no release date yet"));
     if (b.notes?.length) right.append(noteRow(b.notes,false));
-    row.append(right); ul.append(row);
+    row.append(right);
+    ul.append(row);
+
+    // Anything that branches off after this book gets drawn here.
+    branches.filter(br => br.after === b.n).forEach(br => {
+      const wrap = el("li");
+      wrap.append(branchBlock(br));
+      ul.append(wrap);
+    });
   });
-  out.push(ul, el("p","source",
-    "Reading order and content notes are hand-entered and checked, not pulled from a database. Spot something wrong? Fix it in the catalogue."));
+
+  out.push(ul);
+  if (s.todo) out.push(el("p","todo", s.todo));
+  out.push(el("p","source",
+    "Reading order and content notes are hand-entered and checked, not pulled from a database. Spot something wrong or missing? Fix it in the catalogue."));
   return out;
+}
+
+function branchBlock(br){
+  const box = el("div","branch");
+  box.append(el("h5","",br.title));
+  if (br.note) box.append(el("p","when-in",br.note));
+  const ul = el("ul","series-list");
+  br.books.forEach(b => {
+    const row = el("li","series-row" + (b.year ? "" : " upcoming")), right = el("div");
+    right.append(el("div","t",b.title),
+                 el("div","y", b.year ? String(b.year) : "Announced — no release date yet"));
+    if (b.notes?.length) right.append(noteRow(b.notes,false));
+    row.append(right);
+    ul.append(row);
+  });
+  box.append(ul);
+  return box;
 }
 
 function closePanel(){
