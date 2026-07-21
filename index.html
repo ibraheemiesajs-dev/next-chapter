@@ -87,6 +87,16 @@ h1 span{color:var(--berry)}
 .tag.note{border-color:#B9C4C8;color:var(--ink);text-transform:none;letter-spacing:0;font-size:12px}
 .tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
 .notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+/* Deliberately unlike the hand-checked notes above it: dashed, tinted, and
+   captioned. A parent must never confuse a guess with a checked fact. */
+.guess{margin-top:16px;padding:13px 15px;border:1px dashed var(--berry);border-radius:3px;background:#FAF3F6}
+.guess h4{font-family:var(--body);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--berry);font-weight:700;margin:0 0 4px}
+.guess .cap{font-size:12px;color:var(--soft);margin:0 0 10px;font-style:italic}
+.guess .tag{border-style:dashed;border-color:var(--berry);color:var(--berry);text-transform:none;letter-spacing:0;font-size:12px}
+.guess .sum{font-size:13px;color:var(--ink);margin:10px 0 0}
+.guess .check{display:inline-block;margin-top:11px;font-size:13px;color:var(--berry);font-weight:600}
+.guess .none{font-size:13px;color:var(--soft);margin:0}
+.clash{margin-top:10px;font-size:13px;color:#7d2340;font-weight:600}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
 .rating{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
 .rating .val{font-family:var(--display);font-weight:900;font-size:19px}
@@ -240,6 +250,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <p class="blurb" id="pBlurb"></p>
     <div id="pWhy"></div>
     <div class="notes" id="pNotes"></div>
+    <div id="pGuess"></div>
     <div class="subjects" id="pSubjects"></div>
     <div class="shelf-row" id="pShelf"></div>
     <div id="pGet"></div>
@@ -635,6 +646,10 @@ const SERIES = {
     {n:1,title:"Divergent",year:2011,notes:["violence","death","romance"]},
     {n:2,title:"Insurgent",year:2012,notes:["violence","death","romance"]},
     {n:3,title:"Allegiant",year:2013,notes:["violence","death","romance"]}]},
+
+  "six-of-crows":{title:"Six of Crows",author:"Leigh Bardugo",match:/six of crows|crooked kingdom/i,ages:"14+",books:[
+    {n:1,title:"Six of Crows",year:2015,notes:["violence","gore","death","romance","lgbtqia","substances","language"]},
+    {n:2,title:"Crooked Kingdom",year:2016,notes:["violence","gore","death","romance","lgbtqia","substances","language"]}]},
 
   "inheritance":{title:"The Inheritance Cycle",author:"Christopher Paolini",match:/inheritance cycle|^eragon\b|^eldest\b|^brisingr\b/i,ages:"11–15",books:[
     {n:1,title:"Eragon",year:2002,notes:["violence","gore","death"]},
@@ -1261,6 +1276,89 @@ function drawAi(){
    Runs AFTER the results are already on screen, never before. The user sees
    books immediately; the sort improves a couple of seconds later. Cached by
    query so paging back and forth doesn't pay for the same judgement twice. */
+/* ----- guessed content notes -----
+   Only for books our catalogue is silent about. This is the one AI feature
+   where being wrong does real harm — a parent avoiding romance for a
+   seven-year-old may act on it — so three things are true by design:
+     1. the hand-checked catalogue always wins; this never overrides it
+     2. "I don't know" comes back as nothing, not as an empty all-clear
+     3. it never filters or hides anything, because you should not hide a book
+        on the strength of a guess. It flags a clash and lets the parent look. */
+const guessCache = new Map();
+
+async function guessNotes(c, mine){
+  const box = $("pGuess");
+  box.replaceChildren();
+  if (!db || c.kind === "series") return;
+
+  const title = titleOf(c), auth = authorOf(c), k = cardKey(c);
+
+  const render = g => {
+    if (mine !== panelToken) return;
+    box.replaceChildren(guessBlock(g, title));
+  };
+
+  if (guessCache.has(k)) return render(guessCache.get(k));
+
+  box.replaceChildren(guessBlock({ loading:true }, title));
+  try {
+    const g = await callAI({ mode:"notes", title, author: auth === "Unknown author" ? "" : auth });
+    guessCache.set(k, g);
+    render(g);
+  } catch(e){
+    if (mine !== panelToken) return;
+    box.replaceChildren(guessBlock({ failed:true }, title));
+    console.error("Couldn't guess content notes:", e);
+  }
+}
+
+function guessBlock(g, title){
+  const box = el("div","guess");
+  box.append(el("h4","","Not in our checked catalogue"));
+
+  const csm = () => {
+    const a = el("a","check","Check this book on Common Sense Media →");
+    a.href = `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`;
+    a.target = "_blank"; a.rel = "noopener noreferrer";
+    return a;
+  };
+
+  if (g.loading){
+    box.append(el("p","none","Asking the librarian what's in this one…"));
+    return box;
+  }
+  if (g.failed){
+    box.append(el("p","none","We couldn't check this one automatically."), csm());
+    return box;
+  }
+  if (!g.known || !g.notes?.length){
+    box.append(el("p","cap",
+      "We haven't reviewed this book, and the librarian didn't recognise it well enough to say. That means unknown, not clear."), csm());
+    return box;
+  }
+
+  box.append(el("p","cap","Guessed by AI, not checked by a person. Treat as a starting point."));
+  const row = el("div","notes");
+  g.notes.forEach(id => {
+    const t = el("span","tag", CATEGORIES[id]?.label || id);
+    t.title = CATEGORIES[id]?.blurb || "";
+    row.append(t);
+  });
+  box.append(row);
+  if (g.summary) box.append(el("p","sum", g.summary));
+
+  // Flagged, never hidden. Hiding a book because a model guessed wrong is a
+  // worse failure than showing one the parent then rules out themselves.
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
+  const clash = g.notes.filter(n => avoided.includes(n));
+  if (clash.length)
+    box.append(el("p","clash",
+      `Possibly conflicts with your preferences: ${clash.map(id => CATEGORIES[id]?.label || id).join(", ")}. Worth checking before you decide.`));
+
+  box.append(csm());
+  return box;
+}
+
 const rankKey = () => `${lastTopic}|${age()}|${[...prefs].sort().join(",")}|${cards.length}`;
 
 async function rankResults(mine){
@@ -1662,6 +1760,8 @@ async function openPanel(c){
 
   const notes = notesOf(c);
   $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, isS || !!findSeries(c.doc))] : []));
+  // Our own data always wins. The guess only runs where we have nothing.
+  if (notes.length) $("pGuess").replaceChildren(); else guessNotes(c, mine);
   $("pSubjects").replaceChildren(...(c.doc.subject || [])
     .filter(x => typeof x === "string" && x.length < 40).slice(0,6).map(x => el("span","tag",x)));
   $("pGet").replaceChildren(whereToGet(c.doc));
