@@ -1273,10 +1273,11 @@ async function rankResults(mine){
   $("rankMsg").hidden = false;
 
   try {
-    // Send only what's needed to judge: position, title, author. Not covers,
-    // not subjects, not descriptions — smaller prompt, lower cost, less noise.
+    // The topic MUST go with this. Without it the model can only judge reading
+    // level, and cheerfully rates Frog and Toad 5/5 for a dragons search.
     const list = cards.slice(0, RANK_MAX).map((c,i) => ({ i, title:titleOf(c), author:authorOf(c) }));
-    const data = await callAI({ mode:"rank", age:age(), avoid:prefList("avoid"), seek:prefList("flag"), books:list });
+    const data = await callAI({ mode:"rank", age:age(), topic:lastTopic,
+                                avoid:prefList("avoid"), seek:prefList("flag"), books:list });
     if (mine !== searchId) return;               // a newer search happened; drop this
 
     const ranked = Array.isArray(data?.ranked) ? data.ranked : [];
