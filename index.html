@@ -31,6 +31,19 @@ h1 span{color:var(--berry)}
 .kid[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
 .kid.add{border-style:dashed;color:var(--berry)}
 .kids-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.kid.shelfbtn{border-color:var(--berry);color:var(--berry);font-weight:600}
+.backlink{font-size:13px;color:var(--berry);text-decoration:underline;font-weight:600}
+.group{margin-bottom:34px}
+.group h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.group .n{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 12px}
+.remove{font-size:12px;color:var(--soft);text-decoration:underline;padding:4px 0;align-self:flex-start}
+.remove:hover{color:var(--berry)}
+.shelfitem{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:12px 14px}
+.shelfitem .cover{width:52px;height:78px}
+.shelfitem .open{text-align:left;min-width:0}
+.shelfitem h4{font-size:16px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
+.shelfitem .who{font-size:13px;color:var(--soft);overflow-wrap:anywhere}
+.empty{font-size:14px;color:var(--soft);border:1px dashed var(--rule);border-radius:3px;padding:16px;margin:0}
 .sentence{font-family:var(--display);font-size:clamp(26px,5vw,46px);line-height:1.3;letter-spacing:-.02em;margin:0}
 .blank{display:inline-flex;border-bottom:3px solid var(--gold);padding:0 4px;max-width:100%}
 .blank input{font:inherit;color:var(--berry);font-weight:900;background:none;border:none;padding:0;width:2.4ch;text-align:center;min-width:0;-moz-appearance:textfield}
@@ -217,7 +230,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <ul class="shelf" id="aiShelf"></ul>
   </section>
 
-  <div class="head">
+  <div class="head" id="resultsHead">
     <h2 id="title">Start with a search</h2>
     <span class="count" id="count"></span>
   </div>
@@ -227,6 +240,14 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner thinking" id="rankMsg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
   <button class="go alt2 more" id="more" hidden>Show more books</button>
+
+  <section id="shelfPage" hidden>
+    <div class="head">
+      <h2 id="shelfTitle">Shelf</h2>
+      <button class="backlink" id="backToSearch">← Back to search</button>
+    </div>
+    <div id="shelfBody"></div>
+  </section>
 
   <p class="note-block"><strong>Week 6.</strong> Results appear straight away from Open Library and
     Google Books, then the librarian reads through them in the background and re-sorts by how well
@@ -950,6 +971,7 @@ async function signOut(){
   children = []; activeChild = null;
   saved.clear(); prefs.clear(); syncChips();
   $("prefs-note").textContent = "Tap once to flag, twice to hide. Untapped means it won't affect results.";
+  showView("search");
   refresh();
 }
 
@@ -986,6 +1008,16 @@ function renderKids(){
   const add = el("button","kid add", children.length ? "+ Add another" : "+ Add a reader");
   add.type = "button"; add.onclick = openKid;
   box.append(add);
+
+  if (activeChild){
+    const n = saved.size;
+    const sb = el("button","kid shelfbtn", view === "shelf"
+      ? "Back to search"
+      : `${activeChild.name}'s shelf${n ? ` (${n})` : ""}`);
+    sb.type = "button";
+    sb.onclick = () => showView(view === "shelf" ? "search" : "shelf");
+    box.append(sb);
+  }
 }
 
 async function selectChild(c){
@@ -997,6 +1029,8 @@ async function selectChild(c){
   $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
   renderKids();
   await loadSaved();
+  renderKids();                       // count on the shelf button changes
+  if (view === "shelf") renderShelf();
   refresh();
 }
 
@@ -1045,18 +1079,30 @@ async function loadSaved(){
   saved.clear();
   if (!db || !activeChild) return;
   try {
+    // Enough to draw the shelf without re-fetching every book from an API.
     const { data, error } = await db.from("saved_books")
-      .select("book_key, status").eq("child_id", activeChild.id);
+      .select("book_key, status, book_title, book_author, cover_id, cover_url")
+      .eq("child_id", activeChild.id);
     if (error) throw error;
-    (data || []).forEach(r => saved.set(r.book_key, r.status));
+    (data || []).forEach(r => saved.set(r.book_key, {
+      status: r.status, title: r.book_title, author: r.book_author,
+      coverId: r.cover_id, coverUrl: r.cover_url
+    }));
   } catch(e){ console.error("Couldn't load shelf:", e); }
 }
 
-async function setStatus(k, title, coverId, status){
+async function setStatus(k, card, status){
   if (!db || !activeChild) return;
   const prev = saved.get(k) || null;
+  const row = {
+    status,
+    title:  titleOf(card),
+    author: authorOf(card),
+    coverId: Number.isFinite(card.doc?.cover_i) ? card.doc.cover_i : null,
+    coverUrl: card.doc?.thumb || null
+  };
 
-  if (prev === status){                       // tapping the same one removes it
+  if (prev?.status === status){               // tapping the same one removes it
     saved.delete(k); drawShelfRow();
     try {
       const { error } = await db.from("saved_books").delete()
@@ -1066,11 +1112,12 @@ async function setStatus(k, title, coverId, status){
     refresh(); return;
   }
 
-  saved.set(k, status); drawShelfRow();
+  saved.set(k, row); drawShelfRow();
   try {
     // the unique (child_id, book_key) constraint makes this insert-or-update
     const { error } = await db.from("saved_books").upsert(
-      { child_id:activeChild.id, book_key:k, book_title:title, cover_id:coverId ?? null, status },
+      { child_id:activeChild.id, book_key:k, book_title:row.title, book_author:row.author,
+        cover_id:row.coverId, cover_url:row.coverUrl, status },
       { onConflict: "child_id,book_key" });
     if (error) throw error;
   } catch(e){
@@ -1080,7 +1127,109 @@ async function setStatus(k, title, coverId, status){
   refresh();
 }
 
-const refresh = () => { if (cards.length) draw(); if (aiCards.length) drawAi(); };
+async function removeSaved(k){
+  if (!db || !activeChild) return;
+  const prev = saved.get(k);
+  saved.delete(k); renderShelf();
+  try {
+    const { error } = await db.from("saved_books").delete()
+      .eq("child_id", activeChild.id).eq("book_key", k);
+    if (error) throw error;
+  } catch(e){
+    if (prev) saved.set(k, prev);
+    renderShelf(); console.error(e);
+  }
+  refresh();
+}
+
+const refresh = () => {
+  if (cards.length) draw();
+  if (aiCards.length) drawAi();
+  if (view === "shelf") renderShelf();
+  renderKids();                       // the shelf count lives on that button
+};
+
+/* ===== the shelf page =====
+   Saving books is only half a feature — a parent needs to see them together
+   later. Everything drawn here comes from the saved_books row itself, so the
+   page loads instantly without re-querying Open Library for each book. */
+let view = "search";
+
+function showView(next){
+  view = next;
+  const onShelf = next === "shelf";
+  ["resultsHead","relaxed","hidden-msg","rankMsg","shelf","more","aiSection"].forEach(id => {
+    const n = $(id);
+    if (!n) return;
+    if (onShelf) { n.dataset.wasHidden = n.hidden ? "1" : "0"; n.hidden = true; }
+    else if (n.dataset.wasHidden === "0") n.hidden = false;   // restore only what was showing
+  });
+  $("shelfPage").hidden = !onShelf;
+  if (onShelf) renderShelf();
+  renderKids();
+}
+
+function renderShelf(){
+  const body = $("shelfBody");
+  body.replaceChildren();
+  if (!activeChild) return;
+
+  $("shelfTitle").textContent = `${activeChild.name}'s shelf`;
+
+  if (!saved.size){
+    body.append(el("p","empty",
+      "Nothing saved yet. Search for a book, open it, and put it on a shelf."));
+    return;
+  }
+
+  SHELF.forEach(([status,label]) => {
+    const items = [...saved.entries()].filter(([,v]) => v.status === status);
+    if (!items.length) return;
+
+    const group = el("section","group");
+    group.append(el("h3","",label), el("p","n",`${items.length} book${items.length===1?"":"s"}`));
+
+    const ul = el("ul","shelf");
+    items.forEach(([k,v]) => {
+      const li = el("li"), row = el("div","shelfitem");
+      row.append(cover({ cover_i:v.coverId, thumb:v.coverUrl },"M"));
+
+      const open = el("button","open");
+      open.type = "button";
+      open.append(el("h4","", v.title || "Untitled"),
+                  el("div","who", v.author || "Unknown author"));
+      open.onclick = () => openPanel(cardFromSaved(k, v));
+      row.append(open);
+
+      const rm = el("button","remove","Remove");
+      rm.type = "button";
+      rm.onclick = () => removeSaved(k);
+      row.append(rm);
+
+      li.append(row);
+      ul.append(li);
+    });
+    group.append(ul);
+    body.append(group);
+  });
+}
+
+/* A saved row isn't a search result, so rebuild the shape openPanel expects.
+   Series keys look like "series:wings-of-fire" and can be looked straight up
+   in the catalogue; everything else becomes a minimal book card, and the
+   panel fills in description and rating from Google Books as usual. */
+function cardFromSaved(k, v){
+  if (k.startsWith("series:")){
+    const id = k.slice(7), s = SERIES[id];
+    if (s) return { kind:"series", series:{ id, ...s },
+                    doc:{ title:v.title, author_name:[s.author], cover_i:v.coverId, thumb:v.coverUrl } };
+  }
+  return { kind:"book",
+           doc:{ title:v.title, author_name: v.author ? [v.author] : [],
+                 cover_i:v.coverId, thumb:v.coverUrl } };
+}
+
+$("backToSearch").onclick = () => showView("search");
 
 function drawShelfRow(){
   const box = $("pShelf");
@@ -1090,15 +1239,14 @@ function drawShelfRow(){
     return box.append(el("span","lbl", user ? "Add a reader to save books." : "Sign in to save books."));
 
   const k = cardKey(openItem);
-  const coverId = Number.isFinite(openItem.doc?.cover_i) ? openItem.doc.cover_i : null;
-  const now = saved.get(k) || null;
+  const now = saved.get(k)?.status || null;
 
   box.append(el("span","lbl",`${activeChild.name}'s shelf`));
   SHELF.forEach(([v,label]) => {
     const b = el("button","status",label);
     b.type = "button";
     b.setAttribute("aria-pressed", String(now === v));
-    b.onclick = () => setStatus(k, titleOf(openItem), coverId, v);
+    b.onclick = () => setStatus(k, openItem, v);
     box.append(b);
   });
 }
@@ -1255,7 +1403,7 @@ function drawAi(){
     if (!c.verified) meta.append(el("span","tag","Couldn't verify this book exists"));
     else if (c.corrected) meta.append(el("span","tag","Author corrected"));
     if (saved.has(k))
-      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k))?.[1] || "Saved"));
+      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
     const avg = average(reviews.get(k));
     if (avg) meta.append(el("span","stars-mini","★".repeat(avg)));
 
@@ -1667,7 +1815,7 @@ function draw(topic = lastTopic, note = lastNote){
     }
     if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
     if (saved.has(k))
-      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k))?.[1] || "Saved"));
+      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
 
     const mine = reviews.get(k) || [], avg = average(mine);
     if (avg){
