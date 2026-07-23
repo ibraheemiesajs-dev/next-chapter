@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Next Chapter — find the right book for your reader</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14323B;--soft:#4A6670;--paper:#F2EFE4;--card:#FFFDF7;--gold:#E8A33D;--berry:#8C3A5B;--rule:#D9D3C2;--display:"Fraunces",Georgia,serif;--body:"Public Sans",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body);overflow-x:hidden}
+body.locked{overflow:hidden}
+.wrap{max-width:940px;margin:0 auto;padding:0 20px}
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em;margin:0}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font:inherit;color:var(--ink)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+header{padding:34px 0 10px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+h1{font-weight:900;font-size:26px}
+h1 span{color:var(--berry)}
+.tagline{font-size:13px;color:var(--soft);letter-spacing:.14em;text-transform:uppercase;margin:4px 0 0}
+.account{font-size:13px;color:var(--soft);text-align:right;padding-top:6px}
+.account button{text-decoration:underline;color:var(--berry);font-weight:600}
+.account .who{display:block;margin-bottom:2px;overflow-wrap:anywhere}
+.hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:30px 0 34px;margin-top:18px}
+.kids{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;align-items:center}
+.kid{border:1px solid var(--rule);border-radius:20px;padding:6px 15px;font-size:13px;color:var(--soft);transition:.12s}
+.kid[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
+.kid.add{border-style:dashed;color:var(--berry)}
+.kids-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.kid.shelfbtn{border-color:var(--berry);color:var(--berry);font-weight:600}
+.backlink{font-size:13px;color:var(--berry);text-decoration:underline;font-weight:600}
+.group{margin-bottom:34px}
+.group h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.group .n{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 12px}
+.remove{font-size:12px;color:var(--soft);text-decoration:underline;padding:4px 0;align-self:flex-start}
+.remove:hover{color:var(--berry)}
+.shelfitem{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:12px 14px}
+.shelfitem .cover{width:52px;height:78px}
+.shelfitem .open{text-align:left;min-width:0}
+.shelfitem h4{font-size:16px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
+.shelfitem .who{font-size:13px;color:var(--soft);overflow-wrap:anywhere}
+.empty{font-size:14px;color:var(--soft);border:1px dashed var(--rule);border-radius:3px;padding:16px;margin:0}
+.sentence{font-family:var(--display);font-size:clamp(26px,5vw,46px);line-height:1.3;letter-spacing:-.02em;margin:0}
+.blank{display:inline-flex;border-bottom:3px solid var(--gold);padding:0 4px;max-width:100%}
+.blank input{font:inherit;color:var(--berry);font-weight:900;background:none;border:none;padding:0;width:2.4ch;text-align:center;min-width:0;-moz-appearance:textfield}
+.blank input::-webkit-inner-spin-button,.blank input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.blank input.wide{width:11ch;max-width:60vw;text-align:left;color:var(--ink);font-weight:600}
+.hint{margin:16px 0 0;font-size:13px;color:var(--soft);min-height:20px}
+.hint b{color:var(--berry)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;align-items:center}
+.go{font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border-radius:2px;padding:14px 28px;transition:background .15s}
+.go:hover{background:var(--berry)}
+.go.alt2{background:none;color:var(--ink);border:1px solid var(--ink)}
+.go.alt2:hover{background:var(--ink);color:var(--paper)}
+.go[disabled]{opacity:.55;cursor:progress}
+.go.more{display:block;margin:0 auto 60px;padding:12px 26px;font-size:14px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);cursor:pointer;padding:6px 0}
+.toggle input{width:16px;height:16px;accent-color:var(--berry);cursor:pointer}
+.prefs{margin:22px 0 0;padding-top:20px;border-top:1px dashed var(--rule)}
+.prefs h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.prefs p{font-size:13px;color:var(--soft);margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:12px;border:1px solid var(--rule);border-radius:20px;padding:5px 13px;color:var(--soft);transition:.12s}
+.chip[data-state=flag]{border-color:var(--gold);background:#FBF1DC;color:#8a5f10;font-weight:600}
+.chip[data-state=avoid]{border-color:var(--berry);background:var(--berry);color:#fff;font-weight:600}
+.head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:16px;margin:34px 0 14px}
+.head h2{font-size:19px;font-weight:600}
+.count,.n-reviews{font-size:13px;color:var(--soft)}
+.muted{font-size:14px;color:var(--soft);margin:0}
+.banner{font-size:13px;border-radius:2px;padding:9px 12px;margin:0 0 14px}
+.banner.warn{color:#8a5f10;background:#FBF1DC;border:1px solid var(--gold)}
+.banner.info{color:var(--soft);background:var(--card);border:1px solid var(--rule)}
+.banner.bad{color:#7d2340;background:#F7E4EA;border:1px solid var(--berry)}
+.banner.thinking{color:var(--berry);background:var(--card);border:1px solid var(--berry)}
+.shelf{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:14px}
+.skeleton{height:130px;opacity:.6;background:var(--card);border:1px solid var(--rule);border-radius:3px}
+.book,.panel{background:var(--card);border:1px solid var(--rule);border-radius:3px}
+.book{display:grid;grid-template-columns:64px 1fr;gap:16px;width:100%;text-align:left;padding:16px;transition:border-color .15s}
+.book:hover{border-color:var(--ink)}
+.book.ai{border-left:3px solid var(--berry)}
+.cover{display:block;width:64px;height:96px;object-fit:cover;background:var(--rule);border-radius:2px}
+.book h3{font-size:18px;font-weight:600;margin-bottom:2px;overflow-wrap:anywhere}
+.author{font-size:14px;color:var(--soft);margin:0 0 6px;overflow-wrap:anywhere}
+.startwith{font-size:13px;color:var(--ink);margin:0 0 10px}
+.startwith b{font-weight:600}
+.why{font-size:14px;margin:0 0 8px}
+.fit{font-size:13px;color:var(--soft);margin:0 0 10px}
+.whyfit{font-size:13px;color:var(--berry);margin:8px 0 0;display:flex;gap:6px;align-items:baseline}
+.whyfit .pill{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--berry);border-radius:2px;padding:2px 6px;flex:none}
+.meta,.subjects,.notes,.shelf-row,.links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.notes{margin-top:8px}
+.tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
+.tag.series{border-color:var(--gold);color:#9a6a15}
+.tag.saved{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.tag.ai{border-color:var(--berry);color:var(--berry)}
+.tag.note{border-color:#B9C4C8;color:var(--ink);text-transform:none;letter-spacing:0;font-size:12px}
+.tag.note.avoided{border-color:var(--berry);background:var(--berry);color:#fff}
+.notes-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+/* Deliberately unlike the hand-checked notes above it: dashed, tinted, and
+   captioned. A parent must never confuse a guess with a checked fact. */
+.guess{margin-top:16px;padding:13px 15px;border:1px dashed var(--berry);border-radius:3px;background:#FAF3F6}
+.guess h4{font-family:var(--body);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--berry);font-weight:700;margin:0 0 4px}
+.guess .cap{font-size:12px;color:var(--soft);margin:0 0 10px;font-style:italic}
+.guess .tag{border-style:dashed;border-color:var(--berry);color:var(--berry);text-transform:none;letter-spacing:0;font-size:12px}
+.guess .sum{font-size:13px;color:var(--ink);margin:10px 0 0}
+.guess .check{display:inline-block;margin-top:11px;font-size:13px;color:var(--berry);font-weight:600}
+.guess .none{font-size:13px;color:var(--soft);margin:0}
+.clash{margin-top:10px;font-size:13px;color:#7d2340;font-weight:600}
+.stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
+.rating{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rating .val{font-family:var(--display);font-weight:900;font-size:19px}
+.rating .of{font-size:12px;color:var(--soft)}
+.rating .src{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.ai-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin:0 0 6px}
+.ai-head h2{font-size:19px;font-weight:600}
+.ai-note{font-size:13px;color:var(--soft);margin:0 0 14px;font-style:italic}
+.backdrop{position:fixed;inset:0;background:rgba(20,50,59,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
+.backdrop.open{display:flex}
+.panel{max-width:640px;width:100%;padding:24px;margin:auto 0}
+.panel.small{max-width:400px}
+.panel-top{display:grid;grid-template-columns:96px 1fr;gap:20px}
+.panel-top .cover{width:96px;height:144px}
+.panel h2{font-size:clamp(20px,4vw,25px);font-weight:600;margin-bottom:4px;overflow-wrap:anywhere}
+.close{float:right;font-size:24px;line-height:1;color:var(--soft);padding:2px 8px}
+.close:hover{color:var(--berry)}
+.blurb{font-size:14px;margin:18px 0 0;overflow-wrap:anywhere}
+.subjects{margin-top:14px}
+.shelf-row{margin-top:18px;gap:8px}
+.shelf-row .lbl{font-size:12px;color:var(--soft)}
+.status{border:1px solid var(--rule);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--soft);transition:.12s}
+.status[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
+.get{margin-top:20px;padding-top:18px;border-top:1px solid var(--rule)}
+.get h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-family:var(--body);font-weight:700;margin-bottom:10px}
+.get a{display:inline-block;border:1px solid var(--rule);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--ink);text-decoration:none;transition:.12s}
+.get a:hover{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.get a.free{border-color:var(--gold);color:#8a5f10;font-weight:600}
+.get a.free:hover{background:var(--gold);color:var(--ink)}
+.get .why{font-size:12px;color:var(--soft);margin:10px 0 0;font-style:italic}
+hr{border:none;border-top:1px solid var(--rule);margin:22px 0}
+.panel h3{font-size:17px;font-weight:600;margin-bottom:10px}
+.series-list{list-style:none;margin:0;padding:0}
+.series-row{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
+.series-row:last-child{border-bottom:none}
+.num{font-family:var(--display);font-weight:900;font-size:15px;color:var(--gold)}
+.series-row .t{font-weight:600;font-size:15px;overflow-wrap:anywhere}
+.series-row .y{font-size:12px;color:var(--soft)}
+.upcoming .t{color:var(--soft)}
+.todo{font-size:13px;color:var(--soft);font-style:italic;padding:11px 0 0}
+.branch{position:relative;margin:0 0 4px 12px;padding:2px 0 6px 22px;border-left:2px solid var(--gold)}
+.branch::before{content:"";position:absolute;left:0;top:16px;width:14px;height:2px;background:var(--gold)}
+.branch h5{font-family:var(--body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9a6a15;font-weight:700;margin:8px 0 2px}
+.branch .when-in{font-size:12px;color:var(--soft);margin:0 0 6px;font-style:italic}
+.branch .series-row{grid-template-columns:1fr;padding:8px 0;border-bottom:1px dotted var(--rule)}
+.branch .series-row:last-child{border-bottom:none}
+.source{font-size:12px;color:var(--soft);margin:14px 0 0;font-style:italic}
+.rate{display:flex;gap:2px;margin-bottom:10px}
+.rate button{font-size:26px;line-height:1;color:var(--rule);padding:0 3px}
+.rate button.on{color:var(--gold)}
+textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2px;padding:10px;resize:vertical;min-height:76px;background:var(--paper)}
+.counter{font-size:12px;color:var(--soft);text-align:right;margin:4px 0 0}
+.counter.over{color:var(--berry);font-weight:700}
+.save{margin-top:8px;background:var(--berry);color:#fff;border-radius:2px;padding:10px 20px;font-weight:700;font-size:14px}
+.save:hover{background:var(--ink)}
+.save[disabled]{opacity:.55;cursor:progress}
+.save-msg{font-size:13px;color:var(--berry);margin:8px 0 0;min-height:18px}
+.save-msg.err,.form-msg{color:#7d2340;font-weight:600}
+.review{border-left:3px solid var(--gold);padding-left:14px;margin-top:16px}
+.review p{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
+.review .stars{color:var(--gold);font-size:14px;letter-spacing:2px}
+.review .when{font-size:12px;color:var(--soft);margin-top:2px}
+.pending{opacity:.55}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:5px}
+.field input{width:100%;border:1px solid var(--rule);border-radius:2px;padding:10px;background:var(--paper);font-size:15px}
+.row2{display:grid;grid-template-columns:1fr 90px;gap:12px}
+.form-msg{font-size:13px;min-height:18px;margin:6px 0 0}
+.alt{font-size:13px;color:var(--soft);margin:14px 0 0}
+.alt button{text-decoration:underline;color:var(--berry);font-weight:600}
+.note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
+.note-block strong{color:var(--ink)}
+footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media(max-width:560px){.book{grid-template-columns:52px 1fr;gap:12px}.cover{width:52px;height:78px}.panel{padding:18px}.panel-top{grid-template-columns:72px 1fr;gap:14px}.panel-top .cover{width:72px;height:108px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Next <span>Chapter</span></h1><p class="tagline">Book finder for young readers</p></div>
+    <div class="account" id="account"></div>
+  </header>
+
+  <p class="banner bad" id="db-warn" hidden></p>
+
+  <section class="hero">
+    <div class="kids" id="kids" hidden></div>
+    <p class="sentence">Find books for a
+      <label class="blank"><span class="sr">Reader's age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
+      year old who likes
+      <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
+    </p>
+    <p class="hint">Searching <b id="level">juvenile fiction</b></p>
+    <div class="actions">
+      <button class="go" id="search">Search the catalogue</button>
+      <button class="go alt2" id="ask">Ask the librarian</button>
+      <label class="toggle" for="rankOn">
+        <input type="checkbox" id="rankOn" checked>
+        Let the librarian sort the results
+      </label>
+    </div>
+    <div class="prefs">
+      <h4>Content preferences</h4>
+      <p id="prefs-note">Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
+      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <section id="aiSection" hidden>
+    <div class="ai-head">
+      <h2 id="aiTitle">The librarian suggests</h2>
+      <span class="count" id="aiCount"></span>
+    </div>
+    <p class="ai-note">Suggested by AI and unverified. Reading levels and content are its best guess, not a checked fact — treat them as a starting point.</p>
+    <p class="banner bad" id="aiErr" hidden></p>
+    <ul class="shelf" id="aiShelf"></ul>
+  </section>
+
+  <div class="head" id="resultsHead">
+    <h2 id="title">Start with a search</h2>
+    <span class="count" id="count"></span>
+  </div>
+
+  <p class="banner warn" id="relaxed" hidden></p>
+  <p class="banner info" id="hidden-msg" hidden></p>
+  <p class="banner thinking" id="rankMsg" hidden></p>
+  <ul class="shelf" id="shelf" aria-live="polite"></ul>
+  <button class="go alt2 more" id="more" hidden>Show more books</button>
+
+  <section id="shelfPage" hidden>
+    <div class="head">
+      <h2 id="shelfTitle">Shelf</h2>
+      <button class="backlink" id="backToSearch">← Back to search</button>
+    </div>
+    <div id="shelfBody"></div>
+  </section>
+
+  <p class="note-block"><strong>Week 6.</strong> Results appear straight away from Open Library and
+    Google Books, then the librarian reads through them in the background and re-sorts by how well
+    each one actually suits the reader's age. Nothing waits on the AI, and you can switch it off.</p>
+
+  <footer>Built by a human. Books from Open Library and Google Books. Series and content notes hand-entered.</footer>
+</div>
+
+<div class="backdrop" id="backdrop">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <button class="close" id="close" aria-label="Close">&times;</button>
+    <div class="panel-top">
+      <div id="pCover"></div>
+      <div>
+        <h2 id="pTitle"></h2>
+        <p class="author" id="pAuthor"></p>
+        <div class="meta" id="pMeta"></div>
+        <div id="pRating"></div>
+      </div>
+    </div>
+    <p class="blurb" id="pBlurb"></p>
+    <div id="pWhy"></div>
+    <div class="notes" id="pNotes"></div>
+    <div id="pGuess"></div>
+    <div class="subjects" id="pSubjects"></div>
+    <div class="shelf-row" id="pShelf"></div>
+    <div id="pGet"></div>
+    <div id="pSeries"></div>
+    <hr>
+    <h3>Leave a review</h3>
+    <div id="reviewForm">
+      <div class="rate" id="rate" role="group" aria-label="Star rating"></div>
+      <textarea id="rText" maxlength="600" placeholder="What did your reader think of it?"></textarea>
+      <p class="counter" id="counter">0 / 600</p>
+      <button class="save" id="save">Save review</button>
+      <p class="save-msg" id="saveMsg" role="status"></p>
+    </div>
+    <p class="muted" id="signInPrompt" hidden>Sign in to leave a review.</p>
+    <div id="rList"></div>
+  </div>
+</div>
+
+<div class="backdrop" id="authBack">
+  <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="close" id="authClose" aria-label="Close">&times;</button>
+    <h2 id="authTitle">Sign in</h2>
+    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div>
+    <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"></div>
+    <button class="save" id="authGo">Sign in</button>
+    <p class="form-msg" id="authMsg"></p>
+    <p class="alt"><span id="authAsk">No account yet? </span><button id="authSwap">Create one</button></p>
+  </div>
+</div>
+
+<div class="backdrop" id="kidBack">
+  <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="kidTitle">
+    <button class="close" id="kidClose" aria-label="Close">&times;</button>
+    <h2 id="kidTitle">Add a reader</h2>
+    <div class="row2">
+      <div class="field"><label for="kidName">Name</label><input id="kidName" maxlength="40"></div>
+      <div class="field"><label for="kidAge">Age</label><input id="kidAge" type="number" min="2" max="18" value="8"></div>
+    </div>
+    <button class="save" id="kidGo">Add</button>
+    <p class="form-msg" id="kidMsg"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+/* Next Chapter.
+   Catalogue: Open Library AND Google Books, merged. Ratings: Google Books,
+   falling back to Open Library. Accounts, shelves, reviews: Supabase.
+   AI: an Edge Function calling Claude server-side, in two modes —
+     "recommend" invents a fresh list from scratch
+     "rank"      judges the search results we already have
+
+   Goodreads closed its API in 2020 and Common Sense Media never had one, so
+   neither can be read programmatically. Google Books is the closest available
+   source; Common Sense is linked to instead.
+
+   All API text enters the DOM via textContent, never innerHTML — these are
+   public, editable catalogues, so a title is never trusted as markup. */
+
+/* The anon key is MEANT to be public — Row Level Security protects the data.
+   Never put the service_role or Anthropic key here.
+   Paste the key BETWEEN the quotes, on one line, with no extra quote marks. */
+const SUPABASE_URL = "https://weoybccspfetglvmekab.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
+
+/* ================= THE CATALOGUE — the data you own =================
+   SERIES for anything with a reading order, `branches` for side stories that
+   hang off the main sequence, BOOKS for standalone titles.
+
+   Only add a content note you have actually verified. A wrong note is worse
+   than no note, because a parent will trust it. Use `todo` to admit gaps
+   rather than guessing — it renders as an italic line in the app.
+   ================================================================== */
+
+const CATEGORIES = {
+  violence:{label:"Violence",blurb:"Fighting, battles, or physical conflict."},
+  gore:{label:"Graphic injury",blurb:"Blood or injury described in detail."},
+  scary:{label:"Frightening scenes",blurb:"Suspense or imagery that may unsettle younger readers."},
+  death:{label:"Death of a character",blurb:"A significant character dies."},
+  romance:{label:"Romance",blurb:"Romantic relationships or crushes."},
+  lgbtqia:{label:"LGBTQIA characters",blurb:"Queer characters or relationships appear."},
+  language:{label:"Strong language",blurb:"Swearing or crude language."},
+  substances:{label:"Alcohol or drugs",blurb:"Substance use appears on the page."},
+  religion:{label:"Religious themes",blurb:"Faith or religious practice is a theme."}
+};
+
+const SERIES = {
+  "wings-of-fire":{title:"Wings of Fire",author:"Tui T. Sutherland",match:/wings of fire/i,ages:"8–12",
+    todo:"Newer books exist beyond 15 — verify the titles and add them.",
+    books:[
+      {n:1,title:"The Dragonet Prophecy",year:2012,notes:["violence","death","scary"]},
+      {n:2,title:"The Lost Heir",year:2013,notes:["violence","death"]},
+      {n:3,title:"The Hidden Kingdom",year:2013,notes:["violence","death"]},
+      {n:4,title:"The Dark Secret",year:2013,notes:["violence","death","scary"]},
+      {n:5,title:"The Brightest Night",year:2014,notes:["violence","death"]},
+      {n:6,title:"Moon Rising",year:2014,notes:["violence","scary"]},
+      {n:7,title:"Winter Turning",year:2015,notes:["violence"]},
+      {n:8,title:"Escaping Peril",year:2015,notes:["violence","death"]},
+      {n:9,title:"Talons of Power",year:2016,notes:["violence","scary"]},
+      {n:10,title:"Darkness of Dragons",year:2017,notes:["violence","death"]},
+      {n:11,title:"The Lost Continent",year:2018,notes:["violence"]},
+      {n:12,title:"The Hive Queen",year:2018,notes:["violence","death"]},
+      {n:13,title:"The Poison Jungle",year:2019,notes:["violence","death","lgbtqia"]},
+      {n:14,title:"The Dangerous Gift",year:2021,notes:["violence","lgbtqia"]},
+      {n:15,title:"The Flames of Hope",year:2022,notes:["violence","death","lgbtqia"]}],
+    branches:[
+      {after:5,title:"Legends",note:"Standalone companions. Read after book 5 to avoid spoilers.",books:[
+        {title:"Darkstalker",year:2016,notes:["violence","death","scary"]},
+        {title:"Dragonslayer",year:2020,notes:["violence","death"]}]},
+      {after:5,title:"Winglets",note:"Short novellas following side characters.",books:[
+        {title:"Prisoners",year:2015,notes:["violence"]},
+        {title:"Assassin",year:2016,notes:["violence","death"]},
+        {title:"Deserter",year:2016,notes:["violence"]},
+        {title:"Runaway",year:2016,notes:["violence"]}]}]},
+
+  "how-to-train-your-dragon":{title:"How to Train Your Dragon",author:"Cressida Cowell",match:/how to train your dragon/i,ages:"8–12",books:[
+    {n:1,title:"How to Train Your Dragon",year:2003,notes:["violence"]},
+    {n:2,title:"How to Be a Pirate",year:2004,notes:["violence"]},
+    {n:3,title:"How to Speak Dragonese",year:2005,notes:["violence"]},
+    {n:4,title:"How to Cheat a Dragon's Curse",year:2006,notes:["violence","scary"]},
+    {n:5,title:"How to Twist a Dragon's Tale",year:2007,notes:["violence"]},
+    {n:6,title:"A Hero's Guide to Deadly Dragons",year:2007,notes:["violence"]},
+    {n:7,title:"How to Ride a Dragon's Storm",year:2008,notes:["violence"]},
+    {n:8,title:"How to Break a Dragon's Heart",year:2009,notes:["violence","death"]},
+    {n:9,title:"How to Steal a Dragon's Sword",year:2011,notes:["violence"]},
+    {n:10,title:"How to Seize a Dragon's Jewel",year:2012,notes:["violence","scary"]},
+    {n:11,title:"How to Betray a Dragon's Hero",year:2013,notes:["violence","death"]},
+    {n:12,title:"How to Fight a Dragon's Fury",year:2015,notes:["violence","death"]}]},
+
+  "harry-potter":{title:"Harry Potter",author:"J. K. Rowling",match:/harry potter/i,ages:"9–14 (rising through the series)",books:[
+    {n:1,title:"The Philosopher's Stone",year:1997,notes:["violence","scary"]},
+    {n:2,title:"The Chamber of Secrets",year:1998,notes:["violence","scary"]},
+    {n:3,title:"The Prisoner of Azkaban",year:1999,notes:["violence","scary"]},
+    {n:4,title:"The Goblet of Fire",year:2000,notes:["violence","death","scary"]},
+    {n:5,title:"The Order of the Phoenix",year:2003,notes:["violence","death","scary"]},
+    {n:6,title:"The Half-Blood Prince",year:2005,notes:["violence","death","romance"]},
+    {n:7,title:"The Deathly Hallows",year:2007,notes:["violence","death","gore","romance"]}]},
+
+  "narnia":{title:"The Chronicles of Narnia",author:"C. S. Lewis",match:/chronicles of narnia|narnia/i,ages:"8–12",
+    todo:"Listed in publication order. Some readers prefer chronological order, starting with The Magician's Nephew.",
+    books:[
+      {n:1,title:"The Lion, the Witch and the Wardrobe",year:1950,notes:["violence","death","religion"]},
+      {n:2,title:"Prince Caspian",year:1951,notes:["violence","religion"]},
+      {n:3,title:"The Voyage of the Dawn Treader",year:1952,notes:["violence","religion"]},
+      {n:4,title:"The Silver Chair",year:1953,notes:["violence","scary","religion"]},
+      {n:5,title:"The Horse and His Boy",year:1954,notes:["violence","religion"]},
+      {n:6,title:"The Magician's Nephew",year:1955,notes:["religion"]},
+      {n:7,title:"The Last Battle",year:1956,notes:["violence","death","religion"]}]},
+
+  "percy-jackson":{title:"Percy Jackson and the Olympians",author:"Rick Riordan",match:/percy jackson/i,ages:"9–13",books:[
+    {n:1,title:"The Lightning Thief",year:2005,notes:["violence","death","religion"]},
+    {n:2,title:"The Sea of Monsters",year:2006,notes:["violence","religion"]},
+    {n:3,title:"The Titan's Curse",year:2007,notes:["violence","death","religion"]},
+    {n:4,title:"The Battle of the Labyrinth",year:2008,notes:["violence","death","religion"]},
+    {n:5,title:"The Last Olympian",year:2009,notes:["violence","death","religion"]}],
+    branches:[
+      {after:5,title:"The Heroes of Olympus",note:"Direct sequel series. Read after book 5.",books:[
+        {title:"The Lost Hero",year:2010,notes:["violence","death","religion"]},
+        {title:"The Son of Neptune",year:2011,notes:["violence","death","religion"]},
+        {title:"The Mark of Athena",year:2012,notes:["violence","death","romance","religion"]},
+        {title:"The House of Hades",year:2013,notes:["violence","death","romance","lgbtqia","religion"]},
+        {title:"The Blood of Olympus",year:2014,notes:["violence","death","romance","lgbtqia","religion"]}]},
+      {after:5,title:"The Kane Chronicles",note:"Same author, Egyptian mythology. Reads independently.",books:[
+        {title:"The Red Pyramid",year:2010,notes:["violence","death","religion"]},
+        {title:"The Throne of Fire",year:2011,notes:["violence","death","religion"]},
+        {title:"The Serpent's Shadow",year:2012,notes:["violence","death","religion"]}]},
+      {after:5,title:"Magnus Chase and the Gods of Asgard",note:"Same author, Norse mythology.",books:[
+        {title:"The Sword of Summer",year:2015,notes:["violence","death","religion"]},
+        {title:"The Hammer of Thor",year:2016,notes:["violence","death","lgbtqia","religion"]},
+        {title:"The Ship of the Dead",year:2017,notes:["violence","death","lgbtqia","religion"]}]}]},
+
+  "keeper-lost-cities":{title:"Keeper of the Lost Cities",author:"Shannon Messenger",match:/keeper of the lost cities/i,ages:"9–13",
+    todo:"The series continues past Unlocked — verify and add the newer titles.",
+    books:[
+      {n:1,title:"Keeper of the Lost Cities",year:2012,notes:["violence"]},
+      {n:2,title:"Exile",year:2013,notes:["violence"]},
+      {n:3,title:"Everblaze",year:2014,notes:["violence","death"]},
+      {n:4,title:"Neverseen",year:2015,notes:["violence","death"]},
+      {n:5,title:"Lodestar",year:2016,notes:["violence","romance"]},
+      {n:6,title:"Nightfall",year:2017,notes:["violence","romance"]},
+      {n:7,title:"Flashback",year:2018,notes:["violence","romance"]},
+      {n:8,title:"Legacy",year:2019,notes:["violence","romance"]},
+      {n:9,title:"Unlocked",year:2020,notes:["violence","romance"]}]},
+
+  "land-of-stories":{title:"The Land of Stories",author:"Chris Colfer",match:/land of stories/i,ages:"8–12",books:[
+    {n:1,title:"The Wishing Spell",year:2012,notes:["violence"]},
+    {n:2,title:"The Enchantress Returns",year:2013,notes:["violence","scary"]},
+    {n:3,title:"A Grimm Warning",year:2014,notes:["violence"]},
+    {n:4,title:"Beyond the Kingdoms",year:2015,notes:["violence"]},
+    {n:5,title:"An Author's Odyssey",year:2016,notes:["violence"]},
+    {n:6,title:"Worlds Collide",year:2017,notes:["violence","death"]}]},
+
+  "artemis-fowl":{title:"Artemis Fowl",author:"Eoin Colfer",match:/artemis fowl/i,ages:"10–14",books:[
+    {n:1,title:"Artemis Fowl",year:2001,notes:["violence"]},
+    {n:2,title:"The Arctic Incident",year:2002,notes:["violence"]},
+    {n:3,title:"The Eternity Code",year:2003,notes:["violence"]},
+    {n:4,title:"The Opal Deception",year:2005,notes:["violence","death"]},
+    {n:5,title:"The Lost Colony",year:2006,notes:["violence"]},
+    {n:6,title:"The Time Paradox",year:2008,notes:["violence"]},
+    {n:7,title:"The Atlantis Complex",year:2010,notes:["violence"]},
+    {n:8,title:"The Last Guardian",year:2012,notes:["violence","death"]}]},
+
+  "rangers-apprentice":{title:"Ranger's Apprentice",author:"John Flanagan",match:/ranger'?s apprentice/i,ages:"10–14",books:[
+    {n:1,title:"The Ruins of Gorlan",year:2004,notes:["violence"]},
+    {n:2,title:"The Burning Bridge",year:2005,notes:["violence","death"]},
+    {n:3,title:"The Icebound Land",year:2005,notes:["violence","substances"]},
+    {n:4,title:"The Battle for Skandia",year:2006,notes:["violence","death"]},
+    {n:5,title:"The Sorcerer of the North",year:2006,notes:["violence"]},
+    {n:6,title:"The Siege of Macindaw",year:2007,notes:["violence"]},
+    {n:7,title:"Erak's Ransom",year:2007,notes:["violence"]},
+    {n:8,title:"The Kings of Clonmel",year:2008,notes:["violence","religion"]},
+    {n:9,title:"Halt's Peril",year:2009,notes:["violence"]},
+    {n:10,title:"The Emperor of Nihon-Ja",year:2010,notes:["violence"]},
+    {n:11,title:"The Lost Stories",year:2011,notes:["violence"]},
+    {n:12,title:"The Royal Ranger",year:2013,notes:["violence","death"]}]},
+
+  "warriors":{title:"Warriors",author:"Erin Hunter",match:/^warriors\b/i,ages:"9–13",
+    todo:"Only the first two arcs are entered. Warriors runs to many more — add them as you verify.",
+    books:[
+      {n:1,title:"Into the Wild",year:2003,notes:["violence","death"]},
+      {n:2,title:"Fire and Ice",year:2003,notes:["violence","death"]},
+      {n:3,title:"Forest of Secrets",year:2003,notes:["violence","death"]},
+      {n:4,title:"Rising Storm",year:2004,notes:["violence","death"]},
+      {n:5,title:"A Dangerous Path",year:2004,notes:["violence","death"]},
+      {n:6,title:"The Darkest Hour",year:2004,notes:["violence","death","gore"]}],
+    branches:[
+      {after:6,title:"The New Prophecy",note:"Second arc. Read after The Darkest Hour.",books:[
+        {title:"Midnight",year:2005,notes:["violence","death"]},
+        {title:"Moonrise",year:2005,notes:["violence","death"]},
+        {title:"Dawn",year:2005,notes:["violence","death"]},
+        {title:"Starlight",year:2005,notes:["violence","death"]},
+        {title:"Twilight",year:2006,notes:["violence","death"]},
+        {title:"Sunset",year:2006,notes:["violence","death"]}]}]},
+
+  "unfortunate-events":{title:"A Series of Unfortunate Events",author:"Lemony Snicket",match:/series of unfortunate events/i,ages:"9–13",books:[
+    {n:1,title:"The Bad Beginning",year:1999,notes:["death","scary"]},
+    {n:2,title:"The Reptile Room",year:1999,notes:["death","scary"]},
+    {n:3,title:"The Wide Window",year:2000,notes:["death","scary"]},
+    {n:4,title:"The Miserable Mill",year:2000,notes:["violence","scary"]},
+    {n:5,title:"The Austere Academy",year:2000,notes:["scary"]},
+    {n:6,title:"The Ersatz Elevator",year:2001,notes:["scary"]},
+    {n:7,title:"The Vile Village",year:2001,notes:["violence","scary"]},
+    {n:8,title:"The Hostile Hospital",year:2001,notes:["violence","scary"]},
+    {n:9,title:"The Carnivorous Carnival",year:2002,notes:["violence","death","scary"]},
+    {n:10,title:"The Slippery Slope",year:2003,notes:["violence","death"]},
+    {n:11,title:"The Grim Grotto",year:2004,notes:["violence","death"]},
+    {n:12,title:"The Penultimate Peril",year:2005,notes:["violence","death"]},
+    {n:13,title:"The End",year:2006,notes:["death"]}]},
+
+  "mysterious-benedict":{title:"The Mysterious Benedict Society",author:"Trenton Lee Stewart",match:/mysterious benedict society/i,ages:"9–13",books:[
+    {n:1,title:"The Mysterious Benedict Society",year:2007,notes:["scary"]},
+    {n:2,title:"The Perilous Journey",year:2008,notes:["violence","scary"]},
+    {n:3,title:"The Prisoner's Dilemma",year:2009,notes:["violence","scary"]},
+    {n:4,title:"The Riddle of Ages",year:2019,notes:["violence"]}]},
+
+  "amulet":{title:"Amulet",author:"Kazu Kibuishi",match:/^amulet\b/i,ages:"8–12",books:[
+    {n:1,title:"The Stonekeeper",year:2008,notes:["violence","death","scary"]},
+    {n:2,title:"The Stonekeeper's Curse",year:2009,notes:["violence","scary"]},
+    {n:3,title:"The Cloud Searchers",year:2010,notes:["violence"]},
+    {n:4,title:"The Last Council",year:2011,notes:["violence","scary"]},
+    {n:5,title:"Prince of the Elves",year:2012,notes:["violence","death"]},
+    {n:6,title:"Escape from Lucien",year:2014,notes:["violence"]},
+    {n:7,title:"Firelight",year:2016,notes:["violence"]},
+    {n:8,title:"Supernova",year:2018,notes:["violence","death"]},
+    {n:9,title:"Waverider",year:2024,notes:["violence","death"]}]},
+
+  "magic-tree-house":{title:"Magic Tree House",author:"Mary Pope Osborne",match:/magic tree house/i,ages:"6–9",
+    todo:"Only the first ten are entered. The series runs to many more — add them as you verify.",
+    books:[
+      {n:1,title:"Dinosaurs Before Dark",year:1992,notes:[]},
+      {n:2,title:"The Knight at Dawn",year:1993,notes:[]},
+      {n:3,title:"Mummies in the Morning",year:1993,notes:["scary"]},
+      {n:4,title:"Pirates Past Noon",year:1994,notes:["violence"]},
+      {n:5,title:"Night of the Ninjas",year:1995,notes:[]},
+      {n:6,title:"Afternoon on the Amazon",year:1995,notes:[]},
+      {n:7,title:"Sunset of the Sabertooth",year:1996,notes:[]},
+      {n:8,title:"Midnight on the Moon",year:1996,notes:[]},
+      {n:9,title:"Dolphins at Daybreak",year:1997,notes:[]},
+      {n:10,title:"Ghost Town at Sundown",year:1997,notes:["scary"]}]},
+
+  "geronimo-stilton":{title:"Geronimo Stilton",author:"Elisabetta Dami",match:/geronimo stilton/i,ages:"6–10",
+    todo:"Only the first ten English titles are entered. This series is enormous — add as you verify.",
+    books:[
+      {n:1,title:"Lost Treasure of the Emerald Eye",year:2004,notes:[]},
+      {n:2,title:"The Curse of the Cheese Pyramid",year:2004,notes:["scary"]},
+      {n:3,title:"Cat and Mouse in a Haunted House",year:2004,notes:["scary"]},
+      {n:4,title:"I'm Too Fond of My Fur!",year:2004,notes:[]},
+      {n:5,title:"Four Mice Deep in the Jungle",year:2004,notes:[]},
+      {n:6,title:"Paws Off, Cheddarface!",year:2004,notes:[]},
+      {n:7,title:"Red Pizzas for a Blue Count",year:2004,notes:["scary"]},
+      {n:8,title:"Attack of the Bandit Cats",year:2004,notes:[]},
+      {n:9,title:"A Fabumouse Vacation for Geronimo",year:2004,notes:[]},
+      {n:10,title:"All Because of a Cup of Coffee",year:2004,notes:[]}]},
+
+  "dog-man":{title:"Dog Man",author:"Dav Pilkey",match:/^dog man\b/i,ages:"6–10",
+    todo:"The series continues past Twenty Thousand Fleas — add the newer titles once verified.",
+    books:[
+      {n:1,title:"Dog Man",year:2016,notes:[]},
+      {n:2,title:"Unleashed",year:2016,notes:[]},
+      {n:3,title:"A Tale of Two Kitties",year:2017,notes:[]},
+      {n:4,title:"Dog Man and Cat Kid",year:2017,notes:[]},
+      {n:5,title:"Lord of the Fleas",year:2018,notes:[]},
+      {n:6,title:"Brawl of the Wild",year:2018,notes:[]},
+      {n:7,title:"For Whom the Ball Rolls",year:2019,notes:[]},
+      {n:8,title:"Fetch-22",year:2019,notes:[]},
+      {n:9,title:"Grime and Punishment",year:2020,notes:[]},
+      {n:10,title:"Mothering Heights",year:2021,notes:[]},
+      {n:11,title:"Twenty Thousand Fleas Under the Sea",year:2023,notes:[]}]},
+
+  "captain-underpants":{title:"Captain Underpants",author:"Dav Pilkey",match:/captain underpants/i,ages:"6–10",books:[
+    {n:1,title:"The Adventures of Captain Underpants",year:1997,notes:[]},
+    {n:2,title:"The Attack of the Talking Toilets",year:1999,notes:[]},
+    {n:3,title:"The Invasion of the Incredibly Naughty Cafeteria Ladies from Outer Space",year:1999,notes:[]},
+    {n:4,title:"The Perilous Plot of Professor Poopypants",year:2000,notes:[]},
+    {n:5,title:"The Wrath of the Wicked Wedgie Woman",year:2001,notes:[]},
+    {n:6,title:"The Big, Bad Battle of the Bionic Booger Boy, Part 1",year:2003,notes:[]},
+    {n:7,title:"The Big, Bad Battle of the Bionic Booger Boy, Part 2",year:2003,notes:[]},
+    {n:8,title:"The Preposterous Plight of the Purple Potty People",year:2006,notes:[]},
+    {n:9,title:"The Terrifying Return of Tippy Tinkletrousers",year:2012,notes:[]},
+    {n:10,title:"The Revolting Revenge of the Radioactive Robo-Boxers",year:2013,notes:[]},
+    {n:11,title:"The Tyrannical Retaliation of the Turbo Toilet 2000",year:2014,notes:[]},
+    {n:12,title:"The Sensational Saga of Sir Stinks-A-Lot",year:2015,notes:[]}]},
+
+  "wimpy-kid":{title:"Diary of a Wimpy Kid",author:"Jeff Kinney",match:/diary of a wimpy kid/i,ages:"8–12",
+    todo:"The series continues past No Brainer — add the newer titles once verified.",
+    books:[
+      {n:1,title:"Diary of a Wimpy Kid",year:2007,notes:[]},
+      {n:2,title:"Rodrick Rules",year:2008,notes:[]},
+      {n:3,title:"The Last Straw",year:2009,notes:[]},
+      {n:4,title:"Dog Days",year:2009,notes:[]},
+      {n:5,title:"The Ugly Truth",year:2010,notes:[]},
+      {n:6,title:"Cabin Fever",year:2011,notes:[]},
+      {n:7,title:"The Third Wheel",year:2012,notes:["romance"]},
+      {n:8,title:"Hard Luck",year:2013,notes:[]},
+      {n:9,title:"The Long Haul",year:2014,notes:[]},
+      {n:10,title:"Old School",year:2015,notes:[]},
+      {n:11,title:"Double Down",year:2016,notes:[]},
+      {n:12,title:"The Getaway",year:2017,notes:[]},
+      {n:13,title:"The Meltdown",year:2018,notes:[]},
+      {n:14,title:"Wrecking Ball",year:2019,notes:[]},
+      {n:15,title:"The Deep End",year:2020,notes:[]},
+      {n:16,title:"Big Shot",year:2021,notes:[]},
+      {n:17,title:"Diper Överlöde",year:2022,notes:[]},
+      {n:18,title:"No Brainer",year:2023,notes:[]}]},
+
+  "bad-guys":{title:"The Bad Guys",author:"Aaron Blabey",match:/^the bad guys\b/i,ages:"6–10",
+    todo:"The series continues past book 12 — add the newer titles once verified.",
+    books:[
+      {n:1,title:"The Bad Guys",year:2015,notes:[]},
+      {n:2,title:"Mission Unpluckable",year:2016,notes:[]},
+      {n:3,title:"The Furball Strikes Back",year:2016,notes:[]},
+      {n:4,title:"Attack of the Zittens",year:2017,notes:["scary"]},
+      {n:5,title:"Intergalactic Gas",year:2017,notes:[]},
+      {n:6,title:"Alien vs Bad Guys",year:2018,notes:["scary"]},
+      {n:7,title:"Do-You-Think-He-Saurus?!",year:2018,notes:[]},
+      {n:8,title:"Superbad",year:2018,notes:[]},
+      {n:9,title:"The Big Bad Wolf",year:2019,notes:[]},
+      {n:10,title:"The Baddest Day Ever",year:2019,notes:[]},
+      {n:11,title:"Dawn of the Underlord",year:2020,notes:["scary"]},
+      {n:12,title:"The One?!",year:2020,notes:[]}]},
+
+  "big-nate":{title:"Big Nate",author:"Lincoln Peirce",match:/^big nate\b/i,ages:"8–12",
+    todo:"Only the first eight novels are entered; there are more, plus comic collections.",
+    books:[
+      {n:1,title:"Big Nate: In a Class by Himself",year:2010,notes:[]},
+      {n:2,title:"Big Nate Strikes Again",year:2010,notes:[]},
+      {n:3,title:"Big Nate on a Roll",year:2011,notes:[]},
+      {n:4,title:"Big Nate Goes for Broke",year:2012,notes:[]},
+      {n:5,title:"Big Nate Flips Out",year:2013,notes:[]},
+      {n:6,title:"Big Nate: In the Zone",year:2014,notes:[]},
+      {n:7,title:"Big Nate Lives It Up",year:2015,notes:[]},
+      {n:8,title:"Big Nate Blasts Off",year:2016,notes:[]}]},
+
+  "hunger-games":{title:"The Hunger Games",author:"Suzanne Collins",match:/hunger games/i,ages:"13+",books:[
+    {n:1,title:"The Hunger Games",year:2008,notes:["violence","gore","death","romance"]},
+    {n:2,title:"Catching Fire",year:2009,notes:["violence","gore","death","romance"]},
+    {n:3,title:"Mockingjay",year:2010,notes:["violence","gore","death","substances"]}],
+    branches:[
+      {after:3,title:"Prequels",note:"Set decades earlier. Read after the main trilogy.",books:[
+        {title:"The Ballad of Songbirds and Snakes",year:2020,notes:["violence","gore","death","substances"]}]}]},
+
+  "maze-runner":{title:"The Maze Runner",author:"James Dashner",match:/maze runner/i,ages:"12–16",books:[
+    {n:1,title:"The Maze Runner",year:2009,notes:["violence","gore","death","scary"]},
+    {n:2,title:"The Scorch Trials",year:2010,notes:["violence","gore","death","scary"]},
+    {n:3,title:"The Death Cure",year:2011,notes:["violence","gore","death"]}],
+    branches:[
+      {after:3,title:"Prequels",note:"Set before the maze.",books:[
+        {title:"The Kill Order",year:2012,notes:["violence","gore","death"]},
+        {title:"The Fever Code",year:2016,notes:["violence","death"]}]}]},
+
+  "divergent":{title:"Divergent",author:"Veronica Roth",match:/^divergent\b|^insurgent\b|^allegiant\b/i,ages:"13+",books:[
+    {n:1,title:"Divergent",year:2011,notes:["violence","death","romance"]},
+    {n:2,title:"Insurgent",year:2012,notes:["violence","death","romance"]},
+    {n:3,title:"Allegiant",year:2013,notes:["violence","death","romance"]}]},
+
+  "six-of-crows":{title:"Six of Crows",author:"Leigh Bardugo",match:/six of crows|crooked kingdom/i,ages:"14+",books:[
+    {n:1,title:"Six of Crows",year:2015,notes:["violence","gore","death","romance","lgbtqia","substances","language"]},
+    {n:2,title:"Crooked Kingdom",year:2016,notes:["violence","gore","death","romance","lgbtqia","substances","language"]}]},
+
+  "inheritance":{title:"The Inheritance Cycle",author:"Christopher Paolini",match:/inheritance cycle|^eragon\b|^eldest\b|^brisingr\b/i,ages:"11–15",books:[
+    {n:1,title:"Eragon",year:2002,notes:["violence","gore","death"]},
+    {n:2,title:"Eldest",year:2005,notes:["violence","gore","death"]},
+    {n:3,title:"Brisingr",year:2008,notes:["violence","gore","death"]},
+    {n:4,title:"Inheritance",year:2011,notes:["violence","gore","death"]}]}
+};
+
+const BOOKS = {
+  hobbit:{title:"The Hobbit",author:"J.R.R. Tolkien",match:/^the hobbit\b/i,ages:"10–14",notes:["violence","death","scary"]},
+  charlotte:{title:"Charlotte's Web",author:"E.B. White",match:/charlotte'?s web/i,ages:"7–10",notes:["death"]},
+  terabithia:{title:"Bridge to Terabithia",author:"Katherine Paterson",match:/bridge to terabithia/i,ages:"9–12",notes:["death","religion"]},
+  giver:{title:"The Giver",author:"Lois Lowry",match:/^the giver\b/i,ages:"11–14",notes:["death","violence"]},
+  holes:{title:"Holes",author:"Louis Sachar",match:/^holes$/i,ages:"9–12",notes:["violence"]},
+  redfern:{title:"Where the Red Fern Grows",author:"Wilson Rawls",match:/where the red fern grows/i,ages:"9–12",notes:["death","violence","gore"]},
+  wonder:{title:"Wonder",author:"R.J. Palacio",match:/^wonder$/i,ages:"8–12",notes:[]},
+  coraline:{title:"Coraline",author:"Neil Gaiman",match:/^coraline\b/i,ages:"8–12",notes:["scary"]},
+  matilda:{title:"Matilda",author:"Roald Dahl",match:/^matilda\b/i,ages:"7–11",notes:["violence"]},
+  bfg:{title:"The BFG",author:"Roald Dahl",match:/^the bfg\b/i,ages:"6–10",notes:["scary"]},
+  witches:{title:"The Witches",author:"Roald Dahl",match:/^the witches\b/i,ages:"8–11",notes:["scary"]},
+  chocolate:{title:"Charlie and the Chocolate Factory",author:"Roald Dahl",match:/charlie and the chocolate factory/i,ages:"7–11",notes:[]},
+  jamespeach:{title:"James and the Giant Peach",author:"Roald Dahl",match:/james and the giant peach/i,ages:"6–10",notes:["death"]},
+  foxdahl:{title:"Fantastic Mr Fox",author:"Roald Dahl",match:/fantastic mr\.? fox/i,ages:"6–9",notes:[]},
+  twits:{title:"The Twits",author:"Roald Dahl",match:/^the twits\b/i,ages:"6–9",notes:[]},
+  numberstars:{title:"Number the Stars",author:"Lois Lowry",match:/number the stars/i,ages:"9–12",notes:["violence","death"]},
+  outsiders:{title:"The Outsiders",author:"S.E. Hinton",match:/^the outsiders\b/i,ages:"12–16",notes:["violence","death","substances","language"]},
+  tollbooth:{title:"The Phantom Tollbooth",author:"Norton Juster",match:/phantom tollbooth/i,ages:"8–12",notes:[]},
+  despereaux:{title:"The Tale of Despereaux",author:"Kate DiCamillo",match:/tale of despereaux/i,ages:"7–10",notes:["violence"]},
+  winndixie:{title:"Because of Winn-Dixie",author:"Kate DiCamillo",match:/because of winn.?dixie/i,ages:"8–11",notes:[]},
+  edwardtulane:{title:"The Miraculous Journey of Edward Tulane",author:"Kate DiCamillo",match:/edward tulane/i,ages:"8–11",notes:["death"]},
+  tuck:{title:"Tuck Everlasting",author:"Natalie Babbitt",match:/tuck everlasting/i,ages:"9–12",notes:["death"]},
+  bluedolphins:{title:"Island of the Blue Dolphins",author:"Scott O'Dell",match:/island of the blue dolphins/i,ages:"9–12",notes:["death","violence"]},
+  hatchet:{title:"Hatchet",author:"Gary Paulsen",match:/^hatchet\b/i,ages:"10–13",notes:["violence","scary"]},
+  maniac:{title:"Maniac Magee",author:"Jerry Spinelli",match:/maniac magee/i,ages:"9–12",notes:["death"]},
+  stargirl:{title:"Stargirl",author:"Jerry Spinelli",match:/^stargirl\b/i,ages:"11–14",notes:["romance"]},
+  westing:{title:"The Westing Game",author:"Ellen Raskin",match:/westing game/i,ages:"9–12",notes:["death"]},
+  frindle:{title:"Frindle",author:"Andrew Clements",match:/^frindle\b/i,ages:"8–11",notes:[]},
+  rollthunder:{title:"Roll of Thunder, Hear My Cry",author:"Mildred D. Taylor",match:/roll of thunder/i,ages:"11–14",notes:["violence","language"]},
+  watsons:{title:"The Watsons Go to Birmingham — 1963",author:"Christopher Paul Curtis",match:/watsons go to birmingham/i,ages:"9–13",notes:["violence","death"]},
+  budnotbuddy:{title:"Bud, Not Buddy",author:"Christopher Paul Curtis",match:/bud,? not buddy/i,ages:"9–12",notes:["violence"]},
+  esperanza:{title:"Esperanza Rising",author:"Pam Muñoz Ryan",match:/esperanza rising/i,ages:"9–12",notes:["death"]},
+  outofmymind:{title:"Out of My Mind",author:"Sharon M. Draper",match:/out of my mind/i,ages:"9–13",notes:[]},
+  refugee:{title:"Refugee",author:"Alan Gratz",match:/^refugee\b/i,ages:"10–14",notes:["violence","death"]},
+  walktwomoons:{title:"Walk Two Moons",author:"Sharon Creech",match:/walk two moons/i,ages:"9–12",notes:["death"]},
+  ellaenchanted:{title:"Ella Enchanted",author:"Gail Carson Levine",match:/ella enchanted/i,ages:"8–12",notes:["romance"]},
+  poppers:{title:"Mr. Popper's Penguins",author:"Richard Atwater",match:/popper'?s penguins/i,ages:"6–9",notes:[]},
+  stuartlittle:{title:"Stuart Little",author:"E.B. White",match:/stuart little/i,ages:"6–9",notes:[]},
+  trumpetswan:{title:"The Trumpet of the Swan",author:"E.B. White",match:/trumpet of the swan/i,ages:"7–10",notes:[]},
+  sarahplain:{title:"Sarah, Plain and Tall",author:"Patricia MacLachlan",match:/sarah,? plain and tall/i,ages:"7–10",notes:["death"]},
+  wrinkletime:{title:"A Wrinkle in Time",author:"Madeleine L'Engle",match:/wrinkle in time/i,ages:"9–13",notes:["scary","religion"]},
+  crossover:{title:"The Crossover",author:"Kwame Alexander",match:/^the crossover\b/i,ages:"10–14",notes:["death"]},
+  ghostreynolds:{title:"Ghost",author:"Jason Reynolds",match:/^ghost$/i,ages:"10–13",notes:["violence"]},
+  newkid:{title:"New Kid",author:"Jerry Craft",match:/^new kid\b/i,ages:"8–12",notes:[]},
+  smile:{title:"Smile",author:"Raina Telgemeier",match:/^smile$/i,ages:"8–12",notes:[]},
+  drama:{title:"Drama",author:"Raina Telgemeier",match:/^drama$/i,ages:"9–13",notes:["romance","lgbtqia"]},
+  sisters:{title:"Sisters",author:"Raina Telgemeier",match:/^sisters$/i,ages:"8–12",notes:[]},
+  guts:{title:"Guts",author:"Raina Telgemeier",match:/^guts$/i,ages:"8–12",notes:[]},
+  eldeafo:{title:"El Deafo",author:"Cece Bell",match:/el deafo/i,ages:"8–12",notes:[]},
+  bookthief:{title:"The Book Thief",author:"Markus Zusak",match:/the book thief/i,ages:"13+",notes:["violence","death","language"]},
+  annefrank:{title:"The Diary of a Young Girl",author:"Anne Frank",match:/diary of a young girl/i,ages:"12+",notes:["death","violence"]},
+  faultstars:{title:"The Fault in Our Stars",author:"John Green",match:/fault in our stars/i,ages:"14+",notes:["death","romance","language"]}
+};
+
+/* ===== setup ===== */
+const OL="https://openlibrary.org/search.json";
+const GB="https://www.googleapis.com/books/v1/volumes";
+const FIELDS="key,title,author_name,cover_i,subject,first_sentence,isbn,ia,ebook_access";
+const LIMIT=40, TIMEOUT=12000, MAXCHARS=600, RANK_MAX=30;
+const STATES=[null,"flag","avoid"];
+const SHELF=[["want","Want to read"],["reading","Reading"],["finished","Finished"]];
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
+
+let cards=[], aiCards=[], openItem=null, rating=0, searchId=0, inFlight=null, lastFocus=null;
+let lastTopic="", lastNote=null, panelToken=0, lastQuery=null, offset=0;
+let user=null, children=[], activeChild=null, authMode="in";
+const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map(),
+      infoCache=new Map(), rankCache=new Map();
+
+/* ===== database =====
+   The app must work when this fails. A dead database costs you reviews,
+   not the whole site — every call is wrapped, and db stays null if unset. */
+let db=null;
+if (SUPABASE_ANON_KEY && window.supabase){
+  try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  catch(e){ console.error("Supabase init failed:", e); }
+}
+if (!db){
+  $("db-warn").textContent = "Not connected to the database — sign-in, saved reviews and AI features are off. Add your Supabase anon key near the top of the file.";
+  $("db-warn").hidden = false;
+  $("rankOn").checked = false;
+}
+
+/* ===== language filtering =====
+   Open Library's language:eng matches works with ANY English edition but shows
+   the primary record's title — which is how an Italian Geronimo Stilton slips
+   through. So the title is checked too. */
+const FOREIGN = /\b(della|delle|degli|nella|nel|dello|sulla|che|gli|il|una|del|los|las|para|por|con|des|dans|avec|pour|les|und|für|mit|eine|einen|vom|não|você|dos|uma)\b/i;
+const ACCENTS = /[ãõçñáéíóúâêîôûäëïöüßàèìòù]/i;
+const looksEnglish = s => typeof s === "string" && !ACCENTS.test(s) && !FOREIGN.test(s);
+
+/* ===== identity =====
+   A book's key must NOT depend on which API it came from, or the same book
+   found via Google and via Open Library would collect two separate sets of
+   reviews. Normalised title + author is the canonical id. */
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const author = b => b?.author_name?.[0]?.trim() || "Unknown author";
+const key = b => !b ? "" : `${norm(b.title)}|${norm(author(b))}`;
+const cardKey = c => !c ? "" : (c.kind === "series" ? `series:${c.series.id}` : key(c.doc));
+
+/* Author names vary by edition — "Tui T. Sutherland" and "Tui Sutherland" are
+   the same person. Dropping single-letter tokens removes middle initials. */
+const normName = s => norm(s).split(" ").filter(w => w.length > 1).join(" ");
+
+/* ===== catalogue lookups ===== */
+function findSeries(doc){
+  const t = norm(doc?.title);
+  if (!t) return null;
+  const authors = (doc?.author_name || []).map(normName);
+  for (const [id,s] of Object.entries(SERIES)){
+    if (s.match.test(doc.title)) return { id, ...s };
+    // A title match must agree on the author — "Exile", "Legacy" and "Nightfall"
+    // belong to hundreds of unrelated books.
+    if (authors.includes(normName(s.author))){
+      if (s.books.some(b => t.includes(norm(b.title)))) return { id, ...s };
+      if ((s.branches || []).some(br => br.books.some(b => t.includes(norm(b.title))))) return { id, ...s };
+    }
+  }
+  return null;
+}
+const findBook = doc => typeof doc?.title === "string"
+  ? Object.values(BOOKS).find(b => b.match.test(doc.title)) || null : null;
+
+const seriesNotes = s => [...new Set([
+  ...s.books.flatMap(b => b.notes || []),
+  ...(s.branches || []).flatMap(br => br.books.flatMap(b => b.notes || []))
+])];
+const seriesCount = s => s.books.length + (s.branches || []).reduce((n,br) => n + br.books.length, 0);
+
+const notesOf = c => {
+  if (c.kind === "series") return seriesNotes(c.series);
+  const s = findSeries(c.doc);
+  if (s) return seriesNotes(s);
+  return findBook(c.doc)?.notes || [];
+};
+const titleOf = c => c.kind === "series" ? c.series.title : c.doc.title;
+const authorOf = c => c.kind === "series" ? c.series.author : author(c.doc);
+
+/* ===== external info: description + rating ===== */
+const isbnOf = doc => {
+  const list = Array.isArray(doc?.isbn) ? doc.isbn : [];
+  return list.find(i => String(i).length === 13) || list[0] || null;
+};
+
+async function externalInfo(doc){
+  const k = key(doc);
+  if (infoCache.has(k)) return infoCache.get(k);
+
+  const info = { description:doc?.gdesc || null, rating:doc?.grating ?? null,
+                 count:doc?.gcount || 0, source: doc?.grating != null ? "Google Books" : null };
+
+  if (info.rating == null || !info.description){
+    const isbn = isbnOf(doc);
+    try {
+      const q = isbn ? `isbn:${isbn}`
+        : `intitle:"${(doc?.title || "").replace(/"/g,"")}"` +
+          (author(doc) !== "Unknown author" ? `+inauthor:"${author(doc).replace(/"/g,"")}"` : "");
+      const res = await fetch(`${GB}?q=${encodeURIComponent(q)}&maxResults=1&country=US`);
+      if (res.ok){
+        const v = (await res.json())?.items?.[0]?.volumeInfo;
+        if (v){
+          if (!info.description && typeof v.description === "string" && v.description.trim())
+            info.description = v.description.replace(/<[^>]*>/g,"").trim();   // Google returns light HTML
+          if (info.rating == null && typeof v.averageRating === "number"){
+            info.rating = v.averageRating; info.count = v.ratingsCount || 0; info.source = "Google Books";
+          }
+        }
+      }
+    } catch(e){ /* a missing blurb shouldn't break the panel */ }
+  }
+
+  if (info.rating == null && typeof doc?.key === "string" && doc.key.startsWith("/works/")){
+    try {
+      const res = await fetch(`https://openlibrary.org${doc.key}/ratings.json`);
+      if (res.ok){
+        const r = await res.json();
+        if (r?.summary?.average){
+          info.rating = Math.round(r.summary.average * 10) / 10;
+          info.count = r.summary.count || 0;
+          info.source = "Open Library";
+        }
+      }
+    } catch(e){ /* ignore */ }
+  }
+
+  infoCache.set(k, info);
+  return info;
+}
+
+function ratingBlock(info){
+  const box = el("div","rating");
+  if (info.rating == null) return box;
+  box.append(el("span","val",String(info.rating)), el("span","of","out of 5"));
+  box.append(el("span","src", info.count ? `${info.count} rating${info.count===1?"":"s"} · ${info.source}` : info.source));
+  return box;
+}
+
+/* ===== where to get it =====
+   Libraries first, deliberately. For children's books "your library has this"
+   is usually a better answer than a price, and it costs the family nothing. */
+function whereToGet(doc){
+  const box = el("div","get");
+  box.append(el("h4","","Where to get it"));
+  const links = el("div","links");
+  const add = (label, url, cls) => {
+    const a = el("a", cls || "", label);
+    a.href = url; a.target = "_blank";
+    a.rel = "noopener noreferrer";     // stops the new tab reaching back into yours
+    links.append(a);
+  };
+
+  const isbn = isbnOf(doc), title = doc?.title || "";
+  const q = encodeURIComponent(`${title} ${author(doc)}`.trim());
+
+  if (doc?.ebook_access === "public" || doc?.ebook_access === "borrowable"){
+    const ia = Array.isArray(doc.ia) ? doc.ia[0] : null;
+    if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow the ebook free",
+                `https://archive.org/details/${encodeURIComponent(ia)}`, "free");
+  }
+  add("Find in a library", isbn
+    ? `https://search.worldcat.org/search?q=bn:${encodeURIComponent(isbn)}`
+    : `https://search.worldcat.org/search?q=${q}`);
+  // Common Sense Media has no API, so link out rather than cache their reviews.
+  add("Common Sense Media review", `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`);
+  add("Bookshop.org", `https://bookshop.org/beta-search?keywords=${encodeURIComponent(isbn || title)}`);
+  add("Compare prices", `https://www.google.com/search?tbm=bks&q=${isbn ? encodeURIComponent(isbn) : q}`);
+  if (typeof doc?.key === "string" && doc.key.startsWith("/works/"))
+    add("On Open Library", `https://openlibrary.org${doc.key}`);
+
+  box.append(links);
+  if (!isbn) box.append(el("p","why",
+    "No ISBN on this record, so these searches use the title and author and may be less exact."));
+  return box;
+}
+
+/* ===== auth ===== */
+function renderAccount(){
+  const box = $("account");
+  box.replaceChildren();
+  if (db){
+    if (user){
+      box.append(el("span","who",user.email));
+      const out = el("button","","Sign out"); out.onclick = signOut; box.append(out);
+    } else {
+      const go = el("button","","Sign in"); go.onclick = () => openAuth(); box.append(go);
+    }
+  }
+  renderKids(); renderReviewForm();
+}
+
+function openAuth(mode="in"){
+  authMode = mode;
+  $("authTitle").textContent = mode==="in" ? "Sign in" : "Create an account";
+  $("authGo").textContent   = mode==="in" ? "Sign in" : "Create account";
+  $("authSwap").textContent = mode==="in" ? "Create one" : "Sign in instead";
+  $("authAsk").textContent  = mode==="in" ? "No account yet? " : "Already have one? ";
+  $("authMsg").textContent = "";
+  $("authBack").classList.add("open");
+  document.body.classList.add("locked");
+  $("email").focus();
+}
+const closeAuth = () => { $("authBack").classList.remove("open"); document.body.classList.remove("locked"); };
+$("authClose").onclick = closeAuth;
+$("authBack").addEventListener("mousedown", e => { if (e.target === $("authBack")) closeAuth(); });
+$("authSwap").onclick = () => openAuth(authMode === "in" ? "up" : "in");
+
+$("authGo").onclick = async () => {
+  const email = $("email").value.trim(), password = $("pw").value, msg = $("authMsg");
+  if (!email || !password) return msg.textContent = "Email and password, please.";
+  if (password.length < 6)  return msg.textContent = "Password needs at least 6 characters.";
+  $("authGo").disabled = true; msg.textContent = "";
+  try {
+    const { error } = await db.auth[authMode === "in" ? "signInWithPassword" : "signUp"]({ email, password });
+    if (error) throw error;
+    closeAuth(); $("pw").value = "";
+  } catch(e){ msg.textContent = e?.message || "That didn't work. Try again."; }
+  finally { $("authGo").disabled = false; }
+};
+
+async function signOut(){
+  await db.auth.signOut();
+  children = []; activeChild = null;
+  saved.clear(); prefs.clear(); syncChips();
+  $("prefs-note").textContent = "Tap once to flag, twice to hide. Untapped means it won't affect results.";
+  showView("search");
+  refresh();
+}
+
+/* Fires on load with any restored session, so this doubles as startup. */
+if (db) db.auth.onAuthStateChange(async (_e, session) => {
+  user = session?.user || null;
+  renderAccount();
+  if (user) await loadChildren(); else renderKids();
+});
+
+/* ===== children ===== */
+async function loadChildren(){
+  try {
+    const { data, error } = await db.from("children").select("id, name, age, prefs").order("created_at");
+    if (error) throw error;
+    children = data || [];
+    if (children.length && !activeChild) await selectChild(children[0]); else renderKids();
+  } catch(e){ console.error("Couldn't load children:", e); }
+}
+
+function renderKids(){
+  const box = $("kids");
+  box.replaceChildren();
+  if (!user){ box.hidden = true; return; }
+  box.hidden = false;
+  box.append(el("span","kids-label","Reading for"));
+  children.forEach(c => {
+    const b = el("button","kid",`${c.name}, ${c.age}`);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(activeChild?.id === c.id));
+    b.onclick = () => selectChild(c);
+    box.append(b);
+  });
+  const add = el("button","kid add", children.length ? "+ Add another" : "+ Add a reader");
+  add.type = "button"; add.onclick = openKid;
+  box.append(add);
+
+  if (activeChild){
+    const n = saved.size;
+    const sb = el("button","kid shelfbtn", view === "shelf"
+      ? "Back to search"
+      : `${activeChild.name}'s shelf${n ? ` (${n})` : ""}`);
+    sb.type = "button";
+    sb.onclick = () => showView(view === "shelf" ? "search" : "shelf");
+    box.append(sb);
+  }
+}
+
+async function selectChild(c){
+  activeChild = c;
+  $("age").value = c.age; showLevel();
+  prefs.clear();
+  Object.entries(c.prefs || {}).forEach(([k,v]) => { if (v) prefs.set(k,v); });
+  syncChips();
+  $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
+  renderKids();
+  await loadSaved();
+  renderKids();                       // count on the shelf button changes
+  if (view === "shelf") renderShelf();
+  refresh();
+}
+
+function openKid(){
+  $("kidMsg").textContent = ""; $("kidName").value = "";
+  $("kidBack").classList.add("open");
+  document.body.classList.add("locked");
+  $("kidName").focus();
+}
+const closeKid = () => { $("kidBack").classList.remove("open"); document.body.classList.remove("locked"); };
+$("kidClose").onclick = closeKid;
+$("kidBack").addEventListener("mousedown", e => { if (e.target === $("kidBack")) closeKid(); });
+
+$("kidGo").onclick = async () => {
+  const name = $("kidName").value.trim(), a = parseInt($("kidAge").value,10), msg = $("kidMsg");
+  if (!name) return msg.textContent = "Give them a name.";
+  if (!Number.isFinite(a) || a < 2 || a > 18) return msg.textContent = "Age should be between 2 and 18.";
+  $("kidGo").disabled = true;
+  try {
+    const { data, error } = await db.from("children")
+      .insert({ parent_id:user.id, name, age:a, prefs:{} }).select().single();
+    if (error) throw error;
+    children.push(data); closeKid(); await selectChild(data);
+  } catch(e){ msg.textContent = e?.message || "Couldn't add that reader."; }
+  finally { $("kidGo").disabled = false; }
+};
+
+/* Debounced: cycling a chip through three states would otherwise fire a
+   database write on every single tap. */
+let prefTimer = null;
+function savePrefs(){
+  if (!db || !user || !activeChild) return;
+  clearTimeout(prefTimer);
+  prefTimer = setTimeout(async () => {
+    const obj = Object.fromEntries(prefs);
+    try {
+      const { error } = await db.from("children").update({ prefs: obj }).eq("id", activeChild.id);
+      if (error) throw error;
+      activeChild.prefs = obj;
+    } catch(e){ console.error("Couldn't save preferences:", e); }
+  }, 700);
+}
+
+/* ===== shelves ===== */
+async function loadSaved(){
+  saved.clear();
+  if (!db || !activeChild) return;
+  try {
+    // Enough to draw the shelf without re-fetching every book from an API.
+    const { data, error } = await db.from("saved_books")
+      .select("book_key, status, book_title, book_author, cover_id, cover_url")
+      .eq("child_id", activeChild.id);
+    if (error) throw error;
+    (data || []).forEach(r => saved.set(r.book_key, {
+      status: r.status, title: r.book_title, author: r.book_author,
+      coverId: r.cover_id, coverUrl: r.cover_url
+    }));
+  } catch(e){ console.error("Couldn't load shelf:", e); }
+}
+
+async function setStatus(k, card, status){
+  if (!db || !activeChild) return;
+  const prev = saved.get(k) || null;
+  const row = {
+    status,
+    title:  titleOf(card),
+    author: authorOf(card),
+    coverId: Number.isFinite(card.doc?.cover_i) ? card.doc.cover_i : null,
+    coverUrl: card.doc?.thumb || null
+  };
+
+  if (prev?.status === status){               // tapping the same one removes it
+    saved.delete(k); drawShelfRow();
+    try {
+      const { error } = await db.from("saved_books").delete()
+        .eq("child_id", activeChild.id).eq("book_key", k);
+      if (error) throw error;
+    } catch(e){ saved.set(k, prev); drawShelfRow(); console.error(e); }
+    refresh(); return;
+  }
+
+  saved.set(k, row); drawShelfRow();
+  try {
+    // the unique (child_id, book_key) constraint makes this insert-or-update
+    const { error } = await db.from("saved_books").upsert(
+      { child_id:activeChild.id, book_key:k, book_title:row.title, book_author:row.author,
+        cover_id:row.coverId, cover_url:row.coverUrl, status },
+      { onConflict: "child_id,book_key" });
+    if (error) throw error;
+  } catch(e){
+    prev ? saved.set(k, prev) : saved.delete(k);
+    drawShelfRow(); console.error(e);
+  }
+  refresh();
+}
+
+async function removeSaved(k){
+  if (!db || !activeChild) return;
+  const prev = saved.get(k);
+  saved.delete(k); renderShelf();
+  try {
+    const { error } = await db.from("saved_books").delete()
+      .eq("child_id", activeChild.id).eq("book_key", k);
+    if (error) throw error;
+  } catch(e){
+    if (prev) saved.set(k, prev);
+    renderShelf(); console.error(e);
+  }
+  refresh();
+}
+
+const refresh = () => {
+  if (cards.length) draw();
+  if (aiCards.length) drawAi();
+  if (view === "shelf") renderShelf();
+  renderKids();                       // the shelf count lives on that button
+};
+
+/* ===== the shelf page =====
+   Saving books is only half a feature — a parent needs to see them together
+   later. Everything drawn here comes from the saved_books row itself, so the
+   page loads instantly without re-querying Open Library for each book. */
+let view = "search";
+
+function showView(next){
+  view = next;
+  const onShelf = next === "shelf";
+  ["resultsHead","relaxed","hidden-msg","rankMsg","shelf","more","aiSection"].forEach(id => {
+    const n = $(id);
+    if (!n) return;
+    if (onShelf) { n.dataset.wasHidden = n.hidden ? "1" : "0"; n.hidden = true; }
+    else if (n.dataset.wasHidden === "0") n.hidden = false;   // restore only what was showing
+  });
+  $("shelfPage").hidden = !onShelf;
+  if (onShelf) renderShelf();
+  renderKids();
+}
+
+function renderShelf(){
+  const body = $("shelfBody");
+  body.replaceChildren();
+  if (!activeChild) return;
+
+  $("shelfTitle").textContent = `${activeChild.name}'s shelf`;
+
+  if (!saved.size){
+    body.append(el("p","empty",
+      "Nothing saved yet. Search for a book, open it, and put it on a shelf."));
+    return;
+  }
+
+  SHELF.forEach(([status,label]) => {
+    const items = [...saved.entries()].filter(([,v]) => v.status === status);
+    if (!items.length) return;
+
+    const group = el("section","group");
+    group.append(el("h3","",label), el("p","n",`${items.length} book${items.length===1?"":"s"}`));
+
+    const ul = el("ul","shelf");
+    items.forEach(([k,v]) => {
+      const li = el("li"), row = el("div","shelfitem");
+      row.append(cover({ cover_i:v.coverId, thumb:v.coverUrl },"M"));
+
+      const open = el("button","open");
+      open.type = "button";
+      open.append(el("h4","", v.title || "Untitled"),
+                  el("div","who", v.author || "Unknown author"));
+      open.onclick = () => openPanel(cardFromSaved(k, v));
+      row.append(open);
+
+      const rm = el("button","remove","Remove");
+      rm.type = "button";
+      rm.onclick = () => removeSaved(k);
+      row.append(rm);
+
+      li.append(row);
+      ul.append(li);
+    });
+    group.append(ul);
+    body.append(group);
+  });
+}
+
+/* A saved row isn't a search result, so rebuild the shape openPanel expects.
+   Series keys look like "series:wings-of-fire" and can be looked straight up
+   in the catalogue; everything else becomes a minimal book card, and the
+   panel fills in description and rating from Google Books as usual. */
+function cardFromSaved(k, v){
+  if (k.startsWith("series:")){
+    const id = k.slice(7), s = SERIES[id];
+    if (s) return { kind:"series", series:{ id, ...s },
+                    doc:{ title:v.title, author_name:[s.author], cover_i:v.coverId, thumb:v.coverUrl } };
+  }
+  return { kind:"book",
+           doc:{ title:v.title, author_name: v.author ? [v.author] : [],
+                 cover_i:v.coverId, thumb:v.coverUrl } };
+}
+
+$("backToSearch").onclick = () => showView("search");
+
+function drawShelfRow(){
+  const box = $("pShelf");
+  box.replaceChildren();
+  if (!openItem) return;
+  if (!user || !activeChild)
+    return box.append(el("span","lbl", user ? "Add a reader to save books." : "Sign in to save books."));
+
+  const k = cardKey(openItem);
+  const now = saved.get(k)?.status || null;
+
+  box.append(el("span","lbl",`${activeChild.name}'s shelf`));
+  SHELF.forEach(([v,label]) => {
+    const b = el("button","status",label);
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(now === v));
+    b.onclick = () => setStatus(k, openItem, v);
+    box.append(b);
+  });
+}
+
+/* ===== reviews ===== */
+async function loadReviews(keys){
+  if (!db || !keys.length) return;
+  try {
+    // One request for the whole page. A query per book would be dozens of
+    // round trips — the N+1 problem.
+    const { data, error } = await db.from("reviews")
+      .select("book_key, rating, body, created_at")
+      .in("book_key", keys).order("created_at", { ascending:false });
+    if (error) throw error;
+    keys.forEach(k => reviews.set(k, []));
+    (data || []).forEach(r => {
+      if (!reviews.has(r.book_key)) reviews.set(r.book_key, []);
+      reviews.get(r.book_key).push(r);
+    });
+  } catch(e){ console.error("Couldn't load reviews:", e); }
+}
+
+function renderReviewForm(){
+  const ok = !!(db && user);
+  $("reviewForm").hidden = !ok;
+  $("signInPrompt").hidden = ok;
+}
+
+/* ===== AI =====
+   Two modes, one function. "recommend" asks for a fresh list; "rank" judges
+   the list we already have. Ranking is the safer of the two — the model can
+   only sort books that really came back from a catalogue, so it can't invent
+   one. The Anthropic key lives in the Edge Function, never here. */
+
+// invoke() discards the response body on non-2xx, which is where the real
+// reason lives. Dig it out so errors are actionable instead of "non-2xx".
+async function callAI(body){
+  const { data, error } = await db.functions.invoke("recommend", { body });
+  if (error){
+    let detail = error.message;
+    try { detail = (await error.context?.json())?.error || detail; } catch(_){}
+    throw new Error(detail);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+const prefList = state => [...prefs].filter(([,s]) => s === state).map(([id]) => CATEGORIES[id]?.label || id);
+
+$("ask").onclick = async () => {
+  const topic = $("topic").value.trim();
+  if (!topic){ $("topic").focus(); return; }
+  if (!db){
+    $("aiSection").hidden = false;
+    $("aiErr").textContent = "Not connected — add your Supabase anon key first.";
+    $("aiErr").hidden = false;
+    return;
+  }
+
+  $("ask").disabled = true;
+  $("aiSection").hidden = false;
+  $("aiErr").hidden = true;
+  $("aiTitle").textContent = "Thinking…";
+  $("aiCount").textContent = "";
+  $("aiShelf").replaceChildren(...Array.from({length:3}, () => el("li","skeleton")));
+
+  try {
+    const data = await callAI({ age:age(), topic, avoid:prefList("avoid"), seek:prefList("flag") });
+    const books = Array.isArray(data?.books) ? data.books : [];
+    // The model returns titles and authors only — look each up so we get covers,
+    // and so an invented title quietly ends up with no match.
+    aiCards = (await Promise.all(books.slice(0,6).map(lookUp))).filter(Boolean);
+
+    $("aiTitle").textContent = `The librarian suggests for a ${age()}-year-old`;
+    $("aiCount").textContent = `${aiCards.length} book${aiCards.length===1?"":"s"}`;
+    drawAi();
+    await loadReviews(aiCards.map(cardKey));
+    drawAi();
+  } catch(e){
+    $("aiTitle").textContent = "The librarian suggests";
+    $("aiShelf").replaceChildren();
+    $("aiErr").textContent = "Couldn't get recommendations. " + (e?.message || "Try again in a moment.");
+    $("aiErr").hidden = false;
+    console.error(e);
+  } finally { $("ask").disabled = false; }
+};
+
+async function lookUp(rec){
+  const title = String(rec?.title || "").trim();
+  if (!title) return null;
+  const claimed = String(rec?.author || "").trim();
+
+  /* The model's author is a HINT, never a fact — it produced "Cress Dayton"
+     for Cressida Cowell. Verify in order of trust:
+       1. our own hand-checked catalogue
+       2. Open Library, searched by TITLE alone
+       3. admit we couldn't verify it
+     Searching title AND a hallucinated author guarantees a miss, which is how
+     a wrong name reached the screen in the first place. */
+  let verified = null;
+  const probe = { title, author_name: claimed ? [claimed] : [] };
+  const s = findSeries(probe), b = findBook(probe);
+  if (s) verified = s.author;
+  else if (b) verified = b.author;
+
+  let doc = null;
+  try {
+    const q = `title:"${title.replace(/"/g,"")}"` +
+              (verified ? ` AND author:"${verified.replace(/"/g,"")}"` : "");
+    const res = await fetch(`${OL}?q=${encodeURIComponent(q)}&fields=${FIELDS}&limit=5`);
+    if (res.ok){
+      const docs = (await res.json())?.docs || [];
+      doc = docs.find(d => looksEnglish(d.title)) || docs[0] || null;
+    }
+  } catch(e){ /* network trouble shouldn't drop the recommendation */ }
+
+  if (!verified && doc) verified = author(doc);
+
+  // Did the model get the author wrong? normName ignores middle initials.
+  const corrected = !!(verified && claimed && normName(verified) !== normName(claimed));
+
+  // Never show the claimed author. Either we verified one, or we show none.
+  if (doc && verified) doc = { ...doc, author_name: [verified] };
+
+  return {
+    kind:"ai",
+    doc: doc || { title, author_name: verified ? [verified] : [] },
+    why: String(rec?.why || "").slice(0,300),
+    fit: String(rec?.fit || "").slice(0,300),
+    found: !!doc,
+    verified: !!verified,
+    corrected
+  };
+}
+
+function drawAi(){
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
+
+  $("aiShelf").replaceChildren(...aiCards.map(c => {
+    const li = el("li"), btn = el("button","book ai"), k = cardKey(c);
+    btn.type = "button";
+    btn.append(cover(c.doc,"M"));
+
+    const info = el("div");
+    info.append(el("h3","", c.doc.title));
+    // No author line at all when we couldn't verify one — better a gap than
+    // a confident wrong name.
+    info.append(el("p","author", c.verified ? author(c.doc) : "Author not verified"));
+    if (c.why) info.append(el("p","why", c.why));
+    if (c.fit) info.append(el("p","fit", c.fit));
+
+    const meta = el("div","meta");
+    meta.append(el("span","tag ai","AI suggestion"));
+    if (!c.verified) meta.append(el("span","tag","Couldn't verify this book exists"));
+    else if (c.corrected) meta.append(el("span","tag","Author corrected"));
+    if (saved.has(k))
+      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
+    const avg = average(reviews.get(k));
+    if (avg) meta.append(el("span","stars-mini","★".repeat(avg)));
+
+    const notes = notesOf(c);
+    if (notes.length && notes.some(n => avoided.includes(n)))
+      meta.append(el("span","tag","Conflicts with your preferences"));
+    info.append(meta);
+    if (notes.length) info.append(noteRow(notes, !!findSeries(c.doc)));
+
+    btn.append(info);
+    btn.onclick = () => openPanel(c);
+    li.append(btn);
+    return li;
+  }));
+}
+
+/* ----- ranking the catalogue results -----
+   Runs AFTER the results are already on screen, never before. The user sees
+   books immediately; the sort improves a couple of seconds later. Cached by
+   query so paging back and forth doesn't pay for the same judgement twice. */
+/* ----- guessed content notes -----
+   Only for books our catalogue is silent about. This is the one AI feature
+   where being wrong does real harm — a parent avoiding romance for a
+   seven-year-old may act on it — so three things are true by design:
+     1. the hand-checked catalogue always wins; this never overrides it
+     2. "I don't know" comes back as nothing, not as an empty all-clear
+     3. it never filters or hides anything, because you should not hide a book
+        on the strength of a guess. It flags a clash and lets the parent look. */
+const guessCache = new Map();
+
+async function guessNotes(c, mine){
+  const box = $("pGuess");
+  box.replaceChildren();
+  if (!db || c.kind === "series") return;
+
+  const title = titleOf(c), auth = authorOf(c), k = cardKey(c);
+
+  const render = g => {
+    if (mine !== panelToken) return;
+    box.replaceChildren(guessBlock(g, title));
+  };
+
+  if (guessCache.has(k)) return render(guessCache.get(k));
+
+  box.replaceChildren(guessBlock({ loading:true }, title));
+  try {
+    const g = await callAI({ mode:"notes", title, author: auth === "Unknown author" ? "" : auth });
+    guessCache.set(k, g);
+    render(g);
+  } catch(e){
+    if (mine !== panelToken) return;
+    box.replaceChildren(guessBlock({ failed:true }, title));
+    console.error("Couldn't guess content notes:", e);
+  }
+}
+
+function guessBlock(g, title){
+  const box = el("div","guess");
+  box.append(el("h4","","Not in our checked catalogue"));
+
+  const csm = () => {
+    const a = el("a","check","Check this book on Common Sense Media →");
+    a.href = `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`;
+    a.target = "_blank"; a.rel = "noopener noreferrer";
+    return a;
+  };
+
+  if (g.loading){
+    box.append(el("p","none","Asking the librarian what's in this one…"));
+    return box;
+  }
+  if (g.failed){
+    box.append(el("p","none","We couldn't check this one automatically."), csm());
+    return box;
+  }
+  if (!g.known || !g.notes?.length){
+    box.append(el("p","cap",
+      "We haven't reviewed this book, and the librarian didn't recognise it well enough to say. That means unknown, not clear."), csm());
+    return box;
+  }
+
+  box.append(el("p","cap","Guessed by AI, not checked by a person. Treat as a starting point."));
+  const row = el("div","notes");
+  g.notes.forEach(id => {
+    const t = el("span","tag", CATEGORIES[id]?.label || id);
+    t.title = CATEGORIES[id]?.blurb || "";
+    row.append(t);
+  });
+  box.append(row);
+  if (g.summary) box.append(el("p","sum", g.summary));
+
+  // Flagged, never hidden. Hiding a book because a model guessed wrong is a
+  // worse failure than showing one the parent then rules out themselves.
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
+  const clash = g.notes.filter(n => avoided.includes(n));
+  if (clash.length)
+    box.append(el("p","clash",
+      `Possibly conflicts with your preferences: ${clash.map(id => CATEGORIES[id]?.label || id).join(", ")}. Worth checking before you decide.`));
+
+  box.append(csm());
+  return box;
+}
+
+const rankKey = () => `${lastTopic}|${age()}|${[...prefs].sort().join(",")}|${cards.length}`;
+
+async function rankResults(mine){
+  if (!db || !$("rankOn").checked || cards.length < 2) return;
+
+  const ck = rankKey();
+  if (rankCache.has(ck)){ applyRank(rankCache.get(ck)); draw(); return; }
+
+  $("rankMsg").textContent = "The librarian is reading through these…";
+  $("rankMsg").hidden = false;
+
+  try {
+    // The topic MUST go with this. Without it the model can only judge reading
+    // level, and cheerfully rates Frog and Toad 5/5 for a dragons search.
+    const list = cards.slice(0, RANK_MAX).map((c,i) => ({ i, title:titleOf(c), author:authorOf(c) }));
+    const data = await callAI({ mode:"rank", age:age(), topic:lastTopic,
+                                avoid:prefList("avoid"), seek:prefList("flag"), books:list });
+    if (mine !== searchId) return;               // a newer search happened; drop this
+
+    const ranked = Array.isArray(data?.ranked) ? data.ranked : [];
+    rankCache.set(ck, ranked);
+    applyRank(ranked);
+    draw();
+    $("rankMsg").textContent = "Sorted by how well each one suits this reader. The librarian's notes are AI-written and unverified.";
+  } catch(e){
+    if (mine !== searchId) return;
+    $("rankMsg").hidden = true;
+    console.error("Ranking failed:", e);         // a failed sort is not worth an alarm
+  }
+}
+
+function applyRank(ranked){
+  cards.forEach(c => { delete c.fit; delete c.whyfit; });
+  ranked.forEach(r => {
+    const c = cards[parseInt(r?.i, 10)];
+    if (!c) return;
+    const f = Number(r?.fit);
+    c.fit = Number.isFinite(f) ? Math.min(5, Math.max(1, f)) : 3;
+    c.whyfit = String(r?.why || "").slice(0, 140);
+  });
+  // Stable sort: anything unranked keeps its original order, below the ranked.
+  cards = cards
+    .map((c,i) => ({ c, i }))
+    .sort((a,b) => (b.c.fit ?? -1) - (a.c.fit ?? -1) || a.i - b.i)
+    .map(x => x.c);
+}
+
+/* ===== chips ===== */
+$("chips").replaceChildren(...Object.entries(CATEGORIES).map(([id,c]) => {
+  const b = el("button","chip",c.label);
+  b.type = "button"; b.title = c.blurb;
+  b.setAttribute("aria-label", `${c.label}. ${c.blurb}`);
+  b.onclick = () => {
+    const next = STATES[(STATES.indexOf(prefs.get(id) || null) + 1) % 3];
+    if (next){ prefs.set(id,next); b.dataset.state = next; }
+    else { prefs.delete(id); delete b.dataset.state; }
+    savePrefs(); refresh();
+  };
+  chipEls.set(id,b);
+  return b;
+}));
+
+const syncChips = () => chipEls.forEach((b,id) => {
+  const s = prefs.get(id);
+  if (s) b.dataset.state = s; else delete b.dataset.state;
+});
+
+/* ===== age ===== */
+const age = () => {
+  const n = parseInt($("age").value,10);
+  return Number.isFinite(n) ? Math.min(18, Math.max(2,n)) : 8;
+};
+const level = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
+              : a<=12 ? "juvenile literature" : "young adult fiction";
+const showLevel = () => $("level").textContent = level(age());
+$("age").addEventListener("input", showLevel);
+$("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
+showLevel();
+
+/* ===== search ===== */
+const tiers = (t,a) => [
+  [`subject:"${t}" AND subject:"${level(a)}" AND language:eng`, null],
+  [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
+  [`${t} AND language:eng`, "No subject matches, so these are general keyword results — check them yourself."]
+];
+
+async function fetchOL(q, signal, from = 0){
+  const res = await fetch(`${OL}?q=${encodeURIComponent(q)}&fields=${FIELDS}&sort=rating&limit=${LIMIT}&offset=${from}`, { signal });
+  if (!res.ok) throw new Error(`Open Library returned error ${res.status}.`);
+  const { docs } = await res.json();
+  return (Array.isArray(docs) ? docs : []).filter(d => d && typeof d.title === "string" && d.title.trim());
+}
+
+/* Google's records use a different shape, so translate them into the same one
+   Open Library uses. Everything downstream then works unchanged — when you add
+   a third source, you write one more adapter and nothing else moves. */
+function toDoc(item){
+  const v = item?.volumeInfo || {};
+  return {
+    key: `gb:${item.id}`,
+    title: v.title,
+    author_name: Array.isArray(v.authors) ? v.authors : [],
+    thumb: v.imageLinks?.thumbnail?.replace(/^http:/, "https:") || null,
+    subject: Array.isArray(v.categories) ? v.categories : [],
+    isbn: (v.industryIdentifiers || []).map(i => i.identifier),
+    gdesc: typeof v.description === "string" ? v.description.replace(/<[^>]*>/g,"").trim() : null,
+    grating: typeof v.averageRating === "number" ? v.averageRating : null,
+    gcount: v.ratingsCount || 0
+  };
+}
+
+async function fetchGB(topic, a, signal, from = 0){
+  const subject = a <= 12 ? "juvenile fiction" : "young adult fiction";
+  const url = `${GB}?q=${encodeURIComponent(`${topic} subject:"${subject}"`)}&maxResults=40&startIndex=${from}` +
+              `&printType=books&langRestrict=en&orderBy=relevance&country=US`;
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return [];                        // Google failing shouldn't kill the search
+    return ((await res.json())?.items || []).map(toDoc).filter(d => d.title);
+  } catch(e){
+    if (e?.name === "AbortError") throw e;
+    return [];
+  }
+}
+
+/* Merge, preferring the Open Library record when both have the same book —
+   it carries the borrowing and library data Google doesn't. */
+function merge(...lists){
+  const out = [], seen = new Map();
+  for (const list of lists){
+    for (const d of list){
+      if (!looksEnglish(d.title)) continue;
+      const k = key(d);
+      if (seen.has(k)){
+        // Fill gaps from the second source rather than dropping it entirely.
+        const kept = seen.get(k);
+        if (!kept.gdesc && d.gdesc) kept.gdesc = d.gdesc;
+        if (kept.grating == null && d.grating != null){ kept.grating = d.grating; kept.gcount = d.gcount; }
+        if (!kept.cover_i && !kept.thumb && d.thumb) kept.thumb = d.thumb;
+        if (!kept.isbn?.length && d.isbn?.length) kept.isbn = d.isbn;
+        continue;
+      }
+      seen.set(k, d); out.push(d);
+    }
+  }
+  return out;
+}
+
+async function search(){
+  const a = age(), topic = $("topic").value.trim().replace(/"/g,"");
+  if (!topic){
+    banner("Tell me what they like first","",null,"Try dinosaurs, space, or friendship.");
+    return $("topic").focus();
+  }
+
+  inFlight?.abort();
+  const ctrl = inFlight = new AbortController();
+  const mine = ++searchId;
+  const timer = setTimeout(() => ctrl.abort("timeout"), TIMEOUT);
+
+  $("search").disabled = true;
+  $("more").hidden = true;
+  $("rankMsg").hidden = true;
+  $("title").textContent = "Searching…";
+  $("count").textContent = "";
+  $("relaxed").hidden = $("hidden-msg").hidden = true;
+  $("shelf").replaceChildren(...Array.from({length:4}, () => el("li","skeleton")));
+
+  try {
+    let olDocs = [], note = null;
+    lastQuery = null;
+    for (const [q,n] of tiers(topic,a)){
+      olDocs = await fetchOL(q, ctrl.signal);
+      if (mine !== searchId) return;              // a newer search won
+      if (olDocs.length){ note = n; lastQuery = q; break; }
+    }
+
+    const gbDocs = await fetchGB(topic, a, ctrl.signal);
+    if (mine !== searchId) return;
+
+    offset = LIMIT;
+    cards = collapse(merge(olDocs, gbDocs));
+    draw(topic, note);                            // paint immediately…
+    loadReviews(cards.map(cardKey)).then(() => { if (mine === searchId && cards.length) draw(); });
+    rankResults(mine);                            // …and let the librarian catch up
+  } catch(err){
+    if (mine !== searchId) return;
+    if (err?.name === "AbortError"){
+      if (ctrl.signal.reason === "timeout")
+        banner("That took too long","",null,"The book services didn't answer within 12 seconds. Try again.");
+      return;
+    }
+    banner(navigator.onLine ? "Couldn't load books" : "You appear to be offline","",null,
+           err?.message || "Something went wrong reaching the book services.");
+  } finally {
+    clearTimeout(timer);
+    if (mine === searchId){ $("search").disabled = false; inFlight = null; }
+  }
+}
+
+$("more").onclick = async () => {
+  $("more").disabled = true;
+  const a = age(), topic = $("topic").value.trim().replace(/"/g,"");
+  try {
+    const [ol, gb] = await Promise.all([
+      lastQuery ? fetchOL(lastQuery, undefined, offset) : [],
+      fetchGB(topic, a, undefined, offset)
+    ]);
+    offset += LIMIT;
+    const have = new Set(cards.map(cardKey));
+    const fresh = collapse(merge(ol, gb)).filter(c => !have.has(cardKey(c)));
+    cards = cards.concat(fresh);
+    draw();
+    if (fresh.length){ await loadReviews(fresh.map(cardKey)); draw(); }
+    else $("more").hidden = true;                 // nothing left to show
+  } catch(e){ console.error(e); }
+  finally { $("more").disabled = false; }
+};
+
+// Re-sorting is a paid call, so it happens on demand rather than on every tick.
+$("rankOn").onchange = () => {
+  if (!cards.length) return;
+  if ($("rankOn").checked) rankResults(searchId);
+  else {
+    cards.forEach(c => { delete c.fit; delete c.whyfit; });
+    $("rankMsg").hidden = true;
+    draw();
+  }
+};
+
+/* One card per series. A dragons search returns nine Wings of Fire editions
+   and buries everything else; showing the series once, pointing at book one,
+   is far more useful than scattering book 3 and book 9 across the page. */
+function collapse(docs){
+  const out = [], groups = new Map();
+  for (const d of docs){
+    const s = findSeries(d);
+    if (!s){ out.push({ kind:"book", doc:d }); continue; }
+    if (!groups.has(s.id)){
+      const card = { kind:"series", series:s, doc:d };
+      groups.set(s.id, card); out.push(card); continue;
+    }
+    const card = groups.get(s.id), first = norm(s.books[0].title);
+    if ((Number.isFinite(d.cover_i) || d.thumb) &&
+        norm(d.title).includes(first) && !norm(card.doc.title).includes(first))
+      card.doc = d;                                // upgrade to a book-one cover
+  }
+  return out;
+}
+
+/* ===== render ===== */
+function banner(title, count, note, message){
+  $("title").textContent = title;
+  $("count").textContent = count;
+  $("relaxed").hidden = !note;
+  if (note) $("relaxed").textContent = note;
+  $("hidden-msg").hidden = true;
+  if (message) $("shelf").replaceChildren(el("li","muted",message));
+}
+
+function draw(topic = lastTopic, note = lastNote){
+  lastTopic = topic; lastNote = note;
+  const a = age();
+
+  if (!cards.length){
+    $("more").hidden = true;
+    return banner(`Nothing found for "${topic}"`,"",null,
+                  "Try a broader word — animals, magic, mystery, sports — or check the spelling.");
+  }
+
+  const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
+  const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(n)));
+  const hid = cards.length - visible.length;
+
+  banner(`Books about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
+
+  if (hid){
+    $("hidden-msg").textContent = `${hid} result${hid===1?"":"s"} hidden by your content preferences.`;
+    $("hidden-msg").hidden = false;
+  }
+  if (!visible.length){
+    $("more").hidden = false;
+    return $("shelf").replaceChildren(el("li","muted","Everything found was hidden by your preferences. Try loosening one."));
+  }
+
+  $("shelf").replaceChildren(...visible.map(c => {
+    const li = el("li"), btn = el("button","book"), isS = c.kind === "series", k = cardKey(c);
+    btn.type = "button";
+    btn.append(cover(c.doc,"M"));
+
+    const info = el("div");
+    info.append(el("h3","", titleOf(c)), el("p","author", authorOf(c)));
+
+    if (isS){
+      const start = el("p","startwith","Start with ");
+      start.append(el("b","",c.series.books[0].title));
+      info.append(start);
+    }
+
+    const meta = el("div","meta"), single = isS ? null : findBook(c.doc);
+    if (isS){
+      meta.append(el("span","tag series",`${seriesCount(c.series)} books · view series`));
+      if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
+    } else if (single?.ages){
+      meta.append(el("span","tag",`Ages ${single.ages}`));
+    }
+    if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
+    if (saved.has(k))
+      meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
+
+    const mine = reviews.get(k) || [], avg = average(mine);
+    if (avg){
+      meta.append(el("span","stars-mini","★".repeat(avg)));
+      meta.append(el("span","n-reviews",`${mine.length} review${mine.length===1?"":"s"}`));
+    }
+    info.append(meta);
+
+    const notes = notesOf(c);
+    if (notes.length) info.append(noteRow(notes, isS));
+    if (c.whyfit) info.append(whyRow(c.whyfit));
+
+    btn.append(info);
+    btn.onclick = () => openPanel(c);
+    li.append(btn);
+    return li;
+  }));
+
+  $("more").hidden = false;
+}
+
+// The librarian's one-line verdict, visibly labelled as AI so it never gets
+// mistaken for the hand-checked content notes above it.
+function whyRow(text){
+  const row = el("p","whyfit");
+  row.append(el("span","pill","Librarian"), el("span","",text));
+  return row;
+}
+
+/* Descriptive, not a warning. "Includes" states what's in the book and lets the
+   reader decide; the same tag serves a family avoiding romance and a family
+   looking for representation. */
+function noteRow(ids, forSeries){
+  const row = el("div","notes");
+  row.append(el("span","notes-label", forSeries ? "Across the series" : "Includes"));
+  ids.forEach(id => {
+    const t = el("span","tag note", CATEGORIES[id]?.label || id);
+    t.title = CATEGORIES[id]?.blurb || "";
+    if (prefs.get(id) === "flag") t.classList.add("avoided");
+    row.append(t);
+  });
+  return row;
+}
+
+/* Covers come from Open Library by id, or Google as a direct URL. */
+function cover(b, size){
+  const src = Number.isFinite(b?.cover_i)
+    ? `https://covers.openlibrary.org/b/id/${b.cover_i}-${size}.jpg`
+    : b?.thumb || null;
+  if (!src) return el("div","cover");
+  const img = el("img","cover");
+  img.alt = ""; img.loading = "lazy"; img.src = src;
+  img.onerror = () => img.replaceWith(el("div","cover"));   // ids and URLs both 404 sometimes
+  return img;
+}
+
+/* ===== panel ===== */
+async function openPanel(c){
+  if (!c) return;
+  openItem = c; rating = 0; lastFocus = document.activeElement;
+  const mine = ++panelToken;                    // guards the async fills below
+  const isS = c.kind === "series", isAi = c.kind === "ai";
+
+  $("pTitle").textContent  = titleOf(c);
+  $("pAuthor").textContent = (isAi && !c.verified) ? "Author not verified" : authorOf(c);
+  $("pCover").replaceChildren(cover(c.doc,"L"));
+  $("pRating").replaceChildren();
+  $("pWhy").replaceChildren(...(c.whyfit ? [whyRow(c.whyfit)] : []));
+
+  const meta = $("pMeta");
+  meta.replaceChildren();
+  const single = isS ? null : findBook(c.doc);
+  if (isS){
+    const y = c.series.books.map(b => b.year).filter(Boolean);
+    if (y.length) meta.append(el("span","tag",`${Math.min(...y)}–${Math.max(...y)}`));
+    if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
+  } else if (single?.ages){
+    meta.append(el("span","tag",`Ages ${single.ages}`));
+  }
+  if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
+  if (isAi){
+    meta.append(el("span","tag ai","AI suggestion — unverified"));
+    if (!c.verified) meta.append(el("span","tag","Couldn't verify this book exists"));
+    else if (c.corrected) meta.append(el("span","tag","Author corrected"));
+  }
+
+  $("pBlurb").textContent = isS ? `Start with book one: ${c.series.books[0].title}.`
+                          : isAi ? [c.why, c.fit].filter(Boolean).join(" ")
+                          : "Loading description…";
+
+  const notes = notesOf(c);
+  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, isS || !!findSeries(c.doc))] : []));
+  // Our own data always wins. The guess only runs where we have nothing.
+  if (notes.length) $("pGuess").replaceChildren(); else guessNotes(c, mine);
+  $("pSubjects").replaceChildren(...(c.doc.subject || [])
+    .filter(x => typeof x === "string" && x.length < 40).slice(0,6).map(x => el("span","tag",x)));
+  $("pGet").replaceChildren(whereToGet(c.doc));
+  $("pSeries").replaceChildren(...(isS ? seriesBlock(c.series) : []));
+
+  drawShelfRow(); renderReviewForm();
+  $("rText").value = ""; count();
+  $("saveMsg").textContent = ""; $("saveMsg").classList.remove("err");
+  stars(); list();
+
+  $("backdrop").classList.add("open");
+  document.body.classList.add("locked");
+  $("close").focus();
+
+  // Fill in the slow bits. panelToken stops a late response landing in a panel
+  // the user has already navigated away from.
+  const k = cardKey(c);
+  loadReviews([k]).then(() => { if (mine === panelToken) list(); });
+
+  if (!isS){
+    const info = await externalInfo(c.doc);
+    if (mine !== panelToken) return;
+    $("pRating").replaceChildren(ratingBlock(info));
+    if (!isAi) $("pBlurb").textContent = info.description || fallbackBlurb(c.doc);
+  }
+}
+
+// Only used when neither catalogue has a description.
+function fallbackBlurb(b){
+  let s = b.first_sentence;
+  if (Array.isArray(s)) s = s[0];
+  if (s && typeof s === "object") s = s.value;
+  if (typeof s !== "string" || !s.trim() || !looksEnglish(s))
+    return "No description available for this one yet.";
+  return `It opens: ${s.trim()}`;
+}
+
+/* Reading order. Branches are drawn indented with a connector line so it's
+   visible at a glance that they hang off the main sequence. */
+function seriesBlock(s){
+  const out = [el("hr"), el("h3","","Reading order")];
+  const ul = el("ul","series-list");
+  const branches = s.branches || [];
+
+  s.books.forEach(b => {
+    const row = el("li","series-row" + (b.year ? "" : " upcoming")), right = el("div");
+    row.append(el("span","num",String(b.n)));
+    right.append(el("div","t",b.title),
+                 el("div","y", b.year ? String(b.year) : "Announced — no release date yet"));
+    if (b.notes?.length) right.append(noteRow(b.notes,false));
+    row.append(right);
+    ul.append(row);
+
+    branches.filter(br => br.after === b.n).forEach(br => {
+      const wrap = el("li");
+      wrap.append(branchBlock(br));
+      ul.append(wrap);
+    });
+  });
+
+  out.push(ul);
+  if (s.todo) out.push(el("p","todo", s.todo));
+  out.push(el("p","source",
+    "Reading order and content notes are hand-entered and checked, not pulled from a database. Spot something wrong or missing? Fix it in the catalogue."));
+  return out;
+}
+
+function branchBlock(br){
+  const box = el("div","branch");
+  box.append(el("h5","",br.title));
+  if (br.note) box.append(el("p","when-in",br.note));
+  const ul = el("ul","series-list");
+  br.books.forEach(b => {
+    const row = el("li","series-row" + (b.year ? "" : " upcoming")), right = el("div");
+    right.append(el("div","t",b.title),
+                 el("div","y", b.year ? String(b.year) : "Announced — no release date yet"));
+    if (b.notes?.length) right.append(noteRow(b.notes,false));
+    row.append(right);
+    ul.append(row);
+  });
+  box.append(ul);
+  return box;
+}
+
+function closePanel(){
+  if (!$("backdrop").classList.contains("open")) return;
+  $("backdrop").classList.remove("open");
+  document.body.classList.remove("locked");
+  openItem = null; panelToken++;
+  if (lastFocus?.isConnected) lastFocus.focus();
+}
+$("close").onclick = closePanel;
+$("backdrop").addEventListener("mousedown", e => { if (e.target === $("backdrop")) closePanel(); });
+
+document.addEventListener("keydown", e => {
+  const open = [...document.querySelectorAll(".backdrop.open")].pop();
+  if (!open) return;
+  if (e.key === "Escape"){
+    open.id === "backdrop" ? closePanel() : open.id === "authBack" ? closeAuth() : closeKid();
+    return;
+  }
+  if (e.key !== "Tab") return;
+  const f = open.querySelectorAll("button, textarea, input, a[href]");
+  if (!f.length) return;
+  const first = f[0], last = f[f.length-1];
+  if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+
+function stars(){
+  $("rate").replaceChildren(...[1,2,3,4,5].map(n => {
+    const b = el("button", n <= rating ? "on" : "", "★");
+    b.type = "button";
+    b.setAttribute("aria-label", `${n} star${n>1?"s":""}`);
+    b.setAttribute("aria-pressed", String(n === rating));
+    b.onclick = () => { rating = rating === n ? 0 : n; stars(); };   // click current to clear
+    return b;
+  }));
+}
+
+const count = () => {
+  const n = $("rText").value.length;
+  $("counter").textContent = `${n} / ${MAXCHARS}`;
+  $("counter").classList.toggle("over", n >= MAXCHARS);
+};
+$("rText").addEventListener("input", count);
+
+$("save").onclick = async () => {
+  if (!openItem) return;
+  const body = $("rText").value.trim(), msg = $("saveMsg");
+  msg.classList.remove("err");
+  if (!db || !user){ msg.textContent = "Sign in to leave a review."; msg.classList.add("err"); return; }
+  if (!rating && !body){ msg.textContent = "Add a star rating or a few words first."; return; }
+
+  const k = cardKey(openItem), t = titleOf(openItem);
+  const draft = { rating, body, created_at:new Date().toISOString(), pending:true };
+
+  /* Optimistic: show it instantly, then confirm. If the write fails we take it
+     back out — a review that looks saved but isn't is the worst outcome. */
+  if (!reviews.has(k)) reviews.set(k, []);
+  reviews.get(k).unshift(draft); list();
+  $("save").disabled = true; msg.textContent = "Saving…";
+
+  try {
+    const { data, error } = await db.from("reviews").insert({
+      book_key:k, book_title:t, rating:rating||null, body:body||null,
+      user_id:user.id                         // RLS checks this matches auth.uid()
+    }).select().single();
+    if (error) throw error;
+    const arr = reviews.get(k);
+    arr[arr.indexOf(draft)] = data;
+    $("rText").value = ""; rating = 0;
+    count(); stars(); msg.textContent = "Saved.";
+  } catch(e){
+    const arr = reviews.get(k), i = arr.indexOf(draft);
+    if (i > -1) arr.splice(i,1);              // roll it back
+    msg.textContent = "Couldn't save that. Check your connection and try again.";
+    msg.classList.add("err"); console.error(e);
+  } finally {
+    $("save").disabled = false; list(); refresh();
+  }
+};
+
+function list(){
+  const mine = reviews.get(cardKey(openItem)) || [];
+  if (!mine.length){
+    const p = el("p","muted","No reviews yet. Be the first.");
+    p.style.marginTop = "18px";
+    return $("rList").replaceChildren(p);
+  }
+  $("rList").replaceChildren(...mine.map(r => {
+    const d = el("div","review" + (r.pending ? " pending" : ""));
+    if (r.rating) d.append(el("div","stars","★".repeat(r.rating) + "☆".repeat(5 - r.rating)));
+    if (r.body) d.append(el("p","",r.body));
+    d.append(el("div","when", r.pending ? "Saving…" : when(r.created_at)));
+    return d;
+  }));
+}
+
+/* ===== helpers ===== */
+const average = l => {
+  const r = (l || []).filter(x => x?.rating > 0);
+  return r.length ? Math.round(r.reduce((s,x) => s + x.rating, 0) / r.length) : 0;
+};
+
+function when(iso){
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const m = Math.floor((Date.now() - d) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} minute${m===1?"":"s"} ago`;
+  const h = Math.floor(m/60);
+  return h < 24 ? `${h} hour${h===1?"":"s"} ago` : d.toLocaleDateString();
+}
+
+/* ===== wiring ===== */
+$("search").onclick = search;
+["topic","age"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter"){ e.preventDefault(); search(); } }));
+["email","pw"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") $("authGo").click(); }));
+["kidName","kidAge"].forEach(id => $(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") $("kidGo").click(); }));
+
+renderAccount();
+</script>
+</body>
+</html>
