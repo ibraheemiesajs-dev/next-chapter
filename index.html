@@ -1695,7 +1695,17 @@ const age = () => {
 const level = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
               : a<=12 ? "juvenile literature" : "young adult fiction";
 const showLevel = () => $("level").textContent = level(age());
-$("age").addEventListener("input", showLevel);
+// Correct the field as soon as it goes out of range, so what's shown always
+// equals what's searched. Only rewrite when it actually differs, or the cursor
+// jumps to the end mid-type.
+$("age").addEventListener("input", () => {
+  const raw = $("age").value;
+  if (raw !== "" && raw !== "-"){
+    const clamped = String(age());
+    if (raw !== clamped && (parseInt(raw,10) > 18 || parseInt(raw,10) < 2)) $("age").value = clamped;
+  }
+  showLevel();
+});
 $("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
 showLevel();
 
