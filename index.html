@@ -110,6 +110,14 @@ h1 span{color:var(--berry)}
 .guess .check{display:inline-block;margin-top:11px;font-size:13px;color:var(--berry);font-weight:600}
 .guess .none{font-size:13px;color:var(--soft);margin:0}
 .clash{margin-top:10px;font-size:13px;color:#7d2340;font-weight:600}
+/* A failure the user needs to know about — save didn't stick, retry it. Shown
+   only when a write genuinely failed after retries, never for normal use. */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:50;max-width:90vw;
+  background:var(--ink);color:var(--paper);border-radius:4px;padding:12px 16px;font-size:14px;
+  box-shadow:0 6px 24px rgba(20,50,59,.28);display:flex;align-items:center;gap:14px}
+.toast.err{background:var(--berry)}
+.toast button{color:var(--paper);text-decoration:underline;font-weight:700;font-size:13px;white-space:nowrap}
+.toast .x{text-decoration:none;font-size:18px;line-height:1;opacity:.8}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
 .rating{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
 .rating .val{font-family:var(--display);font-weight:900;font-size:19px}
@@ -190,6 +198,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 </head>
 <body>
 <div class="wrap">
+<div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
   <header>
     <div><h1>Next <span>Chapter</span></h1><p class="tagline">Book finder for young readers</p></div>
     <div class="account" id="account"></div>
@@ -1050,11 +1059,10 @@ $("kidGo").onclick = async () => {
   if (!Number.isFinite(a) || a < 2 || a > 18) return msg.textContent = "Age should be between 2 and 18.";
   $("kidGo").disabled = true;
   try {
-    const { data, error } = await db.from("children")
-      .insert({ parent_id:user.id, name, age:a, prefs:{} }).select().single();
-    if (error) throw error;
+    const data = await writeWithRetry(() => db.from("children")
+      .insert({ parent_id:user.id, name, age:a, prefs:{} }).select().single());
     children.push(data); closeKid(); await selectChild(data);
-  } catch(e){ msg.textContent = e?.message || "Couldn't add that reader."; }
+  } catch(e){ msg.textContent = e?.message || "Couldn't add that reader. Try again."; }
   finally { $("kidGo").disabled = false; }
 };
 
@@ -1064,13 +1072,16 @@ let prefTimer = null;
 function savePrefs(){
   if (!db || !user || !activeChild) return;
   clearTimeout(prefTimer);
+  const child = activeChild;                    // capture — user may switch child during the wait
   prefTimer = setTimeout(async () => {
     const obj = Object.fromEntries(prefs);
     try {
-      const { error } = await db.from("children").update({ prefs: obj }).eq("id", activeChild.id);
-      if (error) throw error;
-      activeChild.prefs = obj;
-    } catch(e){ console.error("Couldn't save preferences:", e); }
+      await writeWithRetry(() => db.from("children").update({ prefs: obj }).eq("id", child.id));
+      child.prefs = obj;
+    } catch(e){
+      console.error("Couldn't save preferences:", e);
+      toast("Couldn't save your content preferences.", { error:true, retry: savePrefs });
+    }
   }, 700);
 }
 
@@ -1105,24 +1116,26 @@ async function setStatus(k, card, status){
   if (prev?.status === status){               // tapping the same one removes it
     saved.delete(k); drawShelfRow();
     try {
-      const { error } = await db.from("saved_books").delete()
-        .eq("child_id", activeChild.id).eq("book_key", k);
-      if (error) throw error;
-    } catch(e){ saved.set(k, prev); drawShelfRow(); console.error(e); }
+      await writeWithRetry(() => db.from("saved_books").delete()
+        .eq("child_id", activeChild.id).eq("book_key", k));
+    } catch(e){
+      saved.set(k, prev); drawShelfRow(); console.error(e);
+      toast("Couldn't remove that from the shelf.", { error:true, retry:() => setStatus(k, card, status) });
+    }
     refresh(); return;
   }
 
   saved.set(k, row); drawShelfRow();
   try {
     // the unique (child_id, book_key) constraint makes this insert-or-update
-    const { error } = await db.from("saved_books").upsert(
+    await writeWithRetry(() => db.from("saved_books").upsert(
       { child_id:activeChild.id, book_key:k, book_title:row.title, book_author:row.author,
         cover_id:row.coverId, cover_url:row.coverUrl, status },
-      { onConflict: "child_id,book_key" });
-    if (error) throw error;
+      { onConflict: "child_id,book_key" }));
   } catch(e){
     prev ? saved.set(k, prev) : saved.delete(k);
     drawShelfRow(); console.error(e);
+    toast("Couldn't save that to the shelf.", { error:true, retry:() => setStatus(k, card, status) });
   }
   refresh();
 }
@@ -1132,14 +1145,62 @@ async function removeSaved(k){
   const prev = saved.get(k);
   saved.delete(k); renderShelf();
   try {
-    const { error } = await db.from("saved_books").delete()
-      .eq("child_id", activeChild.id).eq("book_key", k);
-    if (error) throw error;
+    await writeWithRetry(() => db.from("saved_books").delete()
+      .eq("child_id", activeChild.id).eq("book_key", k));
   } catch(e){
     if (prev) saved.set(k, prev);
     renderShelf(); console.error(e);
+    toast("Couldn't remove that book.", { error:true, retry:() => removeSaved(k) });
   }
   refresh();
+}
+
+/* ===== reliability =====
+   Writes fail. Networks blip, Supabase has a bad moment, a phone drops off
+   wifi mid-tap. The old code showed success optimistically and rolled back
+   silently on failure — which is exactly how three whole features looked fine
+   while being broken for weeks. Now: retry transient failures a couple of
+   times, and if it still won't land, TELL the user and offer to retry, instead
+   of pretending it worked. */
+
+let toastTimer = null;
+function toast(msg, { error = false, retry = null } = {}){
+  const box = $("toast");
+  box.replaceChildren();
+  box.className = "toast" + (error ? " err" : "");
+  box.append(document.createTextNode(msg));
+  if (retry){
+    const r = el("button","","Retry"); r.type = "button";
+    r.onclick = () => { hideToast(); retry(); };
+    box.append(r);
+  }
+  const x = el("button","x","×"); x.type = "button";
+  x.setAttribute("aria-label","Dismiss"); x.onclick = hideToast;
+  box.append(x);
+  box.hidden = false;
+  clearTimeout(toastTimer);
+  if (!retry) toastTimer = setTimeout(hideToast, 4000);   // errors with a retry stay until dismissed
+}
+const hideToast = () => { $("toast").hidden = true; clearTimeout(toastTimer); };
+
+/* Run a Supabase write, retrying transient failures with a short backoff.
+   Returns the data on success, throws on final failure. A duplicate-key error
+   (23505) is NOT transient — retrying can't fix it — so it's thrown straight
+   away rather than hammered three times. */
+async function writeWithRetry(fn, tries = 3){
+  let lastErr;
+  for (let i = 0; i < tries; i++){
+    try {
+      const { data, error } = await fn();
+      if (error) throw error;
+      return data;
+    } catch(e){
+      lastErr = e;
+      if (e?.code === "23505") throw e;                   // permanent, don't retry
+      if (i < tries - 1) await new Promise(r => setTimeout(r, 250 * (i + 1)));  // 250ms, 500ms
+    }
+  }
+  throw lastErr;
 }
 
 const refresh = () => {
@@ -1507,30 +1568,78 @@ function guessBlock(g, title){
   return box;
 }
 
-const rankKey = () => `${lastTopic}|${age()}|${[...prefs].sort().join(",")}|${cards.length}`;
+/* The cache key is the SEARCH, not the result set. It deliberately excludes
+   cards.length and titles — two users searching "dragons" for an 8-year-old
+   get slightly different results from the live APIs, but the reading-level
+   judgement of any given book is the same, so they can share one paid ranking.
+   Ranked entries are keyed by title, applied by title, so a different result
+   order doesn't matter. */
+const rankKey = () => `${lastTopic.toLowerCase().trim()}|${age()}|${prefList("avoid").sort().join(",")}|${prefList("flag").sort().join(",")}`;
+
+/* Read the shared cache first. Public-readable table, so this costs nothing
+   and every user after the first gets the ranking free. */
+async function cacheGet(ck){
+  if (rankCache.has(ck)) return rankCache.get(ck);       // memory first
+  if (!db) return null;
+  try {
+    const { data, error } = await db.from("rank_cache")
+      .select("ranked").eq("cache_key", ck).maybeSingle();
+    if (error) throw error;
+    if (data?.ranked){
+      rankCache.set(ck, data.ranked);                    // warm the memory layer
+      return data.ranked;
+    }
+  } catch(e){ console.error("Cache read failed:", e); }   // a cache miss is harmless
+  return null;
+}
+
+async function cachePut(ck, ranked){
+  rankCache.set(ck, ranked);
+  if (!db) return;
+  try {
+    // upsert so a race between two users writing the same search just wins last
+    await db.from("rank_cache").upsert({ cache_key:ck, ranked }, { onConflict:"cache_key" });
+  } catch(e){ console.error("Cache write failed:", e); }   // failing to cache still leaves the ranking working
+}
 
 async function rankResults(mine){
   if (!db || !$("rankOn").checked || cards.length < 2) return;
 
   const ck = rankKey();
-  if (rankCache.has(ck)){ applyRank(rankCache.get(ck)); draw(); return; }
+
+  // A ranked entry maps book TITLE → fit, so it applies to whatever this user's
+  // result set happens to contain.
+  const cached = await cacheGet(ck);
+  if (mine !== searchId) return;
+  if (cached){
+    applyRank(cached); draw();
+    $("rankMsg").textContent = "Sorted by how well each one suits this reader. Notes are AI-written and unverified.";
+    $("rankMsg").hidden = false;
+    return;
+  }
 
   $("rankMsg").textContent = "The librarian is reading through these…";
   $("rankMsg").hidden = false;
 
   try {
-    // The topic MUST go with this. Without it the model can only judge reading
-    // level, and cheerfully rates Frog and Toad 5/5 for a dragons search.
     const list = cards.slice(0, RANK_MAX).map((c,i) => ({ i, title:titleOf(c), author:authorOf(c) }));
     const data = await callAI({ mode:"rank", age:age(), topic:lastTopic,
                                 avoid:prefList("avoid"), seek:prefList("flag"), books:list });
     if (mine !== searchId) return;               // a newer search happened; drop this
 
-    const ranked = Array.isArray(data?.ranked) ? data.ranked : [];
-    rankCache.set(ck, ranked);
-    applyRank(ranked);
+    // Store by title, not by list position — position is meaningless to the
+    // next user, whose results are ordered differently.
+    const byTitle = (Array.isArray(data?.ranked) ? data.ranked : [])
+      .map(r => {
+        const c = cards[parseInt(r?.i, 10)];
+        return c ? { t: norm(titleOf(c)), fit: r?.fit, why: r?.why } : null;
+      })
+      .filter(Boolean);
+
+    cachePut(ck, byTitle);                        // fire and forget; don't block the UI
+    applyRank(byTitle);
     draw();
-    $("rankMsg").textContent = "Sorted by how well each one suits this reader. The librarian's notes are AI-written and unverified.";
+    $("rankMsg").textContent = "Sorted by how well each one suits this reader. Notes are AI-written and unverified.";
   } catch(e){
     if (mine !== searchId) return;
     $("rankMsg").hidden = true;
@@ -1538,14 +1647,18 @@ async function rankResults(mine){
   }
 }
 
+/* Ranked entries are now {t: normalised-title, fit, why}, so they match by book
+   rather than by position — which is what lets one cached ranking serve users
+   whose live results came back in a different order. */
 function applyRank(ranked){
   cards.forEach(c => { delete c.fit; delete c.whyfit; });
-  ranked.forEach(r => {
-    const c = cards[parseInt(r?.i, 10)];
-    if (!c) return;
-    const f = Number(r?.fit);
+  const byTitle = new Map(ranked.map(r => [r.t, r]));
+  cards.forEach(c => {
+    const r = byTitle.get(norm(titleOf(c)));
+    if (!r) return;
+    const f = Number(r.fit);
     c.fit = Number.isFinite(f) ? Math.min(5, Math.max(1, f)) : 3;
-    c.whyfit = String(r?.why || "").slice(0, 140);
+    c.whyfit = String(r.why || "").slice(0, 140);
   });
   // Stable sort: anything unranked keeps its original order, below the ranked.
   cards = cards
@@ -2054,19 +2167,20 @@ $("save").onclick = async () => {
   $("save").disabled = true; msg.textContent = "Saving…";
 
   try {
-    const { data, error } = await db.from("reviews").insert({
+    // writeWithRetry handles transient blips; .select().single() reads the row
+    // back, so a "success" here means the review genuinely landed in the table.
+    const data = await writeWithRetry(() => db.from("reviews").insert({
       book_key:k, book_title:t, rating:rating||null, body:body||null,
       user_id:user.id                         // RLS checks this matches auth.uid()
-    }).select().single();
-    if (error) throw error;
+    }).select().single());
     const arr = reviews.get(k);
     arr[arr.indexOf(draft)] = data;
     $("rText").value = ""; rating = 0;
     count(); stars(); msg.textContent = "Saved.";
   } catch(e){
     const arr = reviews.get(k), i = arr.indexOf(draft);
-    if (i > -1) arr.splice(i,1);              // roll it back
-    msg.textContent = "Couldn't save that. Check your connection and try again.";
+    if (i > -1) arr.splice(i,1);              // roll it back — nothing was saved
+    msg.textContent = "Couldn't save your review. Check your connection and try again.";
     msg.classList.add("err"); console.error(e);
   } finally {
     $("save").disabled = false; list(); refresh();
