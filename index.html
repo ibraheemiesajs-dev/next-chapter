@@ -118,6 +118,10 @@ h1 span{color:var(--berry)}
 .toast.err{background:var(--berry)}
 .toast button{color:var(--paper);text-decoration:underline;font-weight:700;font-size:13px;white-space:nowrap}
 .toast .x{text-decoration:none;font-size:18px;line-height:1;opacity:.8}
+.addhint{font-size:13px;color:var(--soft);margin:0 0 16px}
+.addhint a{color:var(--berry);font-weight:600}
+#addChips .chip[data-on=true]{border-color:var(--berry);background:var(--berry);color:#fff;font-weight:600}
+.addbtn{display:inline-block;margin-top:14px;font-size:13px;color:var(--berry);font-weight:600;text-decoration:underline;padding:4px 0}
 .stars-mini{font-size:13px;color:var(--gold);letter-spacing:1px}
 .rating{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
 .rating .val{font-family:var(--display);font-weight:900;font-size:19px}
@@ -321,6 +325,27 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </div>
     <button class="save" id="kidGo">Add</button>
     <p class="form-msg" id="kidMsg"></p>
+  </div>
+</div>
+
+<div class="backdrop" id="addBack">
+  <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <button class="close" id="addClose" aria-label="Close">&times;</button>
+    <h2 id="addTitle">Add content notes</h2>
+    <p class="addhint">Only add notes you've actually verified — check the book, or
+      <a id="addCsm" href="#" target="_blank" rel="noopener noreferrer">look it up on Common Sense Media</a>.
+      A wrong note is worse than none.</p>
+    <div class="field"><label for="addTitleIn">Title</label><input id="addTitleIn" maxlength="120"></div>
+    <div class="row2">
+      <div class="field"><label for="addAuthor">Author</label><input id="addAuthor" maxlength="80"></div>
+      <div class="field"><label for="addAges">Ages</label><input id="addAges" maxlength="12" placeholder="8–12"></div>
+    </div>
+    <div class="field">
+      <label>What's in it? Tap all that apply</label>
+      <div class="chips" id="addChips"></div>
+    </div>
+    <button class="save" id="addGo">Save to catalogue</button>
+    <p class="form-msg" id="addMsg"></p>
   </div>
 </div>
 
@@ -816,8 +841,35 @@ function findSeries(doc){
   }
   return null;
 }
-const findBook = doc => typeof doc?.title === "string"
-  ? Object.values(BOOKS).find(b => b.match.test(doc.title)) || null : null;
+/* The hardcoded BOOKS use a hand-written regex for matching. Community entries
+   from the database don't — they match on normalised title + author, which is
+   safe to build from user input (no regex injection) and good enough since a
+   contributor typed the exact title. Hardcoded entries win on a tie: the
+   trusted core is never overridden by a community addition. */
+const communityBooks = new Map();   // key -> {title, author, ages, notes}
+
+const findBook = doc => {
+  if (typeof doc?.title !== "string") return null;
+  const hard = Object.values(BOOKS).find(b => b.match.test(doc.title));
+  if (hard) return hard;
+  return communityBooks.get(key(doc)) || null;
+};
+
+async function loadCommunityBooks(){
+  if (!db) return;
+  try {
+    const { data, error } = await db.from("catalog_books").select("title, author, ages, notes");
+    if (error) throw error;
+    communityBooks.clear();
+    (data || []).forEach(b => {
+      const k = `${norm(b.title)}|${norm(b.author)}`;
+      communityBooks.set(k, {
+        title: b.title, author: b.author, ages: b.ages || "",
+        notes: Array.isArray(b.notes) ? b.notes.filter(n => CATEGORIES[n]) : []
+      });
+    });
+  } catch(e){ console.error("Couldn't load community catalogue:", e); }
+}
 
 const seriesNotes = s => [...new Set([
   ...s.books.flatMap(b => b.notes || []),
@@ -1565,8 +1617,85 @@ function guessBlock(g, title){
       `Possibly conflicts with your preferences: ${clash.map(id => CATEGORIES[id]?.label || id).join(", ")}. Worth checking before you decide.`));
 
   box.append(csm());
+  addNoteButton(box, title);
   return box;
 }
+
+/* A signed-in user who knows a book can add verified notes for everyone. This
+   is how the catalogue grows with checked data instead of my guesses. */
+function addNoteButton(box, title){
+  if (!db || !user || !openItem) return;
+  const b = el("button","addbtn","+ Add verified notes for this book");
+  b.type = "button";
+  b.onclick = () => openAddBook(openItem);
+  box.append(b);
+}
+
+let addChipState = new Map();
+function openAddBook(card){
+  const title = titleOf(card), auth = authorOf(card);
+  $("addTitleIn").value = title;
+  $("addAuthor").value = auth === "Unknown author" ? "" : auth;
+  $("addAges").value = "";
+  $("addMsg").textContent = ""; $("addMsg").classList.remove("err");
+  $("addCsm").href = `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`;
+
+  // Pre-fill with the AI's guess if we have one — the contributor confirms or
+  // corrects rather than starting blank. Still their verification that counts.
+  addChipState = new Map();
+  const guess = guessCache.get(cardKey(card));
+  const preset = new Set(guess?.known ? guess.notes : []);
+  buildAddChips(preset);
+
+  $("addBack").classList.add("open");
+  document.body.classList.add("locked");
+  $("addTitleIn").focus();
+}
+const closeAddBook = () => { $("addBack").classList.remove("open"); document.body.classList.remove("locked"); };
+$("addClose").onclick = closeAddBook;
+$("addBack").addEventListener("mousedown", e => { if (e.target === $("addBack")) closeAddBook(); });
+
+function buildAddChips(preset){
+  $("addChips").replaceChildren(...Object.entries(CATEGORIES).map(([id,c]) => {
+    const b = el("button","chip",c.label);
+    b.type = "button"; b.title = c.blurb;
+    const on = preset.has(id);
+    if (on){ b.dataset.on = "true"; addChipState.set(id, true); }
+    b.onclick = () => {
+      const now = !(b.dataset.on === "true");
+      b.dataset.on = String(now);
+      now ? addChipState.set(id, true) : addChipState.delete(id);
+    };
+    return b;
+  }));
+}
+
+$("addGo").onclick = async () => {
+  const title = $("addTitleIn").value.trim();
+  const auth = $("addAuthor").value.trim();
+  const ages = $("addAges").value.trim();
+  const notes = [...addChipState.keys()];
+  const msg = $("addMsg");
+  msg.classList.remove("err");
+
+  if (!title){ msg.textContent = "A title is needed."; msg.classList.add("err"); return; }
+  if (!auth){ msg.textContent = "An author is needed, so the book can be matched reliably."; msg.classList.add("err"); return; }
+
+  $("addGo").disabled = true; msg.textContent = "Saving…";
+  try {
+    await writeWithRetry(() => db.from("catalog_books").upsert(
+      { title, author:auth, ages: ages || null, notes, added_by:user.id },
+      { onConflict:"title,author" }));
+
+    // Update the in-memory catalogue immediately so the panel reflects it now.
+    communityBooks.set(`${norm(title)}|${norm(auth)}`, { title, author:auth, ages, notes });
+    msg.textContent = "Added. Thank you — everyone searching will see these now.";
+    setTimeout(() => { closeAddBook(); if (openItem) openPanel(openItem); }, 900);
+  } catch(e){
+    msg.textContent = "Couldn't save that. Try again."; msg.classList.add("err");
+    console.error(e);
+  } finally { $("addGo").disabled = false; }
+};
 
 /* The cache key is the SEARCH, not the result set. It deliberately excludes
    cards.length and titles — two users searching "dragons" for an 8-year-old
@@ -1695,15 +1824,12 @@ const age = () => {
 const level = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
               : a<=12 ? "juvenile literature" : "young adult fiction";
 const showLevel = () => $("level").textContent = level(age());
-// Correct the field as soon as it goes out of range, so what's shown always
-// equals what's searched. Only rewrite when it actually differs, or the cursor
-// jumps to the end mid-type.
+// Clamp only the HIGH end while typing — a value below the minimum is almost
+// always a half-typed number ("1" on the way to "10"), so leave those alone and
+// let blur tidy them. Correcting low values mid-keystroke made "10" impossible.
 $("age").addEventListener("input", () => {
-  const raw = $("age").value;
-  if (raw !== "" && raw !== "-"){
-    const clamped = String(age());
-    if (raw !== clamped && (parseInt(raw,10) > 18 || parseInt(raw,10) < 2)) $("age").value = clamped;
-  }
+  const n = parseInt($("age").value, 10);
+  if (Number.isFinite(n) && n > 18) $("age").value = "18";
   showLevel();
 });
 $("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
@@ -2131,7 +2257,10 @@ document.addEventListener("keydown", e => {
   const open = [...document.querySelectorAll(".backdrop.open")].pop();
   if (!open) return;
   if (e.key === "Escape"){
-    open.id === "backdrop" ? closePanel() : open.id === "authBack" ? closeAuth() : closeKid();
+    open.id === "backdrop" ? closePanel()
+      : open.id === "authBack" ? closeAuth()
+      : open.id === "addBack" ? closeAddBook()
+      : closeKid();
     return;
   }
   if (e.key !== "Tab") return;
@@ -2239,6 +2368,7 @@ $("search").onclick = search;
   if (e.key === "Enter") $("kidGo").click(); }));
 
 renderAccount();
+loadCommunityBooks();   // additions everyone has contributed
 </script>
 </body>
 </html>
