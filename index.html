@@ -964,22 +964,25 @@ function whereToGet(doc){
 
   if (doc?.ebook_access === "public" || doc?.ebook_access === "borrowable"){
     const ia = Array.isArray(doc.ia) ? doc.ia[0] : null;
-    if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow the ebook free",
-                `https://archive.org/details/${encodeURIComponent(ia)}`, "free");
+    // Open Library's `ia` identifier can point at a FOREIGN-language scan (its
+    // work record merged, say, the Spanish edition's Archive copy). Rather than
+    // link straight to that specific book, search Archive by title+author so the
+    // user lands on an English copy if one exists.
+    if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow free from Archive",
+                `https://archive.org/search?query=${q}&and[]=mediatype%3A%22texts%22`, "free");
   }
   // Search by TITLE + AUTHOR, not ISBN. Open Library groups all editions under
   // one work, so its "isbn" can be a foreign edition's — searching that ISBN
-  // pins WorldCat to, say, the German printing. An English title+author finds
-  // the English edition reliably.
+  // pins WorldCat to, say, the French printing.
   add("Find in a library", `https://search.worldcat.org/search?q=${q}`);
-  // Common Sense Media has no API and no stable search-by-query URL — reviews
-  // live at hand-made slugs like /book-reviews/how-to-train-your-dragon-...
-  // A site-scoped Google search lands on the exact review as the top result
-  // without depending on their internal routing.
+  // Common Sense Media has no stable search URL — reviews live at hand-made
+  // slugs. A site-scoped Google search lands on the exact review reliably.
   add("Common Sense Media review",
       `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org ${title} ${author(doc)}`)}`);
+  // Bookshop by TITLE, not the (often foreign) ISBN, and the live /search path
+  // — the old /beta-search is dead.
   add("Bookshop.org",
-      `https://bookshop.org/search?keywords=${encodeURIComponent(isbn || title)}`);
+      `https://bookshop.org/search?keywords=${encodeURIComponent(title)}`);
   add("Find on Google Books",
       `https://www.google.com/search?tbm=bks&q=${q}`);
   if (typeof doc?.key === "string" && doc.key.startsWith("/works/"))
