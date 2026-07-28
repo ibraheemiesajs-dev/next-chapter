@@ -991,7 +991,7 @@ function whereToGet(doc){
   // Common Sense Media has no stable search URL — reviews live at hand-made
   // slugs. A site-scoped Google search lands on the exact review reliably.
   add("Common Sense Media review",
-      `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org ${title} ${author(doc)}`)}`);
+      `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${title}" ${author(doc)}`)}`);
   // Bookshop by title + author (not the often-foreign ISBN). Author matters:
   // "Bone" alone matches hundreds of books; "Bone Jeff Smith" finds the one.
   add("Bookshop.org",
@@ -1607,7 +1607,7 @@ function guessBlock(g, title, auth){
 
   const csm = () => {
     const a = el("a","check","Check this book on Common Sense Media →");
-    const term = `site:commonsensemedia.org ${title}${auth && auth !== "Unknown author" ? " " + auth : ""}`;
+    const term = `site:commonsensemedia.org "${title}"${auth && auth !== "Unknown author" ? " " + auth : ""}`;
     a.href = `https://www.google.com/search?q=${encodeURIComponent(term)}`;
     a.target = "_blank"; a.rel = "noopener noreferrer";
     return a;
