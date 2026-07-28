@@ -985,8 +985,12 @@ function whereToGet(doc){
       `https://bookshop.org/search?keywords=${encodeURIComponent(title)}`);
   add("Find on Google Books",
       `https://www.google.com/search?tbm=bks&q=${q}`);
-  if (typeof doc?.key === "string" && doc.key.startsWith("/works/"))
-    add("On Open Library", `https://openlibrary.org${doc.key}`);
+  // A work page shows whatever edition Open Library has set as default — which
+  // can be a foreign one (its Hobbit page defaults to the Hawaiian "Ka hopita").
+  // Search by title instead so the user picks from results rather than landing
+  // on a mislabeled default.
+  add("On Open Library",
+      `https://openlibrary.org/search?q=${q}&language=eng`);
 
   box.append(links);
   if (!isbn) box.append(el("p","why",
