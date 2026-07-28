@@ -967,13 +967,21 @@ function whereToGet(doc){
     if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow the ebook free",
                 `https://archive.org/details/${encodeURIComponent(ia)}`, "free");
   }
-  add("Find in a library", isbn
-    ? `https://search.worldcat.org/search?q=bn:${encodeURIComponent(isbn)}`
-    : `https://search.worldcat.org/search?q=${q}`);
-  // Common Sense Media has no API, so link out rather than cache their reviews.
-  add("Common Sense Media review", `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`);
-  add("Bookshop.org", `https://bookshop.org/beta-search?keywords=${encodeURIComponent(isbn || title)}`);
-  add("Compare prices", `https://www.google.com/search?tbm=bks&q=${isbn ? encodeURIComponent(isbn) : q}`);
+  // Search by TITLE + AUTHOR, not ISBN. Open Library groups all editions under
+  // one work, so its "isbn" can be a foreign edition's — searching that ISBN
+  // pins WorldCat to, say, the German printing. An English title+author finds
+  // the English edition reliably.
+  add("Find in a library", `https://search.worldcat.org/search?q=${q}`);
+  // Common Sense Media has no API and no stable search-by-query URL — reviews
+  // live at hand-made slugs like /book-reviews/how-to-train-your-dragon-...
+  // A site-scoped Google search lands on the exact review as the top result
+  // without depending on their internal routing.
+  add("Common Sense Media review",
+      `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org ${title} ${author(doc)}`)}`);
+  add("Bookshop.org",
+      `https://bookshop.org/search?keywords=${encodeURIComponent(isbn || title)}`);
+  add("Find on Google Books",
+      `https://www.google.com/search?tbm=bks&q=${q}`);
   if (typeof doc?.key === "string" && doc.key.startsWith("/works/"))
     add("On Open Library", `https://openlibrary.org${doc.key}`);
 
@@ -1556,30 +1564,31 @@ async function guessNotes(c, mine){
 
   const render = g => {
     if (mine !== panelToken) return;
-    box.replaceChildren(guessBlock(g, title));
+    box.replaceChildren(guessBlock(g, title, auth));
   };
 
   if (guessCache.has(k)) return render(guessCache.get(k));
 
-  box.replaceChildren(guessBlock({ loading:true }, title));
+  box.replaceChildren(guessBlock({ loading:true }, title, auth));
   try {
     const g = await callAI({ mode:"notes", title, author: auth === "Unknown author" ? "" : auth });
     guessCache.set(k, g);
     render(g);
   } catch(e){
     if (mine !== panelToken) return;
-    box.replaceChildren(guessBlock({ failed:true }, title));
+    box.replaceChildren(guessBlock({ failed:true }, title, auth));
     console.error("Couldn't guess content notes:", e);
   }
 }
 
-function guessBlock(g, title){
+function guessBlock(g, title, auth){
   const box = el("div","guess");
   box.append(el("h4","","Not in our checked catalogue"));
 
   const csm = () => {
     const a = el("a","check","Check this book on Common Sense Media →");
-    a.href = `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`;
+    const term = `site:commonsensemedia.org ${title}${auth && auth !== "Unknown author" ? " " + auth : ""}`;
+    a.href = `https://www.google.com/search?q=${encodeURIComponent(term)}`;
     a.target = "_blank"; a.rel = "noopener noreferrer";
     return a;
   };
@@ -1638,7 +1647,7 @@ function openAddBook(card){
   $("addAuthor").value = auth === "Unknown author" ? "" : auth;
   $("addAges").value = "";
   $("addMsg").textContent = ""; $("addMsg").classList.remove("err");
-  $("addCsm").href = `https://www.commonsensemedia.org/search?q=${encodeURIComponent(title)}`;
+  $("addCsm").href = `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org ${title}`)}`;
 
   // Pre-fill with the AI's guess if we have one — the contributor confirms or
   // corrects rather than starting blank. Still their verification that counts.
