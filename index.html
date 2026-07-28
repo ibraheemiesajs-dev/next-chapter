@@ -979,10 +979,10 @@ function whereToGet(doc){
   // slugs. A site-scoped Google search lands on the exact review reliably.
   add("Common Sense Media review",
       `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org ${title} ${author(doc)}`)}`);
-  // Bookshop by TITLE, not the (often foreign) ISBN, and the live /search path
-  // — the old /beta-search is dead.
+  // Bookshop by title + author (not the often-foreign ISBN). Author matters:
+  // "Bone" alone matches hundreds of books; "Bone Jeff Smith" finds the one.
   add("Bookshop.org",
-      `https://bookshop.org/search?keywords=${encodeURIComponent(title)}`);
+      `https://bookshop.org/search?keywords=${q}`);
   add("Find on Google Books",
       `https://www.google.com/search?tbm=bks&q=${q}`);
   // A work page shows whatever edition Open Library has set as default — which
