@@ -26,6 +26,22 @@ h1 span{color:var(--berry)}
 .account button{text-decoration:underline;color:var(--berry);font-weight:600}
 .account .who{display:block;margin-bottom:2px;overflow-wrap:anywhere}
 .hero{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:30px 0 34px;margin-top:18px}
+.media-toggle{display:inline-flex;border:1px solid var(--ink);border-radius:3px;overflow:hidden;margin:0 0 24px}
+.mt-btn{padding:8px 22px;font-size:14px;font-weight:700;background:none;color:var(--ink);transition:.12s}
+.mt-btn[aria-selected=true]{background:var(--ink);color:var(--paper)}
+.mt-btn:not([aria-selected=true]):hover{background:#eae5d6}
+.browse{position:relative;display:inline-block}
+.browse-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:230px;
+  background:var(--card);border:1px solid var(--ink);border-radius:4px;
+  box-shadow:0 8px 28px rgba(20,50,59,.18);padding:6px;overflow:hidden}
+.browse-menu .grp{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);padding:9px 10px 4px}
+.browse-menu button{display:block;width:100%;text-align:left;padding:9px 10px;font-size:14px;
+  border-radius:3px;color:var(--ink);transition:.1s}
+.browse-menu button:hover{background:var(--ink);color:var(--paper)}
+.browse-menu .surprise{font-weight:700;color:var(--berry)}
+.browse-menu .surprise:hover{background:var(--berry);color:#fff}
+.tag.mpaa-pending{opacity:.5;font-style:italic}
+.tmdb-attr{display:block;margin-top:6px;font-size:11px;opacity:.7}
 .kids{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;align-items:center}
 .kid{border:1px solid var(--rule);border-radius:20px;padding:6px 15px;font-size:13px;color:var(--soft);transition:.12s}
 .kid[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--paper);font-weight:600}
@@ -211,19 +227,27 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner bad" id="db-warn" hidden></p>
 
   <section class="hero">
+    <div class="media-toggle" id="mediaToggle" role="tablist" aria-label="What are you looking for?">
+      <button role="tab" id="tabBooks" class="mt-btn" aria-selected="true">Books</button>
+      <button role="tab" id="tabMovies" class="mt-btn" aria-selected="false">Movies</button>
+    </div>
     <div class="kids" id="kids" hidden></div>
-    <p class="sentence">Find books for a
-      <label class="blank"><span class="sr">Reader's age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
+    <p class="sentence">Find <span id="mediaWord">books</span> for a
+      <label class="blank"><span class="sr">Age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
       year old who likes
       <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
     </p>
     <p class="hint">Searching <b id="level">juvenile fiction</b></p>
     <div class="actions">
       <button class="go" id="search">Search the catalogue</button>
-      <button class="go alt2" id="ask">Ask the librarian</button>
+      <button class="go alt2" id="ask"><span id="askLabel">Ask the librarian</span></button>
+      <div class="browse">
+        <button class="go alt2" id="browseBtn" aria-haspopup="true" aria-expanded="false">No ideas? ▾</button>
+        <div class="browse-menu" id="browseMenu" role="menu" hidden></div>
+      </div>
       <label class="toggle" for="rankOn">
         <input type="checkbox" id="rankOn" checked>
-        Let the librarian sort the results
+        <span id="sortLabel">Let the librarian sort the results</span>
       </label>
     </div>
     <div class="prefs">
@@ -266,7 +290,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     Google Books, then the librarian reads through them in the background and re-sorts by how well
     each one actually suits the reader's age. Nothing waits on the AI, and you can switch it off.</p>
 
-  <footer>Built by a human. Books from Open Library and Google Books. Series and content notes hand-entered.</footer>
+  <footer>Built by a human. Books from Open Library and Google Books; film data from TMDB. Series and content notes hand-entered. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></footer>
 </div>
 
 <div class="backdrop" id="backdrop">
@@ -392,6 +416,40 @@ const CATEGORIES = {
   substances:{label:"Alcohol or drugs",blurb:"Substance use appears on the page."},
   religion:{label:"Religious themes",blurb:"Faith or religious practice is a theme."}
 };
+
+/* ================= MEDIA TYPES =================
+   The app does the same job for books and movies: find something age-right,
+   show what's in it, say where to get it. Almost everything is media-agnostic —
+   the shelf doesn't care what it holds, the AI judges "fit for this age" the
+   same way. What differs is the DATA SOURCE and the WORDS on screen, so those
+   are gathered here. mediaType is the single switch everything reads. */
+let mediaType = "book";
+
+const MEDIA = {
+  book: {
+    word: "books", one: "book", catalogue: "Search the catalogue",
+    ask: "Ask the librarian", sort: "Let the librarian sort the results",
+    thinking: "The librarian is reading through these…",
+    sorted: "Sorted by how well each one suits this reader. Notes are AI-written and unverified.",
+    empty: "Try a broader word — animals, magic, mystery, sports — or check the spelling."
+  },
+  movie: {
+    word: "movies", one: "movie", catalogue: "Search films",
+    ask: "Ask the projectionist", sort: "Let the projectionist sort the results",
+    thinking: "The projectionist is watching through these…",
+    sorted: "Sorted by how well each one suits this viewer. Notes are AI-written and unverified.",
+    empty: "Try a broader word — animals, space, friendship, adventure — or check the spelling."
+  }
+};
+const M = () => MEDIA[mediaType];
+
+/* Reading/viewing level by age — books use library categories, movies use the
+   rough MPAA band a parent would expect. */
+const bookLevel = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
+              : a<=12 ? "juvenile literature" : "young adult fiction";
+const movieLevel = a => a<=6 ? "G — all ages" : a<=9 ? "mostly G and PG"
+              : a<=12 ? "PG and some PG-13" : "PG-13 and up";
+
 
 const SERIES = {
   "wings-of-fire":{title:"Wings of Fire",author:"Tui T. Sutherland",match:/wings of fire/i,ages:"8–12",
@@ -781,6 +839,62 @@ const BOOKS = {
   faultstars:{title:"The Fault in Our Stars",author:"John Green",match:/fault in our stars/i,ages:"14+",notes:["death","romance","language"]}
 };
 
+/* ================= THE MOVIE CATALOGUE =================
+   Same shape as books. FRANCHISES carry watch order (the movie version of
+   series-in-order — nobody should watch the MCU by release-date-in-a-search).
+   FILMS are standalone. `mpaa` is the official rating; `notes` are your own
+   descriptive layer, because "PG-13" doesn't tell a parent WHY. Only verified
+   notes. This is a starter set — grow it like the book catalogue.  */
+const FRANCHISES = {
+  "toy-story":{title:"Toy Story",studio:"Pixar",match:/toy story/i,ages:"4–10",films:[
+    {n:1,title:"Toy Story",year:1995,mpaa:"G",notes:["scary"]},
+    {n:2,title:"Toy Story 2",year:1999,mpaa:"G",notes:["scary"]},
+    {n:3,title:"Toy Story 3",year:2010,mpaa:"G",notes:["scary","death"]},
+    {n:4,title:"Toy Story 4",year:2019,mpaa:"G",notes:["scary"]}]},
+  "how-to-train-dragon-films":{title:"How to Train Your Dragon (films)",studio:"DreamWorks",match:/how to train your dragon/i,ages:"6–11",films:[
+    {n:1,title:"How to Train Your Dragon",year:2010,mpaa:"PG",notes:["violence","scary"]},
+    {n:2,title:"How to Train Your Dragon 2",year:2014,mpaa:"PG",notes:["violence","death","scary"]},
+    {n:3,title:"How to Train Your Dragon: The Hidden World",year:2019,mpaa:"PG",notes:["violence","scary"]}]},
+  "despicable-me":{title:"Despicable Me",studio:"Illumination",match:/despicable me|minions/i,ages:"4–10",films:[
+    {n:1,title:"Despicable Me",year:2010,mpaa:"PG",notes:["scary"]},
+    {n:2,title:"Despicable Me 2",year:2013,mpaa:"PG",notes:["violence"]},
+    {n:3,title:"Minions",year:2015,mpaa:"PG",notes:["violence"]},
+    {n:4,title:"Despicable Me 3",year:2017,mpaa:"PG",notes:["violence"]},
+    {n:5,title:"Minions: The Rise of Gru",year:2022,mpaa:"PG",notes:["violence"]},
+    {n:6,title:"Despicable Me 4",year:2024,mpaa:"PG",notes:["violence"]}]},
+  "kung-fu-panda":{title:"Kung Fu Panda",studio:"DreamWorks",match:/kung fu panda/i,ages:"6–11",films:[
+    {n:1,title:"Kung Fu Panda",year:2008,mpaa:"PG",notes:["violence"]},
+    {n:2,title:"Kung Fu Panda 2",year:2011,mpaa:"PG",notes:["violence","death","scary"]},
+    {n:3,title:"Kung Fu Panda 3",year:2016,mpaa:"PG",notes:["violence"]},
+    {n:4,title:"Kung Fu Panda 4",year:2024,mpaa:"PG",notes:["violence"]}]},
+  "spider-verse":{title:"Spider-Man (Spider-Verse)",studio:"Sony Animation",match:/spider-?verse|into the spider|across the spider/i,ages:"8–13",films:[
+    {n:1,title:"Spider-Man: Into the Spider-Verse",year:2018,mpaa:"PG",notes:["violence","death"]},
+    {n:2,title:"Spider-Man: Across the Spider-Verse",year:2023,mpaa:"PG",notes:["violence","death","scary"]}]}
+};
+
+const FILMS = {
+  finding_nemo:{title:"Finding Nemo",studio:"Pixar",match:/finding nemo/i,ages:"4–10",mpaa:"G",notes:["scary","death"]},
+  findingdory:{title:"Finding Dory",studio:"Pixar",match:/finding dory/i,ages:"4–10",mpaa:"PG",notes:["scary"]},
+  inside_out:{title:"Inside Out",studio:"Pixar",match:/inside out\b/i,ages:"6–11",mpaa:"PG",notes:["scary"]},
+  up:{title:"Up",studio:"Pixar",match:/^up$/i,ages:"6–11",mpaa:"PG",notes:["death","scary"]},
+  coco:{title:"Coco",studio:"Pixar",match:/^coco$/i,ages:"6–11",mpaa:"PG",notes:["death","scary"]},
+  wall_e:{title:"WALL·E",studio:"Pixar",match:/wall.?e/i,ages:"5–10",mpaa:"G",notes:[]},
+  ratatouille:{title:"Ratatouille",studio:"Pixar",match:/ratatouille/i,ages:"6–11",mpaa:"G",notes:["scary"]},
+  incredibles:{title:"The Incredibles",studio:"Pixar",match:/incredibles\b/i,ages:"6–11",mpaa:"PG",notes:["violence"]},
+  moana:{title:"Moana",studio:"Disney",match:/^moana/i,ages:"5–10",mpaa:"PG",notes:["scary","violence"]},
+  frozen:{title:"Frozen",studio:"Disney",match:/^frozen$/i,ages:"4–10",mpaa:"PG",notes:["scary"]},
+  encanto:{title:"Encanto",studio:"Disney",match:/encanto/i,ages:"5–10",mpaa:"PG",notes:["scary"]},
+  zootopia:{title:"Zootopia",studio:"Disney",match:/zootopia/i,ages:"6–11",mpaa:"PG",notes:["violence","scary"]},
+  lionking:{title:"The Lion King",studio:"Disney",match:/lion king/i,ages:"6–11",mpaa:"G",notes:["violence","death","scary"]},
+  spiritedaway:{title:"Spirited Away",studio:"Studio Ghibli",match:/spirited away/i,ages:"8–13",mpaa:"PG",notes:["scary"]},
+  totoro:{title:"My Neighbor Totoro",studio:"Studio Ghibli",match:/totoro/i,ages:"4–10",mpaa:"G",notes:[]},
+  paddington:{title:"Paddington",studio:"StudioCanal",match:/^paddington$/i,ages:"5–10",mpaa:"PG",notes:["scary"]},
+  paddington2:{title:"Paddington 2",studio:"StudioCanal",match:/paddington 2/i,ages:"5–10",mpaa:"PG",notes:["violence"]},
+  wonka:{title:"Wonka",studio:"Warner Bros",match:/^wonka$/i,ages:"6–11",mpaa:"PG",notes:[]},
+  lego:{title:"The Lego Movie",studio:"Warner Bros",match:/lego movie/i,ages:"6–11",mpaa:"PG",notes:["violence"]}
+};
+
+
 /* ===== setup ===== */
 const OL="https://openlibrary.org/search.json";
 const GB="https://www.googleapis.com/books/v1/volumes";
@@ -838,10 +952,26 @@ const cardKey = c => !c ? "" : (c.kind === "series" ? `series:${c.series.id}` : 
    the same person. Dropping single-letter tokens removes middle initials. */
 const normName = s => norm(s).split(" ").filter(w => w.length > 1).join(" ");
 
-/* ===== catalogue lookups ===== */
+/* ===== catalogue lookups =====
+   These dispatch on mediaType: books use SERIES/BOOKS, movies use
+   FRANCHISES/FILMS. The two catalogues share a shape so one set of lookups
+   serves both. For movies, a "franchise" is a series and its `films` are the
+   `books`; there are no branches or author-matching (a film's title is
+   distinctive enough on its own). */
 function findSeries(doc){
   const t = norm(doc?.title);
   if (!t) return null;
+
+  if (mediaType === "movie"){
+    for (const [id,f] of Object.entries(FRANCHISES)){
+      // Expose films as `books` so all the series-rendering code works unchanged.
+      const norm2 = { id, movie:true, ...f, books:f.films };
+      if (f.match.test(doc.title)) return norm2;
+      if (f.films.some(x => t.includes(norm(x.title)))) return norm2;
+    }
+    return null;
+  }
+
   const authors = (doc?.author_name || []).map(normName);
   for (const [id,s] of Object.entries(SERIES)){
     if (s.match.test(doc.title)) return { id, ...s };
@@ -863,6 +993,11 @@ const communityBooks = new Map();   // key -> {title, author, ages, notes}
 
 const findBook = doc => {
   if (typeof doc?.title !== "string") return null;
+  if (mediaType === "movie"){
+    const hard = Object.values(FILMS).find(f => f.match.test(doc.title));
+    if (hard) return hard;
+    return communityBooks.get(key(doc)) || null;   // community additions serve both media
+  }
   const hard = Object.values(BOOKS).find(b => b.match.test(doc.title));
   if (hard) return hard;
   return communityBooks.get(key(doc)) || null;
@@ -897,7 +1032,11 @@ const notesOf = c => {
   return findBook(c.doc)?.notes || [];
 };
 const titleOf = c => c.kind === "series" ? c.series.title : c.doc.title;
-const authorOf = c => c.kind === "series" ? c.series.author : author(c.doc);
+const authorOf = c => {
+  if (c.kind === "series") return c.series.author || c.series.studio || "";
+  if (mediaType === "movie") return c.doc.studio || c.doc.director || "";
+  return author(c.doc);
+};
 
 /* ===== external info: description + rating ===== */
 const isbnOf = doc => {
@@ -963,17 +1102,35 @@ function ratingBlock(info){
    is usually a better answer than a price, and it costs the family nothing. */
 function whereToGet(doc){
   const box = el("div","get");
-  box.append(el("h4","","Where to get it"));
-  const links = el("div","links");
-  const add = (label, url, cls) => {
+  const title = doc?.title || "";
+  const add = (label, url, cls, into) => {
     const a = el("a", cls || "", label);
     a.href = url; a.target = "_blank";
     a.rel = "noopener noreferrer";     // stops the new tab reaching back into yours
-    links.append(a);
+    into.append(a);
   };
 
-  const isbn = isbnOf(doc), title = doc?.title || "";
+  if (mediaType === "movie"){
+    // Movies: where to WATCH, not borrow. JustWatch aggregates every streaming
+    // service and rental option by region, so it's the one link that answers
+    // "how do I actually see this" without guessing a platform.
+    box.append(el("h4","","Where to watch"));
+    const links = el("div","links");
+    const qm = encodeURIComponent(title);
+    add("Find on JustWatch", `https://www.justwatch.com/us/search?q=${qm}`, "free", links);
+    add("Common Sense Media review",
+        `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${title}"`)}`, "", links);
+    add("Search on TMDB", `https://www.themoviedb.org/search?query=${qm}`, "", links);
+    box.append(links);
+    box.append(el("p","why","Streaming availability changes often and varies by country — JustWatch shows what's current where you are."));
+    return box;
+  }
+
+  box.append(el("h4","","Where to get it"));
+  const links = el("div","links");
+  const isbn = isbnOf(doc);
   const q = encodeURIComponent(`${title} ${author(doc)}`.trim());
+  const addb = (label, url, cls) => add(label, url, cls, links);
 
   if (doc?.ebook_access === "public" || doc?.ebook_access === "borrowable"){
     const ia = Array.isArray(doc.ia) ? doc.ia[0] : null;
@@ -981,28 +1138,28 @@ function whereToGet(doc){
     // work record merged, say, the Spanish edition's Archive copy). Rather than
     // link straight to that specific book, search Archive by title+author so the
     // user lands on an English copy if one exists.
-    if (ia) add(doc.ebook_access === "public" ? "Read free online" : "Borrow free from Archive",
+    if (ia) addb(doc.ebook_access === "public" ? "Read free online" : "Borrow free from Archive",
                 `https://archive.org/search?query=${q}&and[]=mediatype%3A%22texts%22`, "free");
   }
   // Search by TITLE + AUTHOR, not ISBN. Open Library groups all editions under
   // one work, so its "isbn" can be a foreign edition's — searching that ISBN
   // pins WorldCat to, say, the French printing.
-  add("Find in a library", `https://search.worldcat.org/search?q=${q}`);
+  addb("Find in a library", `https://search.worldcat.org/search?q=${q}`);
   // Common Sense Media has no stable search URL — reviews live at hand-made
   // slugs. A site-scoped Google search lands on the exact review reliably.
-  add("Common Sense Media review",
+  addb("Common Sense Media review",
       `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${title}" ${author(doc)}`)}`);
   // Bookshop by title + author (not the often-foreign ISBN). Author matters:
   // "Bone" alone matches hundreds of books; "Bone Jeff Smith" finds the one.
-  add("Bookshop.org",
+  addb("Bookshop.org",
       `https://bookshop.org/search?keywords=${q}`);
-  add("Find on Google Books",
+  addb("Find on Google Books",
       `https://www.google.com/search?tbm=bks&q=${q}`);
   // A work page shows whatever edition Open Library has set as default — which
   // can be a foreign one (its Hobbit page defaults to the Hawaiian "Ka hopita").
   // Search by title instead so the user picks from results rather than landing
   // on a mislabeled default.
-  add("On Open Library",
+  addb("On Open Library",
       `https://openlibrary.org/search?q=${q}&language=eng`);
 
   box.append(links);
@@ -1437,9 +1594,10 @@ async function callAI(body){
 
 const prefList = state => [...prefs].filter(([,s]) => s === state).map(([id]) => CATEGORIES[id]?.label || id);
 
-$("ask").onclick = async () => {
-  const topic = $("topic").value.trim();
-  if (!topic){ $("topic").focus(); return; }
+/* The AI recommend flow, factored out so both "Ask the librarian" (uses the
+   typed topic) and the browse dropdown (uses a themed prompt) share it. The
+   heading is passed in so each entry point can label its results. */
+async function runRecommend(topic, heading){
   if (!db){
     $("aiSection").hidden = false;
     $("aiErr").textContent = "Not connected — add your Supabase anon key first.";
@@ -1448,6 +1606,7 @@ $("ask").onclick = async () => {
   }
 
   $("ask").disabled = true;
+  $("browseBtn").disabled = true;
   $("aiSection").hidden = false;
   $("aiErr").hidden = true;
   $("aiTitle").textContent = "Thinking…";
@@ -1455,30 +1614,116 @@ $("ask").onclick = async () => {
   $("aiShelf").replaceChildren(...Array.from({length:3}, () => el("li","skeleton")));
 
   try {
-    const data = await callAI({ age:age(), topic, avoid:prefList("avoid"), seek:prefList("flag") });
-    const books = Array.isArray(data?.books) ? data.books : [];
-    // The model returns titles and authors only — look each up so we get covers,
-    // and so an invented title quietly ends up with no match.
-    aiCards = (await Promise.all(books.slice(0,6).map(lookUp))).filter(Boolean);
+    const data = await callAI({ age:age(), topic, media:mediaType, avoid:prefList("avoid"), seek:prefList("flag") });
+    const items = Array.isArray(data?.books) ? data.books : [];
+    // The model returns titles/authors only — look each up for covers, and so an
+    // invented title quietly ends up with no match. lookUp is media-aware.
+    aiCards = (await Promise.all(items.slice(0,6).map(lookUp))).filter(Boolean);
 
-    $("aiTitle").textContent = `The librarian suggests for a ${age()}-year-old`;
-    $("aiCount").textContent = `${aiCards.length} book${aiCards.length===1?"":"s"}`;
+    $("aiTitle").textContent = heading;
+    $("aiCount").textContent = `${aiCards.length} ${aiCards.length===1?M().one:M().word}`;
     drawAi();
     await loadReviews(aiCards.map(cardKey));
     drawAi();
   } catch(e){
-    $("aiTitle").textContent = "The librarian suggests";
+    $("aiTitle").textContent = heading;
     $("aiShelf").replaceChildren();
-    $("aiErr").textContent = "Couldn't get recommendations. " + (e?.message || "Try again in a moment.");
+    $("aiErr").textContent = "Couldn't get suggestions. " + (e?.message || "Try again in a moment.");
     $("aiErr").hidden = false;
     console.error(e);
-  } finally { $("ask").disabled = false; }
+  } finally { $("ask").disabled = false; $("browseBtn").disabled = false; }
+}
+
+$("ask").onclick = () => {
+  const topic = $("topic").value.trim();
+  if (!topic){ $("topic").focus(); return; }
+  const who = mediaType === "movie" ? "projectionist" : "librarian";
+  runRecommend(topic, `The ${who} suggests for a ${age()}-year-old`);
 };
+
+/* ===== browse dropdown — "no ideas?" =====
+   For the parent who's stuck. Each choice is just a themed topic fed into the
+   same recommend flow, so it costs no new infrastructure and is cached in the
+   shared rank/recommend cache like everything else. Moods are phrased to work
+   for either medium — "something funny" suits books and films alike. */
+const MOODS = [
+  ["Something funny", "funny and light-hearted, lots of laughs"],
+  ["A gripping adventure", "exciting adventure with a fast-moving plot"],
+  ["Gentle and cosy", "gentle, warm and comforting, nothing frightening"],
+  ["Makes you think", "thoughtful stories that spark big questions and feelings"],
+  ["A bit spooky", "spooky and mysterious but not too scary for the age"],
+  ["Real-life stories", "grounded, realistic stories about everyday life and friendship"]
+];
+
+function buildBrowseMenu(){
+  const menu = $("browseMenu");
+  menu.replaceChildren();
+
+  menu.append(el("div","grp","By mood"));
+  MOODS.forEach(([label, prompt]) => {
+    const b = el("button","",label); b.type = "button"; b.setAttribute("role","menuitem");
+    b.onclick = () => { closeBrowse(); runRecommend(prompt, `${label} — for a ${age()}-year-old`); };
+    menu.append(b);
+  });
+
+  menu.append(el("div","grp","Or"));
+  const pop = el("button","",`Popular ${M().word} for age ${age()}`);
+  pop.type = "button"; pop.setAttribute("role","menuitem");
+  pop.onclick = () => { closeBrowse();
+    runRecommend(`the most popular and best-loved ${M().word} for a ${age()}-year-old`,
+                 `Popular with ${age()}-year-olds`); };
+  menu.append(pop);
+
+  const sur = el("button","surprise","✨ Surprise me"); sur.type = "button"; sur.setAttribute("role","menuitem");
+  sur.onclick = () => { closeBrowse();
+    const pick = MOODS[Math.floor(Math.random() * MOODS.length)];
+    runRecommend(pick[1] + ", pick some less obvious gems", "A surprise pick"); };
+  menu.append(sur);
+}
+
+function openBrowse(){
+  buildBrowseMenu();                 // rebuild each time so age/media labels are current
+  $("browseMenu").hidden = false;
+  $("browseBtn").setAttribute("aria-expanded","true");
+}
+function closeBrowse(){
+  $("browseMenu").hidden = true;
+  $("browseBtn").setAttribute("aria-expanded","false");
+}
+$("browseBtn").onclick = e => {
+  e.stopPropagation();
+  $("browseMenu").hidden ? openBrowse() : closeBrowse();
+};
+// Click anywhere else, or press Escape, to dismiss.
+document.addEventListener("click", e => {
+  if (!$("browseMenu").hidden && !e.target.closest(".browse")) closeBrowse();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !$("browseMenu").hidden) closeBrowse();
+});
 
 async function lookUp(rec){
   const title = String(rec?.title || "").trim();
   if (!title) return null;
   const claimed = String(rec?.author || "").trim();
+
+  if (mediaType === "movie"){
+    // Movie recommendations: verify against the movie catalogue for a poster and
+    // studio. TMDB poster lookup for uncatalogued films comes with the Edge
+    // Function's tmdb mode; for now an uncatalogued film shows without a poster.
+    const probe = { title };
+    const s = findSeries(probe), f = findBook(probe);
+    const hit = s || f;
+    return {
+      kind:"ai",
+      doc: { title, author_name: [], studio: hit?.studio || "", thumb: null },
+      why: String(rec?.why || "").slice(0,300),
+      fit: String(rec?.fit || "").slice(0,300),
+      found: !!hit,
+      verified: !!hit,
+      corrected: false
+    };
+  }
 
   /* The model's author is a HINT, never a fact — it produced "Cress Dayton"
      for Cressida Cowell. Verify in order of trust:
@@ -1781,7 +2026,7 @@ async function rankResults(mine){
 
   try {
     const list = cards.slice(0, RANK_MAX).map((c,i) => ({ i, title:titleOf(c), author:authorOf(c) }));
-    const data = await callAI({ mode:"rank", age:age(), topic:lastTopic,
+    const data = await callAI({ mode:"rank", age:age(), topic:lastTopic, media:mediaType,
                                 avoid:prefList("avoid"), seek:prefList("flag"), books:list });
     if (mine !== searchId) return;               // a newer search happened; drop this
 
@@ -1850,8 +2095,7 @@ const age = () => {
   const n = parseInt($("age").value,10);
   return Number.isFinite(n) ? Math.min(18, Math.max(2,n)) : 8;
 };
-const level = a => a<=5 ? "picture books" : a<=8 ? "juvenile fiction"
-              : a<=12 ? "juvenile literature" : "young adult fiction";
+const level = a => mediaType === "movie" ? movieLevel(a) : bookLevel(a);
 const showLevel = () => $("level").textContent = level(age());
 // Clamp only the HIGH end while typing — a value below the minimum is almost
 // always a half-typed number ("1" on the way to "10"), so leave those alone and
@@ -1870,6 +2114,44 @@ const tiers = (t,a) => [
   [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
   [`${t} AND language:eng`, "No subject matches, so these are general keyword results — check them yourself."]
 ];
+
+/* ===== movie search =====
+   TMDB data comes through the same Edge Function as the AI, because TMDB keys
+   aren't safe in the browser (rate-limited, account-tied). The function does
+   the TMDB call server-side and hands back results. Like Google Books, TMDB's
+   shape is translated into the common `doc` shape via an adapter, so all the
+   downstream rendering, ranking, and shelf code works unchanged. */
+const TMDB_IMG = "https://image.tmdb.org/t/p/w342";
+
+function toMovieDoc(m){
+  return {
+    key: `tmdb:${m.id}`,
+    title: m.title,
+    author_name: [],                               // movies have no author
+    studio: m.studio || "",
+    thumb: m.poster ? `${TMDB_IMG}${m.poster}` : null,
+    subject: Array.isArray(m.genres) ? m.genres : [],
+    gdesc: m.overview || null,
+    grating: typeof m.rating === "number" ? m.rating / 2 : null,  // TMDB is /10; show /5
+    gcount: m.votes || 0,
+    mpaa: m.mpaa || "",
+    year: m.year || null
+  };
+}
+
+async function fetchMovies(topic, a, signal, from = 0){
+  if (!db) return [];   // TMDB runs through the Edge Function; no db, no movies
+  try {
+    const { data, error } = await db.functions.invoke("recommend", {
+      body: { mode:"tmdb", topic, age:a, page: Math.floor(from / 20) + 1 }
+    });
+    if (error || data?.error) return [];           // TMDB failing shouldn't crash the app
+    return (Array.isArray(data?.results) ? data.results : []).map(toMovieDoc).filter(d => d.title);
+  } catch(e){
+    if (e?.name === "AbortError") throw e;
+    return [];
+  }
+}
 
 async function fetchOL(q, signal, from = 0){
   const res = await fetch(`${OL}?q=${encodeURIComponent(q)}&fields=${FIELDS}&sort=rating&limit=${LIMIT}&offset=${from}`, { signal });
@@ -1954,31 +2236,41 @@ async function search(){
   $("shelf").replaceChildren(...Array.from({length:4}, () => el("li","skeleton")));
 
   try {
-    let olDocs = [], note = null;
+    let docs = [], note = null;
     lastQuery = null;
-    for (const [q,n] of tiers(topic,a)){
-      olDocs = await fetchOL(q, ctrl.signal);
-      if (mine !== searchId) return;              // a newer search won
-      if (olDocs.length){ note = n; lastQuery = q; break; }
+
+    if (mediaType === "movie"){
+      docs = await fetchMovies(topic, a, ctrl.signal);
+      if (mine !== searchId) return;
+      lastQuery = topic;
+      if (!docs.length && !db)
+        note = "Movie search needs the TMDB connection — showing catalogue matches only.";
+    } else {
+      let olDocs = [];
+      for (const [q,n] of tiers(topic,a)){
+        olDocs = await fetchOL(q, ctrl.signal);
+        if (mine !== searchId) return;              // a newer search won
+        if (olDocs.length){ note = n; lastQuery = q; break; }
+      }
+      const gbDocs = await fetchGB(topic, a, ctrl.signal);
+      if (mine !== searchId) return;
+      docs = merge(olDocs, gbDocs);
     }
 
-    const gbDocs = await fetchGB(topic, a, ctrl.signal);
-    if (mine !== searchId) return;
-
     offset = LIMIT;
-    cards = collapse(merge(olDocs, gbDocs));
+    cards = collapse(docs);
     draw(topic, note);                            // paint immediately…
     loadReviews(cards.map(cardKey)).then(() => { if (mine === searchId && cards.length) draw(); });
-    rankResults(mine);                            // …and let the librarian catch up
+    rankResults(mine);                            // …and let the librarian/projectionist catch up
   } catch(err){
     if (mine !== searchId) return;
     if (err?.name === "AbortError"){
       if (ctrl.signal.reason === "timeout")
-        banner("That took too long","",null,"The book services didn't answer within 12 seconds. Try again.");
+        banner("That took too long","",null,`The ${mediaType} services didn't answer within 12 seconds. Try again.`);
       return;
     }
-    banner(navigator.onLine ? "Couldn't load books" : "You appear to be offline","",null,
-           err?.message || "Something went wrong reaching the book services.");
+    banner(navigator.onLine ? `Couldn't load ${M().word}` : "You appear to be offline","",null,
+           err?.message || `Something went wrong reaching the ${mediaType} services.`);
   } finally {
     clearTimeout(timer);
     if (mine === searchId){ $("search").disabled = false; inFlight = null; }
@@ -2176,13 +2468,21 @@ async function openPanel(c){
   if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
   if (isAi){
     meta.append(el("span","tag ai","AI suggestion — unverified"));
-    if (!c.verified) meta.append(el("span","tag","Couldn't verify this book exists"));
+    if (!c.verified) meta.append(el("span","tag", mediaType === "movie" ? "Couldn't verify this film exists" : "Couldn't verify this book exists"));
     else if (c.corrected) meta.append(el("span","tag","Author corrected"));
   }
+  // MPAA badge for movies. Catalogued films carry it; for the rest we fetch it
+  // lazily below (one call per opened film, never per search result).
+  if (mediaType === "movie"){
+    const mpaa = (single && single.mpaa) || c.doc.mpaa || "";
+    if (mpaa) meta.append(el("span","tag",`Rated ${mpaa}`));
+    else if (!isS) meta.append(el("span","tag mpaa-pending","Rating…"));
+  }
 
-  $("pBlurb").textContent = isS ? `Start with book one: ${c.series.books[0].title}.`
+  $("pBlurb").textContent = isS ? `Start with ${mediaType === "movie" ? "the first film" : "book one"}: ${c.series.books[0].title}.`
                           : isAi ? [c.why, c.fit].filter(Boolean).join(" ")
-                          : "Loading description…";
+                          : (mediaType === "movie" ? (c.doc.gdesc || "No description available for this one yet.")
+                                                   : "Loading description…");
 
   const notes = notesOf(c);
   $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, isS || !!findSeries(c.doc))] : []));
@@ -2208,11 +2508,45 @@ async function openPanel(c){
   loadReviews([k]).then(() => { if (mine === panelToken) list(); });
 
   if (!isS){
-    const info = await externalInfo(c.doc);
-    if (mine !== panelToken) return;
-    $("pRating").replaceChildren(ratingBlock(info));
-    if (!isAi) $("pBlurb").textContent = info.description || fallbackBlurb(c.doc);
+    if (mediaType === "movie"){
+      // TMDB search already gave us rating + description, so no book-style
+      // externalInfo call. Just show the rating and lazily fetch the MPAA if
+      // this film isn't in our catalogue.
+      if (c.doc.grating != null)
+        $("pRating").replaceChildren(ratingBlock({ rating:c.doc.grating, count:c.doc.gcount, source:"TMDB" }));
+      const single2 = findBook(c.doc);
+      const haveMpaa = (single2 && single2.mpaa) || c.doc.mpaa;
+      if (!haveMpaa) fetchMpaa(c, mine);
+    } else {
+      const info = await externalInfo(c.doc);
+      if (mine !== panelToken) return;
+      $("pRating").replaceChildren(ratingBlock(info));
+      if (!isAi) $("pBlurb").textContent = info.description || fallbackBlurb(c.doc);
+    }
   }
+}
+
+/* Lazy MPAA lookup — one call per opened film, and only for films not in our
+   catalogue. Certifications aren't in TMDB search results, so this is the only
+   way to get them; doing it per-result would be an N+1 storm. */
+async function fetchMpaa(c, mine){
+  const id = String(c.doc.key || "").startsWith("tmdb:") ? c.doc.key.slice(5) : null;
+  if (!db || !id) { clearMpaaPending(); return; }
+  try {
+    const { data, error } = await db.functions.invoke("recommend",
+      { body: { mode:"tmdb_rating", id } });
+    if (mine !== panelToken) return;
+    if (!error && data?.mpaa){
+      c.doc.mpaa = data.mpaa;                       // cache on the card
+      const pend = document.querySelector(".mpaa-pending");
+      if (pend){ pend.textContent = `Rated ${data.mpaa}`; pend.classList.remove("mpaa-pending"); }
+      else clearMpaaPending();
+    } else clearMpaaPending();
+  } catch(e){ if (mine === panelToken) clearMpaaPending(); console.error(e); }
+}
+function clearMpaaPending(){
+  const pend = document.querySelector(".mpaa-pending");
+  if (pend) pend.remove();                           // no rating found — drop the placeholder
 }
 
 // Only used when neither catalogue has a description.
@@ -2398,6 +2732,44 @@ $("search").onclick = search;
 
 renderAccount();
 loadCommunityBooks();   // additions everyone has contributed
+
+/* ===== media toggle =====
+   Flip the whole app between books and movies. Updates the labels, clears the
+   current results (they belong to the other medium), and re-runs the search if
+   there's a topic. Everything else — accounts, shelves, prefs, the AI — is
+   media-agnostic and needs no change. */
+function applyMediaLabels(){
+  const m = M();
+  $("mediaWord").textContent = m.word;
+  $("search").textContent = m.catalogue;
+  $("askLabel").textContent = m.ask;
+  $("sortLabel").textContent = m.sort;
+  $("tabBooks").setAttribute("aria-selected", String(mediaType === "book"));
+  $("tabMovies").setAttribute("aria-selected", String(mediaType === "movie"));
+  showLevel();
+}
+
+function setMedia(next){
+  if (next === mediaType) return;
+  mediaType = next;
+  applyMediaLabels();
+  // Results from the other medium don't belong here.
+  cards = []; aiCards = [];
+  $("shelf").replaceChildren();
+  $("aiSection").hidden = true;
+  $("more").hidden = true;
+  $("rankMsg").hidden = true;
+  $("title").textContent = `Start with a search`;
+  $("count").textContent = "";
+  closePanel();
+  // Re-run if they'd already typed something.
+  if ($("topic").value.trim()) search();
+}
+
+$("tabBooks").onclick = () => setMedia("book");
+$("tabMovies").onclick = () => setMedia("movie");
+applyMediaLabels();
+
 </script>
 </body>
 </html>
