@@ -1708,20 +1708,36 @@ async function lookUp(rec){
   const claimed = String(rec?.author || "").trim();
 
   if (mediaType === "movie"){
-    // Movie recommendations: verify against the movie catalogue for a poster and
-    // studio. TMDB poster lookup for uncatalogued films comes with the Edge
-    // Function's tmdb mode; for now an uncatalogued film shows without a poster.
+    // Verify against our catalogue first (for studio + notes), then TMDB — which
+    // both confirms the film is real and gets a poster. Same idea as the book
+    // path using Open Library, but through the Edge Function since TMDB's key is
+    // server-side.
     const probe = { title };
     const s = findSeries(probe), f = findBook(probe);
     const hit = s || f;
+
+    let doc = { title, author_name: [], studio: hit?.studio || "", thumb: null };
+    let verified = !!hit;
+
+    if (db){
+      try {
+        const { data } = await db.functions.invoke("recommend", { body: { mode:"tmdb", topic:title, age:age() } });
+        const top = (data?.results || [])[0];
+        // Only trust it if the top TMDB result's title actually matches — a
+        // fuzzy match on an invented title shouldn't count as verification.
+        if (top && norm(top.title) === norm(title)){
+          verified = true;
+          doc = toMovieDoc(top);
+          doc.studio = hit?.studio || doc.studio || "";
+        }
+      } catch(e){ /* TMDB down shouldn't drop the suggestion */ }
+    }
+
     return {
-      kind:"ai",
-      doc: { title, author_name: [], studio: hit?.studio || "", thumb: null },
+      kind:"ai", doc,
       why: String(rec?.why || "").slice(0,300),
       fit: String(rec?.fit || "").slice(0,300),
-      found: !!hit,
-      verified: !!hit,
-      corrected: false
+      found: verified, verified, corrected: false
     };
   }
 
@@ -1791,7 +1807,7 @@ function drawAi(){
 
     const meta = el("div","meta");
     meta.append(el("span","tag ai","AI suggestion"));
-    if (!c.verified) meta.append(el("span","tag","Couldn't verify this book exists"));
+    if (!c.verified) meta.append(el("span","tag", mediaType === "movie" ? "Couldn't verify this film" : "Couldn't verify this book exists"));
     else if (c.corrected) meta.append(el("span","tag","Author corrected"));
     if (saved.has(k))
       meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
