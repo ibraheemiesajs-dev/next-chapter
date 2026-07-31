@@ -1778,9 +1778,14 @@ function drawAi(){
 
     const info = el("div");
     info.append(el("h3","", c.doc.title));
-    // No author line at all when we couldn't verify one — better a gap than
-    // a confident wrong name.
-    info.append(el("p","author", c.verified ? author(c.doc) : "Author not verified"));
+    // Movies show studio (or nothing); books show verified author or a gap.
+    // Never "Unknown author" — a bare gap is better than a confident wrong label.
+    if (mediaType === "movie"){
+      const studio = c.doc.studio || "";
+      if (studio) info.append(el("p","author", studio));
+    } else {
+      info.append(el("p","author", c.verified ? author(c.doc) : "Author not verified"));
+    }
     if (c.why) info.append(el("p","why", c.why));
     if (c.fit) info.append(el("p","fit", c.fit));
 
@@ -1977,7 +1982,7 @@ $("addGo").onclick = async () => {
    judgement of any given book is the same, so they can share one paid ranking.
    Ranked entries are keyed by title, applied by title, so a different result
    order doesn't matter. */
-const rankKey = () => `${lastTopic.toLowerCase().trim()}|${age()}|${prefList("avoid").sort().join(",")}|${prefList("flag").sort().join(",")}`;
+const rankKey = () => `${mediaType}|${lastTopic.toLowerCase().trim()}|${age()}|${prefList("avoid").sort().join(",")}|${prefList("flag").sort().join(",")}`;
 
 /* Read the shared cache first. Public-readable table, so this costs nothing
    and every user after the first gets the ranking free. */
@@ -2368,7 +2373,9 @@ function draw(topic = lastTopic, note = lastNote){
     btn.append(cover(c.doc,"M"));
 
     const info = el("div");
-    info.append(el("h3","", titleOf(c)), el("p","author", authorOf(c)));
+    info.append(el("h3","", titleOf(c)));
+    const auth = authorOf(c);
+    if (auth) info.append(el("p","author", auth));
 
     if (isS){
       const start = el("p","startwith","Start with ");
