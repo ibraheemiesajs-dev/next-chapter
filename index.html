@@ -1646,38 +1646,99 @@ $("ask").onclick = () => {
    same recommend flow, so it costs no new infrastructure and is cached in the
    shared rank/recommend cache like everything else. Moods are phrased to work
    for either medium — "something funny" suits books and films alike. */
+/* Each mood: [label, book-AI-prompt, movie-TMDB-genre-ids].
+   Books browse via the AI (rich thematic understanding); movies browse via
+   TMDB's Discover-by-genre (free, fast, no title-search limitation). TMDB genre
+   IDs: 35 comedy, 12 adventure, 10751 family, 16 animation, 18 drama,
+   14 fantasy, 9648 mystery, 27 horror, 10402 music, 878 sci-fi. */
 const MOODS = [
-  ["Something funny", "funny and light-hearted, lots of laughs"],
-  ["A gripping adventure", "exciting adventure with a fast-moving plot"],
-  ["Gentle and cosy", "gentle, warm and comforting, nothing frightening"],
-  ["Makes you think", "thoughtful stories that spark big questions and feelings"],
-  ["A bit spooky", "spooky and mysterious but not too scary for the age"],
-  ["Real-life stories", "grounded, realistic stories about everyday life and friendship"]
+  ["Something funny", "funny and light-hearted, lots of laughs", [35, 10751]],
+  ["A gripping adventure", "exciting adventure with a fast-moving plot", [12, 10751]],
+  ["Gentle and cosy", "gentle, warm and comforting, nothing frightening", [16, 10751]],
+  ["Makes you think", "thoughtful stories that spark big questions and feelings", [18, 10751]],
+  ["A bit spooky", "spooky and mysterious but not too scary for the age", [9648, 14]],
+  ["Real-life stories", "grounded, realistic stories about everyday life and friendship", [18]]
 ];
+
+/* Age → the highest US certification to allow, so browsing stays age-right.
+   TMDB's certification.lte filters to ratings at or below this. */
+const certForAge = a => a <= 8 ? "G" : a <= 12 ? "PG" : a <= 15 ? "PG-13" : "R";
+
+/* Browse movies by genre through TMDB Discover. This is the movie equivalent of
+   runRecommend — same UI (fills the AI shelf), different, cheaper source. */
+async function browseMovies(genres, heading){
+  if (!db){
+    $("aiSection").hidden = false;
+    $("aiErr").textContent = "Not connected — add your Supabase anon key first.";
+    $("aiErr").hidden = false;
+    return;
+  }
+  $("browseBtn").disabled = true;
+  $("aiSection").hidden = false;
+  $("aiErr").hidden = true;
+  $("aiTitle").textContent = "Finding films…";
+  $("aiCount").textContent = "";
+  $("aiShelf").replaceChildren(...Array.from({length:3}, () => el("li","skeleton")));
+
+  try {
+    const { data, error } = await db.functions.invoke("recommend", {
+      body: { mode:"tmdb_discover", genres, certs: certForAge(age()) }
+    });
+    if (error || data?.error) throw new Error(data?.error || error.message);
+    const results = Array.isArray(data?.results) ? data.results : [];
+    // Same adapter and card shape as movie search — these become normal cards.
+    aiCards = results.slice(0, 8).map(m => ({
+      kind:"ai", doc: toMovieDoc(m),
+      why:"", fit:"", found:true, verified:true, corrected:false
+    }));
+    $("aiTitle").textContent = heading;
+    $("aiCount").textContent = `${aiCards.length} ${aiCards.length===1?M().one:M().word}`;
+    drawAi();
+    await loadReviews(aiCards.map(cardKey));
+    drawAi();
+  } catch(e){
+    $("aiTitle").textContent = heading;
+    $("aiShelf").replaceChildren();
+    $("aiErr").textContent = "Couldn't load films. " + (e?.message || "Try again in a moment.");
+    $("aiErr").hidden = false;
+    console.error(e);
+  } finally { $("browseBtn").disabled = false; }
+}
 
 function buildBrowseMenu(){
   const menu = $("browseMenu");
   menu.replaceChildren();
+  const movie = mediaType === "movie";
 
   menu.append(el("div","grp","By mood"));
-  MOODS.forEach(([label, prompt]) => {
+  MOODS.forEach(([label, prompt, genres]) => {
     const b = el("button","",label); b.type = "button"; b.setAttribute("role","menuitem");
-    b.onclick = () => { closeBrowse(); runRecommend(prompt, `${label} — for a ${age()}-year-old`); };
+    b.onclick = () => {
+      closeBrowse();
+      if (movie) browseMovies(genres, `${label} — for a ${age()}-year-old`);
+      else runRecommend(prompt, `${label} — for a ${age()}-year-old`);
+    };
     menu.append(b);
   });
 
   menu.append(el("div","grp","Or"));
   const pop = el("button","",`Popular ${M().word} for age ${age()}`);
   pop.type = "button"; pop.setAttribute("role","menuitem");
-  pop.onclick = () => { closeBrowse();
-    runRecommend(`the most popular and best-loved ${M().word} for a ${age()}-year-old`,
-                 `Popular with ${age()}-year-olds`); };
+  pop.onclick = () => {
+    closeBrowse();
+    if (movie) browseMovies([10751], `Popular with ${age()}-year-olds`);   // family, popularity-sorted
+    else runRecommend(`the most popular and best-loved books for a ${age()}-year-old`,
+                      `Popular with ${age()}-year-olds`);
+  };
   menu.append(pop);
 
   const sur = el("button","surprise","✨ Surprise me"); sur.type = "button"; sur.setAttribute("role","menuitem");
-  sur.onclick = () => { closeBrowse();
+  sur.onclick = () => {
+    closeBrowse();
     const pick = MOODS[Math.floor(Math.random() * MOODS.length)];
-    runRecommend(pick[1] + ", pick some less obvious gems", "A surprise pick"); };
+    if (movie) browseMovies(pick[2], "A surprise pick");
+    else runRecommend(pick[1] + ", pick some less obvious gems", "A surprise pick");
+  };
   menu.append(sur);
 }
 
