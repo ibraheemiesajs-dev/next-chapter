@@ -231,7 +231,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <div class="wrap">
 <div class="toast" id="toast" role="status" aria-live="assertive" hidden></div>
   <header>
-    <div><h1>Next <span>Chapter</span></h1><p class="tagline">Book finder for young readers</p></div>
+    <div><h1>Next <span>Chapter</span></h1><p class="tagline" id="tagline">Book finder for young readers</p></div>
     <div class="account" id="account"></div>
   </header>
 
@@ -439,6 +439,7 @@ let mediaType = "book";
 const MEDIA = {
   book: {
     word: "books", one: "book", catalogue: "Search the catalogue",
+    tagline: "Book finder for young readers",
     ask: "Ask the librarian", sort: "Let the librarian sort the results",
     thinking: "The librarian is reading through these…",
     sorted: "Sorted by how well each one suits this reader. Notes are AI-written and unverified.",
@@ -446,6 +447,7 @@ const MEDIA = {
   },
   movie: {
     word: "movies", one: "movie", catalogue: "Search films",
+    tagline: "Movie finder for young viewers",
     ask: "Ask the projectionist", sort: "Let the projectionist sort the results",
     thinking: "The projectionist is watching through these…",
     sorted: "Sorted by how well each one suits this viewer. Notes are AI-written and unverified.",
@@ -2608,7 +2610,7 @@ function draw(topic = lastTopic, note = lastNote){
   const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(n)));
   const hid = cards.length - visible.length;
 
-  banner(`Books about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
+  banner(`${mediaType === "movie" ? "Movies" : "Books"} about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
 
   if (hid){
     $("hidden-msg").textContent = `${hid} result${hid===1?"":"s"} hidden by your content preferences.`;
@@ -3007,6 +3009,7 @@ function applyMediaLabels(){
   $("askLabel").textContent = m.ask;
   $("sortLabel").textContent = m.sort;
   $("more").textContent = `Show more ${m.word}`;
+  $("tagline").textContent = m.tagline;
   $("tabBooks").setAttribute("aria-selected", String(mediaType === "book"));
   $("tabMovies").setAttribute("aria-selected", String(mediaType === "movie"));
   showLevel();
@@ -3049,3 +3052,4 @@ showCollections();
 </script>
 </body>
 </html>
+  
