@@ -222,6 +222,10 @@ textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2p
 .coll-card .cs{font-size:12px;color:var(--soft)}
 .coll-card.pick{border-left:3px solid var(--berry)}
 footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
+.foot-about{font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 14px}
+.foot-about b{color:var(--ink);font-weight:600}
+.foot-about a{color:var(--berry);font-weight:600}
+.foot-credits{margin:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 @media(max-width:560px){.book{grid-template-columns:52px 1fr;gap:12px}.cover{width:52px;height:78px}.panel{padding:18px}.panel-top{grid-template-columns:72px 1fr;gap:14px}.panel-top .cover{width:72px;height:108px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -301,7 +305,10 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <div id="shelfBody"></div>
   </section>
 
-  <footer>Built by a human. Books from Open Library and Google Books; film data from TMDB. Series and content notes hand-entered. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></footer>
+  <footer>
+    <p class="foot-about">Next Chapter is a personal project — a tool to help families find age-appropriate books and films. Content notes marked <b>hand-checked</b> are entered and verified by a person; notes marked <b>AI-guessed</b> are unverified and shown only as a starting point. Nothing here is a guarantee — you know your child best. For content you're relying on, cross-check with <a href="https://www.commonsensemedia.org/" target="_blank" rel="noopener noreferrer">Common Sense Media</a>.</p>
+    <p class="foot-credits">Books from Open Library and Google Books; film data from TMDB. Series and content notes hand-entered. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></p>
+  </footer>
 </div>
 
 <div class="backdrop" id="backdrop">
@@ -1933,12 +1940,29 @@ async function guessNotes(c, mine){
     box.replaceChildren(guessBlock(g, title, auth));
   };
 
-  if (guessCache.has(k)) return render(guessCache.get(k));
+  if (guessCache.has(k)) return render(guessCache.get(k));   // memory first
 
   box.replaceChildren(guessBlock({ loading:true }, title, auth));
+
+  // Shared DB cache next — a title guessed by ANY visitor is reused by all,
+  // forever. This is the biggest cost saver: guessing fires on every
+  // uncatalogued panel open, and without this each open paid again.
+  const ckey = `${mediaType}|${norm(title)}|${norm(auth === "Unknown author" ? "" : auth)}`;
+  try {
+    const { data } = await db.from("notes_cache").select("payload").eq("cache_key", ckey).maybeSingle();
+    if (data?.payload){
+      guessCache.set(k, data.payload);
+      return render(data.payload);
+    }
+  } catch(e){ /* cache miss is harmless */ }
+
   try {
     const g = await callAI({ mode:"notes", title, author: auth === "Unknown author" ? "" : auth });
     guessCache.set(k, g);
+    // Store for every future visitor. Fire-and-forget; a failed cache write
+    // still leaves the guess working for this user.
+    db.from("notes_cache").upsert({ cache_key:ckey, payload:g }, { onConflict:"cache_key" })
+      .then(() => {}, e => console.error("Notes cache write failed:", e));
     render(g);
   } catch(e){
     if (mine !== panelToken) return;
@@ -2486,6 +2510,7 @@ async function search(){
   hideCollections();                 // leave the landing state
   $("resultsHead").hidden = false;
   canPage = true;                    // search results paginate via Show more
+  updateHash();                      // make this search shareable via the URL
   $("search").disabled = true;
   $("more").hidden = true;
   $("rankMsg").hidden = true;
@@ -3044,12 +3069,40 @@ $("tabBooks").onclick = () => setMedia("book");
 $("tabMovies").onclick = () => setMedia("movie");
 applyMediaLabels();
 
-// Landing state: show collections instead of a blank "start searching".
-$("resultsHead").hidden = true;
-$("collections").hidden = false;
-showCollections();
+/* ===== shareable links =====
+   Encode a search in the URL hash so it can be copied and shared. Hash (not
+   path) means no server routing is needed — it works on plain static hosting.
+   Format: #media/age/topic  e.g. #movie/8/dragons */
+function updateHash(){
+  const topic = $("topic").value.trim();
+  if (!topic){ history.replaceState(null, "", location.pathname); return; }
+  const h = `#${mediaType}/${age()}/${encodeURIComponent(topic)}`;
+  history.replaceState(null, "", h);
+}
+
+function restoreFromHash(){
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return false;
+  const [media, ageStr, ...rest] = h.split("/");
+  const topic = decodeURIComponent(rest.join("/") || "");
+  if (!topic) return false;
+  if (media === "movie" || media === "book") mediaType = media;
+  applyMediaLabels();
+  const a = parseInt(ageStr, 10);
+  if (Number.isFinite(a)) $("age").value = Math.min(18, Math.max(2, a));
+  $("topic").value = topic.slice(0, 60);
+  showLevel();
+  search();
+  return true;
+}
+
+// Landing state, OR restore a shared search from the URL.
+if (!restoreFromHash()){
+  $("resultsHead").hidden = true;
+  $("collections").hidden = false;
+  showCollections();
+}
 
 </script>
 </body>
 </html>
-  
