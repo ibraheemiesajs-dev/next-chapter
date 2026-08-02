@@ -210,6 +210,17 @@ textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2p
 .alt button{text-decoration:underline;color:var(--berry);font-weight:600}
 .note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
 .note-block strong{color:var(--ink)}
+.coll-intro{font-size:15px;color:var(--soft);margin:0 0 24px;max-width:60ch}
+.coll{margin-bottom:30px}
+.coll h3{font-size:17px;font-weight:600;margin:0 0 3px}
+.coll p{font-size:13px;color:var(--soft);margin:0 0 12px}
+.coll-row{display:flex;flex-wrap:wrap;gap:10px}
+.coll-card{border:1px solid var(--rule);border-radius:3px;background:var(--card);padding:14px 16px;
+  text-align:left;min-width:180px;flex:1 1 180px;max-width:280px;transition:.14s}
+.coll-card:hover{border-color:var(--ink);transform:translateY(-2px)}
+.coll-card .ct{font-family:var(--display);font-weight:600;font-size:16px;margin-bottom:3px;color:var(--ink)}
+.coll-card .cs{font-size:12px;color:var(--soft)}
+.coll-card.pick{border-left:3px solid var(--berry)}
 footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color:var(--soft)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 @media(max-width:560px){.book{grid-template-columns:52px 1fr;gap:12px}.cover{width:52px;height:78px}.panel{padding:18px}.panel-top{grid-template-columns:72px 1fr;gap:14px}.panel-top .cover{width:72px;height:108px}}
@@ -276,7 +287,11 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <p class="banner info" id="hidden-msg" hidden></p>
   <p class="banner thinking" id="rankMsg" hidden></p>
   <ul class="shelf" id="shelf" aria-live="polite"></ul>
-  <button class="go alt2 more" id="more" hidden>Show more books</button>
+  <button class="go alt2 more" id="more" hidden>Show more</button>
+
+  <section id="collections" hidden>
+    <div id="collectionsBody"></div>
+  </section>
 
   <section id="shelfPage" hidden>
     <div class="head">
@@ -285,10 +300,6 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </div>
     <div id="shelfBody"></div>
   </section>
-
-  <p class="note-block"><strong>Week 6.</strong> Results appear straight away from Open Library and
-    Google Books, then the librarian reads through them in the background and re-sorts by how well
-    each one actually suits the reader's age. Nothing waits on the AI, and you can switch it off.</p>
 
   <footer>Built by a human. Books from Open Library and Google Books; film data from TMDB. Series and content notes hand-entered. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></footer>
 </div>
@@ -1456,7 +1467,7 @@ let view = "search";
 function showView(next){
   view = next;
   const onShelf = next === "shelf";
-  ["resultsHead","relaxed","hidden-msg","rankMsg","shelf","more","aiSection"].forEach(id => {
+  ["resultsHead","relaxed","hidden-msg","rankMsg","shelf","more","aiSection","collections"].forEach(id => {
     const n = $(id);
     if (!n) return;
     if (onShelf) { n.dataset.wasHidden = n.hidden ? "1" : "0"; n.hidden = true; }
@@ -1604,6 +1615,7 @@ async function runRecommend(topic, heading){
     $("aiErr").hidden = false;
     return;
   }
+  hideCollections();
 
   $("ask").disabled = true;
   $("browseBtn").disabled = true;
@@ -1674,11 +1686,15 @@ async function browseMovies(genres, heading){
     return;
   }
   $("browseBtn").disabled = true;
-  $("aiSection").hidden = false;
-  $("aiErr").hidden = true;
-  $("aiTitle").textContent = "Finding films…";
-  $("aiCount").textContent = "";
-  $("aiShelf").replaceChildren(...Array.from({length:3}, () => el("li","skeleton")));
+  hideCollections();
+  $("resultsHead").hidden = false;
+  $("aiSection").hidden = true;                    // browse results go in the MAIN shelf, not the AI shelf
+  $("more").hidden = true;
+  $("rankMsg").hidden = true;
+  $("relaxed").hidden = $("hidden-msg").hidden = true;
+  $("title").textContent = "Finding films…";
+  $("count").textContent = "";
+  $("shelf").replaceChildren(...Array.from({length:4}, () => el("li","skeleton")));
 
   try {
     const { data, error } = await db.functions.invoke("recommend", {
@@ -1686,21 +1702,21 @@ async function browseMovies(genres, heading){
     });
     if (error || data?.error) throw new Error(data?.error || error.message);
     const results = Array.isArray(data?.results) ? data.results : [];
-    // Same adapter and card shape as movie search — these become normal cards.
-    aiCards = results.slice(0, 8).map(m => ({
-      kind:"ai", doc: toMovieDoc(m),
-      why:"", fit:"", found:true, verified:true, corrected:false
-    }));
-    $("aiTitle").textContent = heading;
-    $("aiCount").textContent = `${aiCards.length} ${aiCards.length===1?M().one:M().word}`;
-    drawAi();
-    await loadReviews(aiCards.map(cardKey));
-    drawAi();
+    // Collapse franchises (Toy Story 1–4 → one card) exactly like search does.
+    // These are real TMDB films, so they render as normal series/standalone
+    // cards in the main shelf — no "AI suggestion" tag.
+    aiCards = [];
+    cards = collapse(results.map(toMovieDoc));
+    lastTopic = heading;
+    draw(heading, null);
+    $("title").textContent = heading;             // draw() sets its own title; restore the mood heading
+    await loadReviews(cards.map(cardKey));
+    draw(heading, null);
+    $("title").textContent = heading;
   } catch(e){
-    $("aiTitle").textContent = heading;
-    $("aiShelf").replaceChildren();
-    $("aiErr").textContent = "Couldn't load films. " + (e?.message || "Try again in a moment.");
-    $("aiErr").hidden = false;
+    $("shelf").replaceChildren();
+    $("title").textContent = heading;
+    banner(heading, "", null, "Couldn't load films. " + (e?.message || "Try again in a moment."));
     console.error(e);
   } finally { $("browseBtn").disabled = false; }
 }
@@ -2297,6 +2313,139 @@ function merge(...lists){
   return out;
 }
 
+/* ===== collections =====
+   Shown on the landing state, before any search — so the app looks alive
+   immediately instead of showing a blank "start searching". Two kinds:
+     • hand-picked: a titled list of specific catalogue titles (your taste +
+       verified notes — the part no algorithm gives you)
+     • dynamic: built on the fly from the machinery already here (age band →
+       search, interest → search, genre → discover)
+   Media-aware: book collections in book mode, movie collections in movie mode. */
+const COLLECTIONS = {
+  book: {
+    intro: "Not sure where to start? A few places to browse — or search above for anything specific.",
+    picks: [
+      { title:"Can't-put-it-down series", sub:"Adventure worlds worth living in",
+        titles:["Wings of Fire","Percy Jackson","Keeper of the Lost Cities","Amulet"] },
+      { title:"Gentle first chapter books", sub:"For new readers finding their feet",
+        titles:["Charlotte's Web","The Tale of Despereaux","Mr. Popper's Penguins","Stuart Little"] },
+      { title:"Big feelings, handled well", sub:"Stories that help make sense of hard things",
+        titles:["Bridge to Terabithia","Wonder","Out of My Mind","The Crossover"] }
+    ],
+    dynamic: [
+      { title:"Popular right now", sub:"Loved by readers this age", kind:"interest", q:"popular and beloved" },
+      { title:"Funny reads", sub:"Guaranteed laughs", kind:"interest", q:"funny and light-hearted" },
+      { title:"Mystery & adventure", sub:"Puzzles and quests", kind:"interest", q:"mystery and adventure" }
+    ]
+  },
+  movie: {
+    intro: "Not sure what to watch? A few places to browse — or search above for a specific film.",
+    picks: [
+      { title:"Pixar & friends", sub:"The ones that hold up",
+        titles:["Toy Story","Finding Nemo","Inside Out","Coco"] },
+      { title:"Great animated adventures", sub:"Sweeping, funny, big-hearted",
+        titles:["How to Train Your Dragon","Moana","Kung Fu Panda","Spider-Man: Into the Spider-Verse"] },
+      { title:"Cosy watches", sub:"Warm and low-stakes",
+        titles:["Paddington","My Neighbor Totoro","Wonka","Frozen"] }
+    ],
+    dynamic: [
+      { title:"Family favourites", sub:"Popular and age-right", kind:"genre", genres:[10751] },
+      { title:"Funny films", sub:"Comedy that lands", kind:"genre", genres:[35,10751] },
+      { title:"Animated worlds", sub:"Beautiful animation", kind:"genre", genres:[16,10751] }
+    ]
+  }
+};
+
+function showCollections(){
+  const body = $("collectionsBody");
+  body.replaceChildren();
+  const conf = COLLECTIONS[mediaType];
+
+  body.append(el("p","coll-intro", conf.intro));
+
+  // Hand-picked collections — clicking runs each specific title through the
+  // catalogue, so they show as proper cards with your verified notes.
+  conf.picks.forEach(c => {
+    const sec = el("section","coll");
+    sec.append(el("h3","",c.title), el("p","",c.sub));
+    const row = el("div","coll-row");
+    const card = el("button","coll-card pick");
+    card.type = "button";
+    card.append(el("div","ct",c.title), el("div","cs", `${c.titles.length} hand-picked`));
+    card.onclick = () => openCollection(c.title, c.titles);
+    row.append(card);
+    sec.append(row);
+    body.append(sec);
+  });
+
+  // Dynamic collections — one row of cards that fire the existing machinery.
+  const dsec = el("section","coll");
+  dsec.append(el("h3","","Browse by mood"), el("p","",`For a ${age()}-year-old`));
+  const drow = el("div","coll-row");
+  conf.dynamic.forEach(c => {
+    const card = el("button","coll-card");
+    card.type = "button";
+    card.append(el("div","ct",c.title), el("div","cs",c.sub));
+    card.onclick = () => {
+      hideCollections();
+      if (c.kind === "genre") browseMovies(c.genres, `${c.title} — for a ${age()}-year-old`);
+      else runCollectionSearch(c.q, `${c.title} — for a ${age()}-year-old`);
+    };
+    drow.append(card);
+  });
+  dsec.append(drow);
+  body.append(dsec);
+}
+
+const hideCollections = () => { $("collections").hidden = true; };
+
+/* Open a hand-picked list: look each title up in the catalogue and show them
+   as cards. Books use the catalogue + Open Library; movies use TMDB search. */
+async function openCollection(heading, titles){
+  hideCollections();
+  $("resultsHead").hidden = false;
+  $("title").textContent = heading;
+  $("count").textContent = "";
+  $("shelf").replaceChildren(...Array.from({length:Math.min(4,titles.length)}, () => el("li","skeleton")));
+
+  const found = [];
+  for (const t of titles){
+    if (mediaType === "movie"){
+      let doc = { title:t, author_name:[], studio:"", thumb:null };
+      if (db){
+        try {
+          const { data } = await db.functions.invoke("recommend", { body:{ mode:"tmdb", topic:t, age:age() } });
+          const top = (data?.results||[]).find(m => norm(m.title) === norm(t)) || (data?.results||[])[0];
+          if (top) doc = toMovieDoc(top);
+        } catch(e){ /* keep the bare card */ }
+      }
+      found.push(...collapse([doc]));
+    } else {
+      let doc = { title:t, author_name:[] };
+      try {
+        const res = await fetch(`${OL}?q=${encodeURIComponent(`title:"${t}"`)}&fields=${FIELDS}&limit=1`);
+        if (res.ok){ const d = (await res.json())?.docs?.[0]; if (d) doc = d; }
+      } catch(e){ /* bare card */ }
+      found.push(...collapse([doc]));
+    }
+  }
+
+  const seen = new Set();
+  cards = found.filter(c => { const k = cardKey(c); if (seen.has(k)) return false; seen.add(k); return true; });
+  aiCards = [];
+  draw(heading, null);
+  $("title").textContent = heading;
+  await loadReviews(cards.map(cardKey));
+  draw(heading, null);
+  $("title").textContent = heading;
+}
+
+/* Dynamic book collection: reuse the normal search with a themed topic. */
+function runCollectionSearch(topic, heading){
+  $("topic").value = topic;
+  search();
+}
+
 async function search(){
   const a = age(), topic = $("topic").value.trim().replace(/"/g,"");
   if (!topic){
@@ -2309,6 +2458,8 @@ async function search(){
   const mine = ++searchId;
   const timer = setTimeout(() => ctrl.abort("timeout"), TIMEOUT);
 
+  hideCollections();                 // leave the landing state
+  $("resultsHead").hidden = false;
   $("search").disabled = true;
   $("more").hidden = true;
   $("rankMsg").hidden = true;
@@ -2828,6 +2979,7 @@ function applyMediaLabels(){
   $("search").textContent = m.catalogue;
   $("askLabel").textContent = m.ask;
   $("sortLabel").textContent = m.sort;
+  $("more").textContent = `Show more ${m.word}`;
   $("tabBooks").setAttribute("aria-selected", String(mediaType === "book"));
   $("tabMovies").setAttribute("aria-selected", String(mediaType === "movie"));
   showLevel();
@@ -2837,22 +2989,35 @@ function setMedia(next){
   if (next === mediaType) return;
   mediaType = next;
   applyMediaLabels();
-  // Results from the other medium don't belong here.
   cards = []; aiCards = [];
   $("shelf").replaceChildren();
   $("aiSection").hidden = true;
   $("more").hidden = true;
   $("rankMsg").hidden = true;
-  $("title").textContent = `Start with a search`;
   $("count").textContent = "";
   closePanel();
-  // Re-run if they'd already typed something.
-  if ($("topic").value.trim()) search();
+
+  const onLanding = !$("collections").hidden;
+  if (onLanding){
+    showCollections();                 // just swap collections to the new medium
+  } else if ($("topic").value.trim()){
+    search();                          // mid-search: re-run for the new medium
+  } else {
+    // Was showing results but no topic (e.g. a collection) — go back to landing.
+    $("resultsHead").hidden = true;
+    $("collections").hidden = false;
+    showCollections();
+  }
 }
 
 $("tabBooks").onclick = () => setMedia("book");
 $("tabMovies").onclick = () => setMedia("movie");
 applyMediaLabels();
+
+// Landing state: show collections instead of a blank "start searching".
+$("resultsHead").hidden = true;
+$("collections").hidden = false;
+showCollections();
 
 </script>
 </body>
