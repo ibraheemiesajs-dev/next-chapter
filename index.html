@@ -30,6 +30,10 @@ h1 span{color:var(--berry)}
 .mt-btn{padding:8px 22px;font-size:14px;font-weight:700;background:none;color:var(--ink);transition:.12s}
 .mt-btn[aria-selected=true]{background:var(--ink);color:var(--paper)}
 .mt-btn:not([aria-selected=true]):hover{background:#eae5d6}
+.mode-tabs{display:flex;gap:18px;margin:0 0 20px}
+.mode-tab{font-size:13px;color:var(--soft);padding:4px 0;border-bottom:2px solid transparent;transition:.12s}
+.mode-tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--gold);font-weight:600}
+.mode-tab:hover{color:var(--ink)}
 .browse{position:relative;display:inline-block}
 .browse-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:230px;
   background:var(--card);border:1px solid var(--ink);border-radius:4px;
@@ -246,13 +250,20 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
       <button role="tab" id="tabBooks" class="mt-btn" aria-selected="true">Books</button>
       <button role="tab" id="tabMovies" class="mt-btn" aria-selected="false">Movies</button>
     </div>
+    <div class="mode-tabs" role="tablist" aria-label="How do you want to search?">
+      <button role="tab" id="modeBrowse" class="mode-tab" aria-selected="true">Browse by age</button>
+      <button role="tab" id="modeLookup" class="mode-tab" aria-selected="false">Look up a title</button>
+    </div>
     <div class="kids" id="kids" hidden></div>
-    <p class="sentence">Find <span id="mediaWord">books</span> for a
+    <p class="sentence" id="sentenceBrowse">Find <span id="mediaWord">books</span> for a
       <label class="blank"><span class="sr">Age</span><input id="age" type="number" inputmode="numeric" min="2" max="18" value="8"></label>
       year old who likes
       <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
     </p>
-    <p class="hint">Searching <b id="level">juvenile fiction</b></p>
+    <p class="sentence" id="sentenceLookup" hidden>Look up
+      <label class="blank"><span class="sr">Title</span><input id="lookupTopic" class="wide" maxlength="60" placeholder="a title"></label>.
+    </p>
+    <p class="hint" id="browseHint">Searching <b id="level">juvenile fiction</b></p>
     <div class="actions">
       <button class="go" id="search">Search the catalogue</button>
       <button class="go alt2" id="ask"><span id="askLabel">Ask the librarian</span></button>
@@ -442,6 +453,7 @@ const CATEGORIES = {
    same way. What differs is the DATA SOURCE and the WORDS on screen, so those
    are gathered here. mediaType is the single switch everything reads. */
 let mediaType = "book";
+let searchMode = "browse";   // "browse" (age-based) or "lookup" (plain title search)
 
 const MEDIA = {
   book: {
@@ -2132,6 +2144,7 @@ async function cachePut(ck, ranked){
 
 async function rankResults(mine){
   if (!db || !$("rankOn").checked || cards.length < 2) return;
+  if (searchMode === "lookup") return;   // ranking is age-based; lookup has no age
 
   const ck = rankKey();
 
@@ -2496,10 +2509,13 @@ function runCollectionSearch(topic, heading){
 }
 
 async function search(){
-  const a = age(), topic = $("topic").value.trim().replace(/"/g,"");
+  const lookup = searchMode === "lookup";
+  const a = age();
+  const topic = (lookup ? $("lookupTopic").value : $("topic").value).trim().replace(/"/g,"");
   if (!topic){
-    banner("Tell me what they like first","",null,"Try dinosaurs, space, or friendship.");
-    return $("topic").focus();
+    banner(lookup ? "Type a title to look up" : "Tell me what they like first", "", null,
+           lookup ? "Enter a book or film title." : "Try dinosaurs, space, or friendship.");
+    return $(lookup ? "lookupTopic" : "topic").focus();
   }
 
   inFlight?.abort();
@@ -2524,17 +2540,30 @@ async function search(){
     lastQuery = null;
 
     if (mediaType === "movie"){
-      docs = await fetchMovies(topic, a, ctrl.signal);
+      // In lookup mode, don't age-filter — the user asked for a specific title.
+      docs = await fetchMovies(topic, lookup ? 18 : a, ctrl.signal);
       if (mine !== searchId) return;
       lastQuery = topic;
       if (!docs.length && !db)
         note = "Movie search needs the TMDB connection — showing catalogue matches only.";
     } else {
       let olDocs = [];
-      for (const [q,n] of tiers(topic,a)){
-        olDocs = await fetchOL(q, ctrl.signal);
-        if (mine !== searchId) return;              // a newer search won
-        if (olDocs.length){ note = n; lastQuery = q; break; }
+      if (lookup){
+        // Plain title lookup — no age tiers. Search title (and keyword) directly.
+        lastQuery = `title:"${topic}" AND language:eng`;
+        olDocs = await fetchOL(lastQuery, ctrl.signal);
+        if (mine !== searchId) return;
+        if (!olDocs.length){                          // fall back to a keyword search
+          lastQuery = `${topic} AND language:eng`;
+          olDocs = await fetchOL(lastQuery, ctrl.signal);
+          if (mine !== searchId) return;
+        }
+      } else {
+        for (const [q,n] of tiers(topic,a)){
+          olDocs = await fetchOL(q, ctrl.signal);
+          if (mine !== searchId) return;              // a newer search won
+          if (olDocs.length){ note = n; lastQuery = q; break; }
+        }
       }
       const gbDocs = await fetchGB(topic, a, ctrl.signal);
       if (mine !== searchId) return;
@@ -2635,7 +2664,11 @@ function draw(topic = lastTopic, note = lastNote){
   const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(n)));
   const hid = cards.length - visible.length;
 
-  banner(`${mediaType === "movie" ? "Movies" : "Books"} about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
+  const mword = mediaType === "movie" ? "Movies" : "Books";
+  if (searchMode === "lookup")
+    banner(`Results for "${topic}"`, `${visible.length} result${visible.length===1?"":"s"}`, note);
+  else
+    banner(`${mword} about ${topic}`, `${visible.length} result${visible.length===1?"":"s"} · ${level(a)}`, note);
 
   if (hid){
     $("hidden-msg").textContent = `${hid} result${hid===1?"":"s"} hidden by your content preferences.`;
@@ -3012,7 +3045,7 @@ function when(iso){
 
 /* ===== wiring ===== */
 $("search").onclick = search;
-["topic","age"].forEach(id => $(id).addEventListener("keydown", e => {
+["topic","age","lookupTopic"].forEach(id => $(id).addEventListener("keydown", e => {
   if (e.key === "Enter"){ e.preventDefault(); search(); } }));
 ["email","pw"].forEach(id => $(id).addEventListener("keydown", e => {
   if (e.key === "Enter") $("authGo").click(); }));
@@ -3068,6 +3101,29 @@ function setMedia(next){
 $("tabBooks").onclick = () => setMedia("book");
 $("tabMovies").onclick = () => setMedia("movie");
 applyMediaLabels();
+
+/* ===== search mode: browse-by-age vs plain title lookup =====
+   Browse uses the age sentence and age-tiered queries — the app's core.
+   Lookup hides age entirely and searches by title, for someone who already
+   knows the book and just wants to find it. Both still show content notes,
+   series grouping, everything — lookup only changes the query, not the value. */
+function setSearchMode(next){
+  if (next === searchMode) return;
+  searchMode = next;
+  const lookup = next === "lookup";
+  $("sentenceBrowse").hidden = lookup;
+  $("sentenceLookup").hidden = !lookup;
+  $("browseHint").hidden = lookup;              // no reading-level line in lookup
+  $("kids").hidden = lookup || !user;           // kid profiles are an age-mode thing
+  $("modeBrowse").setAttribute("aria-selected", String(!lookup));
+  $("modeLookup").setAttribute("aria-selected", String(lookup));
+  // The "Ask" and "No ideas?" helpers are age-based; hide them in lookup mode.
+  $("ask").hidden = lookup;
+  $("browseBtn").hidden = lookup;
+  if (lookup) $("lookupTopic").focus();
+}
+$("modeBrowse").onclick = () => setSearchMode("browse");
+$("modeLookup").onclick = () => setSearchMode("lookup");
 
 /* ===== shareable links =====
    Encode a search in the URL hash so it can be copied and shared. Hash (not
