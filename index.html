@@ -2422,8 +2422,14 @@ async function openCollection(heading, titles){
       found.push(...collapse([doc]));
     } else {
       let doc = { title:t, author_name:[] };
+      // Our catalogue knows the real author — "Wings of Fire" is a dragon series
+      // AND an A.P.J. Abdul Kalam memoir, so a title-only search grabs the wrong
+      // one. Pull the known author from the catalogue and search on both.
+      const known = findSeries({ title:t }) || findBook({ title:t });
+      const auth = known?.author || "";
       try {
-        const res = await fetch(`${OL}?q=${encodeURIComponent(`title:"${t}"`)}&fields=${FIELDS}&limit=1`);
+        const q = `title:"${t}"` + (auth ? ` AND author:"${auth}"` : "");
+        const res = await fetch(`${OL}?q=${encodeURIComponent(q)}&fields=${FIELDS}&limit=1`);
         if (res.ok){ const d = (await res.json())?.docs?.[0]; if (d) doc = d; }
       } catch(e){ /* bare card */ }
       found.push(...collapse([doc]));
