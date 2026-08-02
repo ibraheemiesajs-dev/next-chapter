@@ -923,7 +923,7 @@ const el = (tag, cls, text) => {
 };
 
 let cards=[], aiCards=[], openItem=null, rating=0, searchId=0, inFlight=null, lastFocus=null;
-let lastTopic="", lastNote=null, panelToken=0, lastQuery=null, offset=0;
+let lastTopic="", lastNote=null, panelToken=0, lastQuery=null, offset=0, canPage=false;
 let user=null, children=[], activeChild=null, authMode="in";
 const reviews=new Map(), saved=new Map(), prefs=new Map(), chipEls=new Map(),
       infoCache=new Map(), rankCache=new Map();
@@ -1687,6 +1687,7 @@ async function browseMovies(genres, heading){
   }
   $("browseBtn").disabled = true;
   hideCollections();
+  canPage = false;                   // discover returns a fixed page — no Show more
   $("resultsHead").hidden = false;
   $("aiSection").hidden = true;                    // browse results go in the MAIN shelf, not the AI shelf
   $("more").hidden = true;
@@ -2403,6 +2404,7 @@ const hideCollections = () => { $("collections").hidden = true; };
    as cards. Books use the catalogue + Open Library; movies use TMDB search. */
 async function openCollection(heading, titles){
   hideCollections();
+  canPage = false;                   // fixed list — no Show more
   $("resultsHead").hidden = false;
   $("title").textContent = heading;
   $("count").textContent = "";
@@ -2466,6 +2468,7 @@ async function search(){
 
   hideCollections();                 // leave the landing state
   $("resultsHead").hidden = false;
+  canPage = true;                    // search results paginate via Show more
   $("search").disabled = true;
   $("more").hidden = true;
   $("rankMsg").hidden = true;
@@ -2645,7 +2648,10 @@ function draw(topic = lastTopic, note = lastNote){
     return li;
   }));
 
-  $("more").hidden = false;
+  // "Show more" only makes sense for a paginated search — collections and
+  // browse are fixed lists with nothing more to fetch. lastQuery (books) or a
+  // movie search set canPage; collections clear it.
+  $("more").hidden = !canPage;
 }
 
 // The librarian's one-line verdict, visibly labelled as AI so it never gets
