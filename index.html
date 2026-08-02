@@ -2207,12 +2207,27 @@ $("age").addEventListener("input", () => {
 $("age").addEventListener("blur", () => { $("age").value = age(); showLevel(); });
 showLevel();
 
-/* ===== search ===== */
-const tiers = (t,a) => [
-  [`subject:"${t}" AND subject:"${level(a)}" AND language:eng`, null],
-  [`subject:"${t}" AND subject:"juvenile" AND language:eng`, "Nothing matched that exact reading level, so this is a wider age range."],
-  [`${t} AND language:eng`, "No subject matches, so these are general keyword results — check them yourself."]
-];
+/* ===== search =====
+   Every tier keeps the age in play. The old last-resort tier searched the topic
+   with no age at all, so when the strict age tiers missed (Open Library's age
+   subjects are patchy), an 8-year-old and a 15-year-old fell through to the
+   exact same age-blind query and got identical results. Now even the broad
+   fallback biases by reading level. */
+const tiers = (t,a) => {
+  const lvl = level(a);
+  // The broad age band a book is likely tagged with, distinct for young vs old.
+  const band = a <= 8 ? "juvenile fiction" : a <= 12 ? "juvenile fiction" : "young adult fiction";
+  return [
+    [`subject:"${t}" AND subject:"${lvl}" AND language:eng`, null],
+    [`subject:"${t}" AND subject:"${band}" AND language:eng`,
+      "Widened to a broader age range for this reading level."],
+    // Last resort still carries the age band, so ages never fully collapse.
+    [`${t} AND subject:"${band}" AND language:eng`,
+      "Broad results filtered to roughly this reading level — check them yourself."],
+    [`${t} AND language:eng`,
+      "No age-tagged matches, so these are general keyword results — check them yourself."]
+  ];
+};
 
 /* ===== movie search =====
    TMDB data comes through the same Edge Function as the AI, because TMDB keys
