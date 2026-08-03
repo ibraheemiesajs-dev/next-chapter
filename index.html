@@ -1138,7 +1138,17 @@ function ratingBlock(info){
    is usually a better answer than a price, and it costs the family nothing. */
 function whereToGet(doc){
   const box = el("div","get");
-  const title = doc?.title || "";
+  const rawTitle = doc?.title || "";
+  /* API records sometimes carry bundle noise in the title —
+     "Dragon Masters Complete (30 Books)", "Harry Potter (Boxed Set)". Those
+     break library and store searches, which look for a real single title.
+     Strip parentheticals and common set/collection words for the search links
+     (the card still shows the full title). */
+  const title = rawTitle
+    .replace(/\([^)]*\)/g, "")                          // drop (30 Books), (Boxed Set), etc.
+    .replace(/\b(complete|boxed set|box set|collection|omnibus|the complete series|books \d+[-–]\d+|\d+ books?)\b/gi, "")
+    .replace(/[\s:;,\-–]+$/, "")                        // trailing punctuation left behind
+    .replace(/\s{2,}/g, " ").trim() || rawTitle;        // fall back if we stripped everything
   const add = (label, url, cls, into) => {
     const a = el("a", cls || "", label);
     a.href = url; a.target = "_blank";
@@ -1147,9 +1157,6 @@ function whereToGet(doc){
   };
 
   if (mediaType === "movie"){
-    // Movies: where to WATCH, not borrow. JustWatch aggregates every streaming
-    // service and rental option by region, so it's the one link that answers
-    // "how do I actually see this" without guessing a platform.
     box.append(el("h4","","Where to watch"));
     const links = el("div","links");
     const qm = encodeURIComponent(title);
@@ -2406,6 +2413,20 @@ async function fetchGB(topic, a, signal, from = 0){
 
 /* Merge, preferring the Open Library record when both have the same book —
    it carries the borrowing and library data Google doesn't. */
+/* A result is worth showing if it has ANY signal of being a real, findable
+   book: a cover, a description, a rating, an ISBN, or a match in our catalogue.
+   Records with none of these are almost always Open Library's obscure phantom
+   entries (no cover, no data, not even in WorldCat) — the junk a vague or
+   misspelled search dredges up. This is gentle on purpose: one signal is
+   enough, so a real-but-sparse book still shows. */
+function hasSignal(d){
+  if (Number.isFinite(d.cover_i) || d.thumb) return true;
+  if (d.gdesc || d.grating != null) return true;
+  if (Array.isArray(d.isbn) && d.isbn.length) return true;
+  if (findSeries(d) || findBook(d)) return true;     // in our catalogue
+  return false;
+}
+
 function merge(...lists){
   const out = [], seen = new Map();
   for (const list of lists){
@@ -2424,7 +2445,11 @@ function merge(...lists){
       seen.set(k, d); out.push(d);
     }
   }
-  return out;
+  // Drop phantoms — but if EVERYTHING was filtered (e.g. a genuinely obscure
+  // but correct search), keep the original so we never show a false "nothing
+  // found" when results did come back.
+  const filtered = out.filter(hasSignal);
+  return filtered.length ? filtered : out;
 }
 
 /* ===== collections =====
