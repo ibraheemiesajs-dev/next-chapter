@@ -2633,23 +2633,26 @@ async function search(){
     } else {
       let olDocs = [];
       if (lookup){
-        // Plain title lookup — no age tiers. Try an exact title match first.
+        // A recognisable book almost always has a cover AND a description or
+        // rating (or is in our catalogue). Obscure phantoms — game tie-ins,
+        // self-published oddities — have a bare record at most. Apply this bar
+        // to BOTH the title match and the keyword fallback: "Bubsy" the video-
+        // game book is a real title match, but not what anyone's looking for.
+        const solid = d =>
+          (Number.isFinite(d.cover_i) || d.thumb) &&
+          (d.gdesc || d.grating != null) ||
+          findSeries(d) || findBook(d);              // catalogue match always passes
+
         lastQuery = `title:"${topic}" AND language:eng`;
-        olDocs = await fetchOL(lastQuery, ctrl.signal);
+        const titled = await fetchOL(lastQuery, ctrl.signal);
         if (mine !== searchId) return;
-        if (!olDocs.length){
-          // No title match — fall back to keyword, but demand a HIGHER bar. A
-          // title search that misses often means a typo or an obscure book; the
-          // keyword results are then mostly phantoms. Requiring a cover plus a
-          // description or rating keeps real, recognisable books and drops the
-          // "six books nobody's heard of" junk.
+        olDocs = titled.filter(solid);
+
+        if (!olDocs.length){                          // nothing solid by title → try keyword
           lastQuery = `${topic} AND language:eng`;
           const raw = await fetchOL(lastQuery, ctrl.signal);
           if (mine !== searchId) return;
-          olDocs = raw.filter(d =>
-            (Number.isFinite(d.cover_i) || d.thumb) &&
-            (d.gdesc || d.grating != null || findSeries(d) || findBook(d))
-          );
+          olDocs = raw.filter(solid);
         }
       } else {
         for (const [q,n] of tiers(topic,a)){
@@ -2661,6 +2664,11 @@ async function search(){
       const gbDocs = await fetchGB(topic, a, ctrl.signal);
       if (mine !== searchId) return;
       docs = merge(olDocs, gbDocs);
+      // In lookup mode, merge's "keep originals if all filtered" safety valve
+      // must NOT resurrect phantoms we deliberately dropped — re-apply the bar.
+      if (lookup) docs = docs.filter(d =>
+        (Number.isFinite(d.cover_i) || d.thumb) && (d.gdesc || d.grating != null)
+        || findSeries(d) || findBook(d));
     }
 
     offset = LIMIT;
