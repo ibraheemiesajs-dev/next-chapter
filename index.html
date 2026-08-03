@@ -2633,14 +2633,23 @@ async function search(){
     } else {
       let olDocs = [];
       if (lookup){
-        // Plain title lookup — no age tiers. Search title (and keyword) directly.
+        // Plain title lookup — no age tiers. Try an exact title match first.
         lastQuery = `title:"${topic}" AND language:eng`;
         olDocs = await fetchOL(lastQuery, ctrl.signal);
         if (mine !== searchId) return;
-        if (!olDocs.length){                          // fall back to a keyword search
+        if (!olDocs.length){
+          // No title match — fall back to keyword, but demand a HIGHER bar. A
+          // title search that misses often means a typo or an obscure book; the
+          // keyword results are then mostly phantoms. Requiring a cover plus a
+          // description or rating keeps real, recognisable books and drops the
+          // "six books nobody's heard of" junk.
           lastQuery = `${topic} AND language:eng`;
-          olDocs = await fetchOL(lastQuery, ctrl.signal);
+          const raw = await fetchOL(lastQuery, ctrl.signal);
           if (mine !== searchId) return;
+          olDocs = raw.filter(d =>
+            (Number.isFinite(d.cover_i) || d.thumb) &&
+            (d.gdesc || d.grating != null || findSeries(d) || findBook(d))
+          );
         }
       } else {
         for (const [q,n] of tiers(topic,a)){
