@@ -210,6 +210,10 @@ textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2p
 .field input{width:100%;border:1px solid var(--rule);border-radius:2px;padding:10px;background:var(--paper);font-size:15px}
 .row2{display:grid;grid-template-columns:1fr 90px;gap:12px}
 .form-msg{font-size:13px;min-height:18px;margin:6px 0 0}
+.form-msg.ok{color:#2c6e49;font-weight:600}
+.resend{margin-top:10px;font-size:13px;color:var(--berry);text-decoration:underline;font-weight:600;padding:4px 0}
+.resend:hover{color:var(--ink)}
+.resend[disabled]{opacity:.6;cursor:progress;text-decoration:none}
 .alt{font-size:13px;color:var(--soft);margin:14px 0 0}
 .alt button{text-decoration:underline;color:var(--berry);font-weight:600}
 .note-block{font-size:14px;color:var(--soft);padding:26px 0 60px}
@@ -1222,6 +1226,8 @@ function openAuth(mode="in"){
   $("authSwap").textContent = mode==="in" ? "Create one" : "Sign in instead";
   $("authAsk").textContent  = mode==="in" ? "No account yet? " : "Already have one? ";
   $("authMsg").textContent = "";
+  $("authMsg").classList.remove("ok");
+  hideResend();
   $("authBack").classList.add("open");
   document.body.classList.add("locked");
   $("email").focus();
@@ -1233,16 +1239,69 @@ $("authSwap").onclick = () => openAuth(authMode === "in" ? "up" : "in");
 
 $("authGo").onclick = async () => {
   const email = $("email").value.trim(), password = $("pw").value, msg = $("authMsg");
+  msg.classList.remove("ok");
   if (!email || !password) return msg.textContent = "Email and password, please.";
   if (password.length < 6)  return msg.textContent = "Password needs at least 6 characters.";
   $("authGo").disabled = true; msg.textContent = "";
+  hideResend();
   try {
-    const { error } = await db.auth[authMode === "in" ? "signInWithPassword" : "signUp"]({ email, password });
-    if (error) throw error;
-    closeAuth(); $("pw").value = "";
-  } catch(e){ msg.textContent = e?.message || "That didn't work. Try again."; }
+    if (authMode === "up"){
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) throw error;
+      // If email confirmation is on, there's no session yet — tell them to check
+      // their inbox instead of silently closing as if they're signed in.
+      if (data?.user && !data?.session){
+        msg.classList.add("ok");
+        msg.textContent = "Almost there — check your email for a confirmation link, then sign in.";
+        showResend(email);
+        $("authSwap").click();          // flip to the sign-in view for when they return
+      } else {
+        closeAuth(); $("pw").value = "";   // confirmation off → signed in immediately
+      }
+    } else {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      closeAuth(); $("pw").value = "";
+    }
+  } catch(e){
+    const raw = (e?.message || "").toLowerCase();
+    if (raw.includes("not confirmed") || raw.includes("email not confirmed")){
+      msg.textContent = "Your email isn't confirmed yet. Check your inbox for the confirmation link — including spam.";
+      showResend(email);
+    } else if (raw.includes("invalid login")){
+      msg.textContent = "That email and password don't match. Check both, or create an account.";
+    } else {
+      msg.textContent = e?.message || "That didn't work. Try again.";
+    }
+  }
   finally { $("authGo").disabled = false; }
 };
+
+/* Resend confirmation — for when the email didn't arrive or expired. */
+function showResend(email){
+  let btn = $("resendBtn");
+  if (!btn){
+    btn = el("button","resend","Resend confirmation email");
+    btn.type = "button"; btn.id = "resendBtn";
+    $("authMsg").after(btn);
+  }
+  btn.hidden = false;
+  btn.onclick = async () => {
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      const { error } = await db.auth.resend({ type:"signup", email });
+      if (error) throw error;
+      $("authMsg").classList.add("ok");
+      $("authMsg").textContent = "Sent. Check your inbox (and spam) for the link.";
+      btn.hidden = true;
+    } catch(e){
+      btn.disabled = false; btn.textContent = "Resend confirmation email";
+      $("authMsg").classList.remove("ok");
+      $("authMsg").textContent = e?.message || "Couldn't resend. Try again in a moment.";
+    }
+  };
+}
+const hideResend = () => { const b = $("resendBtn"); if (b) b.hidden = true; };
 
 async function signOut(){
   await db.auth.signOut();
