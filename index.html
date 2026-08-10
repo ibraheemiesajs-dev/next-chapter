@@ -34,6 +34,10 @@ h1 span{color:var(--berry)}
 .mode-tab{font-size:13px;color:var(--soft);padding:4px 0;border-bottom:2px solid transparent;transition:.12s}
 .mode-tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--gold);font-weight:600}
 .mode-tab:hover{color:var(--ink)}
+.lookup-by{font-family:var(--display);font-size:inherit;color:var(--berry);font-weight:900;
+  background:none;border:none;border-bottom:3px solid var(--gold);cursor:pointer;padding:0 2px;
+  -webkit-appearance:none;appearance:none}
+.lookup-by:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .browse{position:relative;display:inline-block}
 .browse-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:230px;
   background:var(--card);border:1px solid var(--ink);border-radius:4px;
@@ -264,8 +268,12 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
       year old who likes
       <label class="blank"><span class="sr">What they like</span><input id="topic" class="wide" maxlength="60" value="dragons"></label>.
     </p>
-    <p class="sentence" id="sentenceLookup" hidden>Look up
-      <label class="blank"><span class="sr">Title</span><input id="lookupTopic" class="wide" maxlength="60" placeholder="a title"></label>.
+    <p class="sentence" id="sentenceLookup" hidden>Look up a
+      <select id="lookupBy" class="lookup-by" aria-label="Search by">
+        <option value="title">title</option>
+        <option value="author">author</option>
+      </select>
+      <label class="blank"><span class="sr">Search term</span><input id="lookupTopic" class="wide" maxlength="60" placeholder="name"></label>.
     </p>
     <p class="hint" id="browseHint">Searching <b id="level">juvenile fiction</b></p>
     <div class="actions">
@@ -2594,6 +2602,7 @@ function runCollectionSearch(topic, heading){
 
 async function search(){
   const lookup = searchMode === "lookup";
+  const byAuthor = lookup && $("lookupBy").value === "author";
   const a = age();
   const topic = (lookup ? $("lookupTopic").value : $("topic").value).trim().replace(/"/g,"");
   if (!topic){
@@ -2624,35 +2633,51 @@ async function search(){
     lastQuery = null;
 
     if (mediaType === "movie"){
-      // In lookup mode, don't age-filter — the user asked for a specific title.
-      docs = await fetchMovies(topic, lookup ? 18 : a, ctrl.signal);
-      if (mine !== searchId) return;
-      lastQuery = topic;
-      if (!docs.length && !db)
-        note = "Movie search needs the TMDB connection — showing catalogue matches only.";
+      if (byAuthor){
+        // Director / cast search through the Edge Function's person mode.
+        lastQuery = topic;
+        if (db){
+          try {
+            const { data } = await db.functions.invoke("recommend", { body:{ mode:"tmdb_person", topic } });
+            docs = (Array.isArray(data?.results) ? data.results : []).map(toMovieDoc).filter(d => d.title);
+          } catch(e){ docs = []; }
+        }
+        if (mine !== searchId) return;
+      } else {
+        // In lookup mode, don't age-filter — the user asked for a specific title.
+        docs = await fetchMovies(topic, lookup ? 18 : a, ctrl.signal);
+        if (mine !== searchId) return;
+        lastQuery = topic;
+        if (!docs.length && !db)
+          note = "Movie search needs the TMDB connection — showing catalogue matches only.";
+      }
     } else {
       let olDocs = [];
       if (lookup){
-        // A recognisable book almost always has a cover AND a description or
-        // rating (or is in our catalogue). Obscure phantoms — game tie-ins,
-        // self-published oddities — have a bare record at most. Apply this bar
-        // to BOTH the title match and the keyword fallback: "Bubsy" the video-
-        // game book is a real title match, but not what anyone's looking for.
         const solid = d =>
           (Number.isFinite(d.cover_i) || d.thumb) &&
-          (d.gdesc || d.grating != null) ||
-          findSeries(d) || findBook(d);              // catalogue match always passes
+          (d.gdesc || d.grating != null || (Array.isArray(d.isbn) && d.isbn.length))
+          || findSeries(d) || findBook(d);             // catalogue match always passes
 
-        lastQuery = `title:"${topic}" AND language:eng`;
-        const titled = await fetchOL(lastQuery, ctrl.signal);
-        if (mine !== searchId) return;
-        olDocs = titled.filter(solid);
-
-        if (!olDocs.length){                          // nothing solid by title → try keyword
-          lastQuery = `${topic} AND language:eng`;
+        if (byAuthor){
+          // Author search — every book Open Library has by this author. Sorted
+          // by rating so the well-known ones surface first.
+          lastQuery = `author:"${topic}" AND language:eng`;
           const raw = await fetchOL(lastQuery, ctrl.signal);
           if (mine !== searchId) return;
           olDocs = raw.filter(solid);
+        } else {
+          // Title search first, keyword fallback.
+          lastQuery = `title:"${topic}" AND language:eng`;
+          const titled = await fetchOL(lastQuery, ctrl.signal);
+          if (mine !== searchId) return;
+          olDocs = titled.filter(solid);
+          if (!olDocs.length){
+            lastQuery = `${topic} AND language:eng`;
+            const raw = await fetchOL(lastQuery, ctrl.signal);
+            if (mine !== searchId) return;
+            olDocs = raw.filter(solid);
+          }
         }
       } else {
         for (const [q,n] of tiers(topic,a)){
@@ -2661,13 +2686,14 @@ async function search(){
           if (olDocs.length){ note = n; lastQuery = q; break; }
         }
       }
-      const gbDocs = await fetchGB(topic, a, ctrl.signal);
+      const gbDocs = byAuthor ? [] : await fetchGB(topic, a, ctrl.signal);
       if (mine !== searchId) return;
       docs = merge(olDocs, gbDocs);
       // In lookup mode, merge's "keep originals if all filtered" safety valve
       // must NOT resurrect phantoms we deliberately dropped — re-apply the bar.
       if (lookup) docs = docs.filter(d =>
-        (Number.isFinite(d.cover_i) || d.thumb) && (d.gdesc || d.grating != null)
+        (Number.isFinite(d.cover_i) || d.thumb) &&
+        (d.gdesc || d.grating != null || (Array.isArray(d.isbn) && d.isbn.length))
         || findSeries(d) || findBook(d));
     }
 
@@ -2798,7 +2824,7 @@ function draw(topic = lastTopic, note = lastNote){
 
     const meta = el("div","meta"), single = isS ? null : findBook(c.doc);
     if (isS){
-      meta.append(el("span","tag series",`${seriesCount(c.series)} books · view series`));
+      meta.append(el("span","tag series",`${seriesCount(c.series)} ${mediaType === "movie" ? "films" : "books"} · view series`));
       if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
     } else if (single?.ages){
       meta.append(el("span","tag",`Ages ${single.ages}`));
@@ -2985,7 +3011,8 @@ function fallbackBlurb(b){
 /* Reading order. Branches are drawn indented with a connector line so it's
    visible at a glance that they hang off the main sequence. */
 function seriesBlock(s){
-  const out = [el("hr"), el("h3","","Reading order")];
+  const orderWord = mediaType === "movie" ? "Watch order" : "Reading order";
+  const out = [el("hr"), el("h3","",orderWord)];
   const ul = el("ul","series-list");
   const branches = s.branches || [];
 
@@ -3008,7 +3035,7 @@ function seriesBlock(s){
   out.push(ul);
   if (s.todo) out.push(el("p","todo", s.todo));
   out.push(el("p","source",
-    "Reading order and content notes are hand-entered and checked, not pulled from a database. Spot something wrong or missing? Fix it in the catalogue."));
+    `${orderWord} and content notes are hand-entered and checked, not pulled from a database. Spot something wrong or missing? Fix it in the catalogue.`));
   return out;
 }
 
@@ -3169,6 +3196,9 @@ function applyMediaLabels(){
   $("sortLabel").textContent = m.sort;
   $("more").textContent = `Show more ${m.word}`;
   $("tagline").textContent = m.tagline;
+  // The lookup "by author" option reads "director" in movie mode.
+  const byOpt = document.querySelector('#lookupBy option[value="author"]');
+  if (byOpt) byOpt.textContent = mediaType === "movie" ? "director" : "author";
   $("tabBooks").setAttribute("aria-selected", String(mediaType === "book"));
   $("tabMovies").setAttribute("aria-selected", String(mediaType === "movie"));
   showLevel();
