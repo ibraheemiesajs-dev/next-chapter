@@ -34,10 +34,15 @@ h1 span{color:var(--berry)}
 .mode-tab{font-size:13px;color:var(--soft);padding:4px 0;border-bottom:2px solid transparent;transition:.12s}
 .mode-tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--gold);font-weight:600}
 .mode-tab:hover{color:var(--ink)}
-.lookup-by{font-family:var(--display);font-size:inherit;color:var(--berry);font-weight:900;
-  background:none;border:none;border-bottom:3px solid var(--gold);cursor:pointer;padding:0 2px;
-  -webkit-appearance:none;appearance:none}
-.lookup-by:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.lookup-by{font-family:var(--display);font-size:.82em;color:var(--berry);font-weight:700;
+  background:none;border:none;border-bottom:2px solid var(--gold);cursor:pointer;
+  padding:0 20px 0 4px;margin:0 2px;line-height:1.2;
+  -webkit-appearance:none;appearance:none;vertical-align:baseline;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1l4 4 4-4' stroke='%237a2540' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 4px center}
+.lookup-by:hover{color:var(--ink)}
+.lookup-by:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
+.lookup-by option{font-size:15px;font-weight:500;color:var(--ink);background:var(--paper)}
 .browse{position:relative;display:inline-block}
 .browse-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:230px;
   background:var(--card);border:1px solid var(--ink);border-radius:4px;
