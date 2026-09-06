@@ -122,6 +122,10 @@ h1 span{color:var(--berry)}
 .whyfit .pill{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--berry);border-radius:2px;padding:2px 6px;flex:none}
 .meta,.subjects,.notes,.shelf-row,.links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .notes{margin-top:8px}
+.tag.note.has-meter{display:inline-flex;align-items:center;gap:7px;padding-right:9px}
+.meter{display:inline-flex;gap:2px;align-items:center}
+.meter-dot{width:6px;height:6px;border-radius:50%;background:rgba(122,37,64,.22)}
+.meter-dot.on{background:var(--berry)}
 .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
 .tag.series{border-color:var(--gold);color:#9a6a15}
 .tag.saved{border-color:var(--ink);background:var(--ink);color:var(--paper)}
@@ -801,7 +805,7 @@ const SERIES = {
       {n:8,title:"Big Nate Blasts Off",year:2016,notes:[]}]},
 
   "hunger-games":{title:"The Hunger Games",author:"Suzanne Collins",match:/hunger games/i,ages:"13+",books:[
-    {n:1,title:"The Hunger Games",year:2008,notes:["violence","gore","death","romance"]},
+    {n:1,title:"The Hunger Games",year:2008,notes:[{id:"violence",level:4},{id:"gore",level:3},{id:"death",level:4},{id:"romance",level:2}]},
     {n:2,title:"Catching Fire",year:2009,notes:["violence","gore","death","romance"]},
     {n:3,title:"Mockingjay",year:2010,notes:["violence","gore","death","substances"]}],
     branches:[
@@ -934,7 +938,7 @@ const FILMS = {
   frozen:{title:"Frozen",studio:"Disney",match:/^frozen$/i,ages:"4–10",mpaa:"PG",notes:["scary"]},
   encanto:{title:"Encanto",studio:"Disney",match:/encanto/i,ages:"5–10",mpaa:"PG",notes:["scary"]},
   zootopia:{title:"Zootopia",studio:"Disney",match:/zootopia/i,ages:"6–11",mpaa:"PG",notes:["violence","scary"]},
-  lionking:{title:"The Lion King",studio:"Disney",match:/lion king/i,ages:"6–11",mpaa:"G",notes:["violence","death","scary"]},
+  lionking:{title:"The Lion King",studio:"Disney",match:/lion king/i,ages:"6–11",mpaa:"G",notes:[{id:"violence",level:2},{id:"death",level:3},{id:"scary",level:3}]},
   spiritedaway:{title:"Spirited Away",studio:"Studio Ghibli",match:/spirited away/i,ages:"8–13",mpaa:"PG",notes:["scary"]},
   totoro:{title:"My Neighbor Totoro",studio:"Studio Ghibli",match:/totoro/i,ages:"4–10",mpaa:"G",notes:[]},
   paddington:{title:"Paddington",studio:"StudioCanal",match:/^paddington$/i,ages:"5–10",mpaa:"PG",notes:["scary"]},
@@ -1068,10 +1072,24 @@ async function loadCommunityBooks(){
   } catch(e){ console.error("Couldn't load community catalogue:", e); }
 }
 
-const seriesNotes = s => [...new Set([
-  ...s.books.flatMap(b => b.notes || []),
-  ...(s.branches || []).flatMap(br => br.books.flatMap(b => b.notes || []))
-])];
+/* Collapse a whole series' notes into one list, deduped by category. When the
+   same category appears at different intensities across books, keep the highest
+   — "Across the series" should reflect the most intense instance a reader will
+   hit. Plain-string notes (no level) coexist with scored ones. */
+const seriesNotes = s => {
+  const all = [
+    ...s.books.flatMap(b => b.notes || []),
+    ...(s.branches || []).flatMap(br => br.books.flatMap(b => b.notes || []))
+  ];
+  const byId = new Map();
+  for (const n of all){
+    const id = noteId(n), lvl = noteLevel(n);
+    const existing = byId.get(id);
+    if (!existing) byId.set(id, lvl != null ? { id, level:lvl } : id);
+    else if (lvl != null && lvl > (noteLevel(existing) ?? 0)) byId.set(id, { id, level:lvl });
+  }
+  return [...byId.values()];
+};
 const seriesCount = s => s.books.length + (s.branches || []).reduce((n,br) => n + br.books.length, 0);
 
 const notesOf = c => {
@@ -1993,7 +2011,7 @@ function drawAi(){
     if (avg) meta.append(el("span","stars-mini","★".repeat(avg)));
 
     const notes = notesOf(c);
-    if (notes.length && notes.some(n => avoided.includes(n)))
+    if (notes.length && notes.some(n => avoided.includes(noteId(n))))
       meta.append(el("span","tag","Conflicts with your preferences"));
     info.append(meta);
     if (notes.length) info.append(noteRow(notes, !!findSeries(c.doc)));
@@ -2793,7 +2811,7 @@ function draw(topic = lastTopic, note = lastNote){
   }
 
   const avoided = [...prefs].filter(([,s]) => s === "avoid").map(([id]) => id);
-  const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(n)));
+  const visible = cards.filter(c => !notesOf(c).some(n => avoided.includes(noteId(n))));
   const hid = cards.length - visible.length;
 
   const mword = mediaType === "movie" ? "Movies" : "Books";
@@ -2872,13 +2890,34 @@ function whyRow(text){
 /* Descriptive, not a warning. "Includes" states what's in the book and lets the
    reader decide; the same tag serves a family avoiding romance and a family
    looking for representation. */
-function noteRow(ids, forSeries){
+/* A note is either a plain category id ("violence") or an object with an
+   intensity level ({id:"violence", level:3}). Supporting both means the whole
+   existing catalogue keeps working untouched, and any entry can be upgraded to
+   a 1–5 meter just by giving it a level. A level is only ever shown when a
+   HUMAN entered it — never guessed — so a meter always means "someone judged
+   this," which is the whole point. */
+const noteId = n => typeof n === "string" ? n : n?.id;
+const noteLevel = n => (n && typeof n === "object" && Number.isFinite(n.level)) ? n.level : null;
+
+function meterEl(level){
+  const m = el("span","meter");
+  m.setAttribute("aria-label", `${level} out of 5`);
+  for (let i = 1; i <= 5; i++){
+    const dot = el("span","meter-dot" + (i <= level ? " on" : ""));
+    m.append(dot);
+  }
+  return m;
+}
+
+function noteRow(notes, forSeries){
   const row = el("div","notes");
   row.append(el("span","notes-label", forSeries ? "Across the series" : "Includes"));
-  ids.forEach(id => {
-    const t = el("span","tag note", CATEGORIES[id]?.label || id);
+  notes.forEach(n => {
+    const id = noteId(n), level = noteLevel(n);
+    const t = el("span","tag note" + (level ? " has-meter" : ""), CATEGORIES[id]?.label || id);
     t.title = CATEGORIES[id]?.blurb || "";
     if (prefs.get(id) === "flag") t.classList.add("avoided");
+    if (level) t.append(meterEl(level));           // human-scored intensity
     row.append(t);
   });
   return row;
