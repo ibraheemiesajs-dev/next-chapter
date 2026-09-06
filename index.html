@@ -126,6 +126,16 @@ h1 span{color:var(--berry)}
 .meter{display:inline-flex;gap:2px;align-items:center}
 .meter-dot{width:6px;height:6px;border-radius:50%;background:rgba(122,37,64,.22)}
 .meter-dot.on{background:var(--berry)}
+.meter.pos .meter-dot{background:rgba(44,110,73,.2)}
+.meter.pos .meter-dot.on{background:#2c6e49}
+.notes.positives{margin-top:6px}
+.notes-label.pos{color:#2c6e49}
+.tag.pos{border-color:rgba(44,110,73,.4);color:#2c6e49;background:rgba(44,110,73,.06)}
+.tag.pos.has-meter{display:inline-flex;align-items:center;gap:7px;padding-right:9px}
+.didyoumean{font-size:15px;color:var(--soft);margin:2px 0 14px}
+.dym-link{font-family:var(--display);font-size:16px;font-weight:700;color:var(--berry);
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:0 2px;background:none;border:none}
+.dym-link:hover{color:var(--ink)}
 .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--soft);overflow-wrap:anywhere}
 .tag.series{border-color:var(--gold);color:#9a6a15}
 .tag.saved{border-color:var(--ink);background:var(--ink);color:var(--paper)}
@@ -318,6 +328,7 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     <h2 id="title">Start with a search</h2>
     <span class="count" id="count"></span>
   </div>
+  <div id="dymSlot"></div>
 
   <p class="banner warn" id="relaxed" hidden></p>
   <p class="banner info" id="hidden-msg" hidden></p>
@@ -465,6 +476,21 @@ const CATEGORIES = {
   language:{label:"Strong language",blurb:"Swearing or crude language."},
   substances:{label:"Alcohol or drugs",blurb:"Substance use appears on the page."},
   religion:{label:"Religious themes",blurb:"Faith or religious practice is a theme."}
+};
+
+/* Positive content — the other half of an honest picture. Common Sense rates
+   role models and messages, not just cautions; a parent choosing a book often
+   cares as much about what's GOOD in it. Same shape as CATEGORIES, rendered in
+   green, and (like the caution meters) a level only ever appears when a human
+   scored it. Kept a separate object so positives never mix into the "avoid"
+   preference logic — you don't hide a book for having good role models. */
+const POSITIVES = {
+  rolemodels:{label:"Good role models",blurb:"Characters worth looking up to."},
+  educational:{label:"Educational value",blurb:"Teaches real things — history, science, ideas."},
+  kindness:{label:"Kindness & empathy",blurb:"Compassion, friendship, and caring for others."},
+  courage:{label:"Courage & resilience",blurb:"Facing fear or hardship with determination."},
+  diversity:{label:"Diverse representation",blurb:"A range of backgrounds and experiences shown well."},
+  creativity:{label:"Creativity & curiosity",blurb:"Imagination, problem-solving, wonder."}
 };
 
 /* ================= MEDIA TYPES =================
@@ -805,7 +831,7 @@ const SERIES = {
       {n:8,title:"Big Nate Blasts Off",year:2016,notes:[]}]},
 
   "hunger-games":{title:"The Hunger Games",author:"Suzanne Collins",match:/hunger games/i,ages:"13+",books:[
-    {n:1,title:"The Hunger Games",year:2008,notes:[{id:"violence",level:4},{id:"gore",level:3},{id:"death",level:4},{id:"romance",level:2}]},
+    {n:1,title:"The Hunger Games",year:2008,notes:[{id:"violence",level:4},{id:"gore",level:3},{id:"death",level:4},{id:"romance",level:2}],positives:[{id:"courage",level:5},{id:"rolemodels",level:3}]},
     {n:2,title:"Catching Fire",year:2009,notes:["violence","gore","death","romance"]},
     {n:3,title:"Mockingjay",year:2010,notes:["violence","gore","death","substances"]}],
     branches:[
@@ -844,7 +870,8 @@ const BOOKS = {
   giver:{title:"The Giver",author:"Lois Lowry",match:/^the giver\b/i,ages:"11–14",notes:["death","violence"]},
   holes:{title:"Holes",author:"Louis Sachar",match:/^holes$/i,ages:"9–12",notes:["violence"]},
   redfern:{title:"Where the Red Fern Grows",author:"Wilson Rawls",match:/where the red fern grows/i,ages:"9–12",notes:["death","violence","gore"]},
-  wonder:{title:"Wonder",author:"R.J. Palacio",match:/^wonder$/i,ages:"8–12",notes:[]},
+  wonder:{title:"Wonder",author:"R.J. Palacio",match:/^wonder$/i,ages:"8–12",notes:[],
+    positives:[{id:"kindness",level:5},{id:"rolemodels",level:4},{id:"courage",level:4}]},
   coraline:{title:"Coraline",author:"Neil Gaiman",match:/^coraline\b/i,ages:"8–12",notes:["scary"]},
   matilda:{title:"Matilda",author:"Roald Dahl",match:/^matilda\b/i,ages:"7–11",notes:["violence"]},
   bfg:{title:"The BFG",author:"Roald Dahl",match:/^the bfg\b/i,ages:"6–10",notes:["scary"]},
@@ -1058,18 +1085,24 @@ const findBook = doc => {
 
 async function loadCommunityBooks(){
   if (!db) return;
-  try {
-    const { data, error } = await db.from("catalog_books").select("title, author, ages, notes");
-    if (error) throw error;
-    communityBooks.clear();
-    (data || []).forEach(b => {
-      const k = `${norm(b.title)}|${norm(b.author)}`;
-      communityBooks.set(k, {
-        title: b.title, author: b.author, ages: b.ages || "",
-        notes: Array.isArray(b.notes) ? b.notes.filter(n => CATEGORIES[n]) : []
-      });
+  const keepValid = (arr, dict) => Array.isArray(arr) ? arr.filter(n => dict[noteId(n)]) : [];
+  // Try with positives; if that column doesn't exist yet, fall back without it.
+  // This keeps the app working whether or not the DB migration has been run.
+  let data, error;
+  ({ data, error } = await db.from("catalog_books").select("title, author, ages, notes, positives"));
+  if (error){
+    ({ data, error } = await db.from("catalog_books").select("title, author, ages, notes"));
+  }
+  if (error){ console.error("Couldn't load community catalogue:", error); return; }
+  communityBooks.clear();
+  (data || []).forEach(b => {
+    const k = `${norm(b.title)}|${norm(b.author)}`;
+    communityBooks.set(k, {
+      title: b.title, author: b.author, ages: b.ages || "",
+      notes: keepValid(b.notes, CATEGORIES),
+      positives: keepValid(b.positives, POSITIVES)
     });
-  } catch(e){ console.error("Couldn't load community catalogue:", e); }
+  });
 }
 
 /* Collapse a whole series' notes into one list, deduped by category. When the
@@ -1092,11 +1125,77 @@ const seriesNotes = s => {
 };
 const seriesCount = s => s.books.length + (s.branches || []).reduce((n,br) => n + br.books.length, 0);
 
+/* ===== "did you mean" — catalogue-based typo help =====
+   Deliberately NOT a general spell-checker (those mis-correct real searches and
+   only know words in a dictionary). Instead: does the query look like a typo of
+   a title WE'VE VERIFIED? "lion ing" is one character off "The Lion King". If a
+   catalogue title is a close match, we can confidently suggest it — because
+   we're only ever correcting toward data we trust, never guessing wildly. */
+function editDistance(a, b){
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const d = Array.from({ length: m + 1 }, (_, i) => [i, ...new Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[m][n];
+}
+
+/* Returns a catalogue title the query is probably a typo of, or null. Checks
+   the active medium's catalogue only. Strict threshold so it fires on real
+   typos, not loosely-related searches. */
+function didYouMean(query){
+  const nq = norm(query);
+  if (nq.length < 4) return null;                    // too short to judge
+  const cat = mediaType === "movie"
+    ? [...Object.values(FRANCHISES), ...Object.values(FILMS)]
+    : [...Object.values(SERIES), ...Object.values(BOOKS)];
+
+  let best = null, bestRatio = 1;
+  for (const entry of cat){
+    // Compare against the title with and without a leading "the".
+    const variants = [norm(entry.title), norm(entry.title).replace(/^the /, "")];
+    for (const v of variants){
+      if (!v) continue;
+      if (v === nq) return null;                      // exact match — no typo, let normal search run
+      const dist = editDistance(nq, v);
+      const ratio = dist / Math.max(nq.length, v.length);
+      if (ratio < bestRatio){ bestRatio = ratio; best = entry.title; }
+    }
+  }
+  // Fire only on a close miss: within ~a quarter of the length, and at least
+  // one real character difference (so it's genuinely a typo, not identical).
+  return bestRatio > 0 && bestRatio <= 0.28 ? best : null;
+}
+
 const notesOf = c => {
   if (c.kind === "series") return seriesNotes(c.series);
   const s = findSeries(c.doc);
   if (s) return seriesNotes(s);
   return findBook(c.doc)?.notes || [];
+};
+
+/* Positive content for a card — same lookup path as notesOf. Series positives
+   are simply pooled (deduped by id), keeping any level. */
+const positivesOf = c => {
+  const gather = s => {
+    const all = [
+      ...s.books.flatMap(b => b.positives || []),
+      ...(s.branches || []).flatMap(br => br.books.flatMap(b => b.positives || []))
+    ];
+    const byId = new Map();
+    for (const p of all){
+      const id = noteId(p), lvl = noteLevel(p), ex = byId.get(id);
+      if (!ex) byId.set(id, lvl != null ? { id, level:lvl } : id);
+      else if (lvl != null && lvl > (noteLevel(ex) ?? 0)) byId.set(id, { id, level:lvl });
+    }
+    return [...byId.values()];
+  };
+  if (c.kind === "series") return gather(c.series);
+  const s = findSeries(c.doc);
+  if (s) return gather(s);
+  return findBook(c.doc)?.positives || [];
 };
 const titleOf = c => c.kind === "series" ? c.series.title : c.doc.title;
 const authorOf = c => {
@@ -2057,20 +2156,27 @@ async function guessNotes(c, mine){
   // forever. This is the biggest cost saver: guessing fires on every
   // uncatalogued panel open, and without this each open paid again.
   const ckey = `${mediaType}|${norm(title)}|${norm(auth === "Unknown author" ? "" : auth)}`;
+  const CACHE_MAX_AGE = 180 * 24 * 60 * 60 * 1000;   // 180 days; guesses can improve as models do
   try {
-    const { data } = await db.from("notes_cache").select("payload").eq("cache_key", ckey).maybeSingle();
+    const { data } = await db.from("notes_cache").select("payload, created_at").eq("cache_key", ckey).maybeSingle();
+    // Use the cached guess only if it isn't stale. An old entry falls through to
+    // a fresh guess below, which upserts over it — so the cache self-refreshes
+    // without needing a background job.
     if (data?.payload){
-      guessCache.set(k, data.payload);
-      return render(data.payload);
+      const age = Date.now() - new Date(data.created_at || 0).getTime();
+      if (age < CACHE_MAX_AGE){
+        guessCache.set(k, data.payload);
+        return render(data.payload);
+      }
     }
   } catch(e){ /* cache miss is harmless */ }
 
   try {
     const g = await callAI({ mode:"notes", title, author: auth === "Unknown author" ? "" : auth });
     guessCache.set(k, g);
-    // Store for every future visitor. Fire-and-forget; a failed cache write
-    // still leaves the guess working for this user.
-    db.from("notes_cache").upsert({ cache_key:ckey, payload:g }, { onConflict:"cache_key" })
+    // Store for every future visitor, stamped now so expiry works. Fire-and-
+    // forget; a failed cache write still leaves the guess working for this user.
+    db.from("notes_cache").upsert({ cache_key:ckey, payload:g, created_at:new Date().toISOString() }, { onConflict:"cache_key" })
       .then(() => {}, e => console.error("Notes cache write failed:", e));
     render(g);
   } catch(e){
@@ -2722,6 +2828,25 @@ async function search(){
 
     offset = LIMIT;
     cards = collapse(docs);
+
+    /* Typo help: if the results are thin or none of them match a catalogue
+       title, the query might be a typo of something we know. Only suggest when
+       results are genuinely weak — never override a search that found good
+       matches. The suggestion re-runs the search with the correct title. */
+    const weak = cards.length < 2 || !cards.some(c => c.kind === "series" || findBook(c.doc));
+    const suggestion = weak ? didYouMean(topic) : null;
+    if (suggestion && norm(suggestion) !== norm(topic)){
+      const bar = el("div","didyoumean");
+      bar.append(el("span","","Did you mean "));
+      const link = el("button","dym-link", suggestion);
+      link.onclick = () => {
+        $(lookup ? "lookupTopic" : "topic").value = suggestion;
+        search();
+      };
+      bar.append(link, el("span","","?"));
+      $("dymSlot").replaceChildren(bar);
+    } else $("dymSlot").replaceChildren();
+
     draw(topic, note);                            // paint immediately…
     loadReviews(cards.map(cardKey)).then(() => { if (mine === searchId && cards.length) draw(); });
     rankResults(mine);                            // …and let the librarian/projectionist catch up
@@ -2899,8 +3024,8 @@ function whyRow(text){
 const noteId = n => typeof n === "string" ? n : n?.id;
 const noteLevel = n => (n && typeof n === "object" && Number.isFinite(n.level)) ? n.level : null;
 
-function meterEl(level){
-  const m = el("span","meter");
+function meterEl(level, positive){
+  const m = el("span","meter" + (positive ? " pos" : ""));
   m.setAttribute("aria-label", `${level} out of 5`);
   for (let i = 1; i <= 5; i++){
     const dot = el("span","meter-dot" + (i <= level ? " on" : ""));
@@ -2918,6 +3043,21 @@ function noteRow(notes, forSeries){
     t.title = CATEGORIES[id]?.blurb || "";
     if (prefs.get(id) === "flag") t.classList.add("avoided");
     if (level) t.append(meterEl(level));           // human-scored intensity
+    row.append(t);
+  });
+  return row;
+}
+
+/* Positive content — same shape and meters as notes, but green and drawn from
+   POSITIVES. Never touches the avoid/hide logic. */
+function positiveRow(positives){
+  const row = el("div","notes positives");
+  row.append(el("span","notes-label pos","Good stuff"));
+  positives.forEach(p => {
+    const id = noteId(p), level = noteLevel(p);
+    const t = el("span","tag pos" + (level ? " has-meter" : ""), POSITIVES[id]?.label || id);
+    t.title = POSITIVES[id]?.blurb || "";
+    if (level) t.append(meterEl(level, true));
     row.append(t);
   });
   return row;
@@ -2978,9 +3118,13 @@ async function openPanel(c){
                                                    : "Loading description…");
 
   const notes = notesOf(c);
-  $("pNotes").replaceChildren(...(notes.length ? [noteRow(notes, isS || !!findSeries(c.doc))] : []));
+  const positives = positivesOf(c);
+  $("pNotes").replaceChildren(
+    ...(notes.length ? [noteRow(notes, isS || !!findSeries(c.doc))] : []),
+    ...(positives.length ? [positiveRow(positives)] : [])
+  );
   // Our own data always wins. The guess only runs where we have nothing.
-  if (notes.length) $("pGuess").replaceChildren(); else guessNotes(c, mine);
+  if (notes.length || positives.length) $("pGuess").replaceChildren(); else guessNotes(c, mine);
   $("pSubjects").replaceChildren(...(c.doc.subject || [])
     .filter(x => typeof x === "string" && x.length < 40).slice(0,6).map(x => el("span","tag",x)));
   $("pGet").replaceChildren(whereToGet(c.doc));
