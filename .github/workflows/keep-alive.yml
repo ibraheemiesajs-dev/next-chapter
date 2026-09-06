@@ -1,0 +1,43 @@
+# Keep-alive: pings the Supabase Edge Function on a schedule so the free-tier
+# project never hits 7 days of inactivity and auto-pauses.
+#
+# WHERE THIS GOES: in your repo at  .github/workflows/keep-alive.yml
+# (create the .github and workflows folders if they don't exist).
+#
+# HOW IT WORKS: GitHub runs this on a timer (every 3 days) and makes one small
+# request to your Edge Function. That request resets Supabase's inactivity
+# clock. It also runs the database side awake because the function reads/writes
+# the DB caches.
+#
+# HONEST LIMITS: this is a best-effort keep-alive, not a guarantee. If GitHub
+# Actions is down, or the schedule is delayed (GitHub sometimes delays free
+# cron jobs by a bit), a ping can be missed. For a student project that's fine.
+# If the app ever becomes something you depend on, the paid Supabase tier is
+# the real fix.
+
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # Every 3 days at 12:00 UTC. Well inside the 7-day pause window, so even a
+    # missed run leaves plenty of margin. Cron is minute hour day month weekday.
+    - cron: "0 12 */3 * *"
+  workflow_dispatch:   # also lets you trigger it by hand from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the Edge Function
+        run: |
+          echo "Pinging Supabase to keep the project awake..."
+          # A tiny 'rank' call with nothing to rank — cheap, valid, and it both
+          # boots the function AND touches the database. --fail makes a bad
+          # HTTP status end the job so a failure shows up red in the Actions tab.
+          curl --fail --show-error --silent \
+            -X POST "https://weoybccspfetglvmekab.supabase.co/functions/v1/recommend" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"mode":"rank","age":8,"topic":"keepalive","books":[]}' \
+            || echo "Ping returned an error status — check the function is deployed and not paused."
+          echo "Done."
