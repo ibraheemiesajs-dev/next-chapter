@@ -93,17 +93,27 @@ h1 span{color:var(--berry)}
 .toggle input{width:16px;height:16px;accent-color:var(--berry);cursor:pointer}
 .prefs{margin:22px 0 0;padding-top:20px;border-top:1px dashed var(--rule)}
 .prefs-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;
-  background:none;border:none;padding:0;cursor:pointer;text-align:left}
+  background:#eef3f4;border:1.5px solid var(--ink);border-radius:8px;padding:11px 15px;cursor:pointer;text-align:left;transition:.12s}
+.prefs-toggle:hover{background:#e3ecee}
+.prefs[data-open="true"] .prefs-toggle{border-radius:8px 8px 0 0}
+.prefs-hint{font-weight:400;font-size:12px;color:var(--soft)}
+.pref-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:2px 0 14px;font-size:12.5px}
+.leg{display:inline-flex;align-items:center;gap:4px}
+.leg-flag{color:#8a5410}
+.leg-hide{color:#8a2020}
 .prefs-caret{color:var(--soft);font-size:13px;transition:transform .18s}
 .prefs[data-open="false"] .prefs-caret{transform:rotate(-90deg)}
-.prefs-body{overflow:hidden;transition:max-height .22s ease,opacity .18s;max-height:400px;opacity:1;margin-top:4px}
-.prefs[data-open="false"] .prefs-body{max-height:0;opacity:0;margin-top:0}
+.prefs-body{overflow:hidden;transition:max-height .28s ease,opacity .18s;max-height:600px;opacity:1;
+  border:1.5px solid var(--ink);border-top:none;border-radius:0 0 8px 8px;padding:14px 15px}
+.prefs[data-open="false"] .prefs-body{max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-color:transparent}
 .prefs h4{font-size:14px;font-weight:600;margin-bottom:4px}
 .prefs p{font-size:13px;color:var(--soft);margin:0 0 12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{font-size:12px;border:1px solid var(--rule);border-radius:20px;padding:5px 13px;color:var(--soft);transition:.12s}
-.chip[data-state=flag]{border-color:var(--gold);background:#FBF1DC;color:#8a5f10;font-weight:600}
-.chip[data-state=avoid]{border-color:var(--berry);background:var(--berry);color:#fff;font-weight:600}
+.chip[data-state=flag]{border-color:#c77d1a;background:#fbeed6;color:#8a5410;font-weight:600}
+.chip[data-state=flag]::before{content:"⚑ ";font-weight:700}
+.chip[data-state=avoid]{border-color:#a33;background:#fbe9e9;color:#8a2020;font-weight:600}
+.chip[data-state=avoid]::before{content:"⊘ ";font-weight:700}
 .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:16px;margin:34px 0 14px}
 .head h2{font-size:19px;font-weight:600}
 .count,.n-reviews{font-size:13px;color:var(--soft)}
@@ -227,6 +237,12 @@ textarea{width:100%;font-size:14px;border:1px solid var(--rule);border-radius:2p
 .counter{font-size:12px;color:var(--soft);text-align:right;margin:4px 0 0}
 .counter.over{color:var(--berry);font-weight:700}
 .save{margin-top:8px;background:var(--berry);color:#fff;border-radius:2px;padding:10px 20px;font-weight:700;font-size:14px}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  background:#fff;border:1px solid #dadce0;border-radius:4px;padding:11px;font-size:14px;font-weight:600;
+  color:#3c4043;cursor:pointer;transition:.12s;margin-top:6px}
+.google-btn:hover{background:#f7f8f8;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.auth-or{display:flex;align-items:center;gap:12px;margin:16px 0 6px;color:var(--soft);font-size:12px}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--rule)}
 .save:hover{background:var(--ink)}
 .save[disabled]{opacity:.55;cursor:progress}
 .save-msg{font-size:13px;color:var(--berry);margin:8px 0 0;min-height:18px}
@@ -428,11 +444,15 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
     </div>
     <div class="prefs" id="prefs">
       <button class="prefs-toggle" id="prefsToggle" aria-expanded="true" aria-controls="prefsBody">
-        <h4>Content preferences</h4>
+        <h4>⚙ Content preferences <span class="prefs-hint">— tap to choose what to include or avoid</span></h4>
         <span class="prefs-caret" aria-hidden="true">▾</span>
       </button>
       <div class="prefs-body" id="prefsBody">
-        <p id="prefs-note">Tap once to flag, twice to hide. Untapped means it won't affect results.</p>
+        <p id="prefs-note">Tap a theme <b>once to flag</b> it, <b>twice to hide</b> it, a third time to clear.</p>
+        <div class="pref-legend">
+          <span class="leg leg-flag">⚑ Flagged = still shown, just marked so you notice it</span>
+          <span class="leg leg-hide">⊘ Hidden = results with this theme are left out</span>
+        </div>
         <div class="chips" id="chips"></div>
       </div>
     </div>
@@ -516,6 +536,11 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <button class="close" id="authClose" aria-label="Close">&times;</button>
     <h2 id="authTitle">Sign in</h2>
+    <button class="google-btn" id="googleGo" type="button">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.6 9.2c0-.6-.05-1.2-.15-1.7H9v3.3h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5z"/><path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.9a9 9 0 0 0 0 8l3-2.3z"/><path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6A9 9 0 0 0 .9 5l3 2.3C4.6 5.2 6.6 3.6 9 3.6z"/></svg>
+      <span>Continue with Google</span>
+    </button>
+    <div class="auth-or"><span>or with email</span></div>
     <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div>
     <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password"></div>
     <button class="save" id="authGo">Sign in</button>
@@ -1498,6 +1523,27 @@ $("authClose").onclick = closeAuth;
 $("authBack").addEventListener("mousedown", e => { if (e.target === $("authBack")) closeAuth(); });
 $("authSwap").onclick = () => openAuth(authMode === "in" ? "up" : "in");
 
+/* Google sign-in — hands off to Supabase's OAuth flow. Supabase redirects to
+   Google, the user picks their account, and Google sends them back to the
+   redirect URL we configured. On return, Supabase's onAuthStateChange (already
+   wired) picks up the session, so no extra handling is needed here. */
+$("googleGo").onclick = async () => {
+  if (!db){ $("authMsg").textContent = "Not connected."; return; }
+  $("googleGo").disabled = true;
+  try {
+    const { error } = await db.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }   // come back to the app
+    });
+    if (error) throw error;
+    // On success the browser navigates away to Google, so nothing else runs.
+  } catch(e){
+    $("googleGo").disabled = false;
+    $("authMsg").classList.remove("ok");
+    $("authMsg").textContent = e?.message || "Couldn't start Google sign-in.";
+  }
+};
+
 $("authGo").onclick = async () => {
   const email = $("email").value.trim(), password = $("pw").value, msg = $("authMsg");
   msg.classList.remove("ok");
@@ -1568,7 +1614,7 @@ async function signOut(){
   await db.auth.signOut();
   children = []; activeChild = null;
   saved.clear(); prefs.clear(); syncChips();
-  $("prefs-note").textContent = "Tap once to flag, twice to hide. Untapped means it won't affect results.";
+  $("prefs-note").innerHTML = "Tap a theme <b>once to flag</b> it, <b>twice to hide</b> it, a third time to clear.";
   showView("search");
   refresh();
 }
@@ -1624,7 +1670,7 @@ async function selectChild(c){
   prefs.clear();
   Object.entries(c.prefs || {}).forEach(([k,v]) => { if (v) prefs.set(k,v); });
   syncChips();
-  $("prefs-note").textContent = `Preferences for ${c.name}. Tap once to flag, twice to hide.`;
+  $("prefs-note").innerHTML = `Preferences for <b>${c.name}</b>. Tap <b>once to flag</b>, <b>twice to hide</b>, third to clear.`;
   renderKids();
   await loadSaved();
   renderKids();                       // count on the shelf button changes
