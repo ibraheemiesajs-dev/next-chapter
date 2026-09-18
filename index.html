@@ -493,8 +493,9 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
   </section>
 
   <footer>
-    <p class="foot-about">Dickens &amp; Rumi is a personal project — a tool to help families find age-appropriate books and films. Content notes marked <b>hand-checked</b> are entered and verified by a person; notes marked <b>AI-guessed</b> are unverified and shown only as a starting point. Nothing here is a guarantee — you know your child best. For content you're relying on, cross-check with <a href="https://www.commonsensemedia.org/" target="_blank" rel="noopener noreferrer">Common Sense Media</a>.</p>
-    <p class="foot-credits">Books from Open Library and Google Books; film data from TMDB. Series and content notes hand-entered. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></p>
+    <p class="foot-about">Dickens &amp; Rumi is a personal project — a tool to help families find age-appropriate books and films. Content notes marked <b>hand-checked</b>, <b>source checked</b>, or <b>full work checked</b> were reviewed by a person; notes marked <b>AI-guessed</b> are unverified and shown only as a starting point. Nothing here is a guarantee — you know your child best. For content you're relying on, cross-check with <a href="https://www.commonsensemedia.org/" target="_blank" rel="noopener noreferrer">Common Sense Media</a>.</p>
+    <p class="foot-credits">Books from Open Library and Google Books; film data from TMDB. Published content notes pass through the Dickens &amp; Rumi reviewer queue. <span class="tmdb-attr">This product uses the TMDB API but is not endorsed or certified by TMDB.</span></p>
+    <p class="foot-credits" style="margin-top:8px">As an Amazon Associate and Bookshop.org affiliate, this site may earn a small commission from qualifying purchases made through its "buy" links — at no extra cost to you.</p>
   </footer>
 </div>
 
@@ -565,20 +566,20 @@ footer{border-top:1px solid var(--rule);padding:20px 0 40px;font-size:12px;color
 <div class="backdrop" id="addBack">
   <div class="panel small" role="dialog" aria-modal="true" aria-labelledby="addTitle">
     <button class="close" id="addClose" aria-label="Close">&times;</button>
-    <h2 id="addTitle">Add content notes</h2>
-    <p class="addhint">Only add notes you've actually verified — check the book, or
+    <h2 id="addTitle">Submit content notes</h2>
+    <p class="addhint">Only submit notes you've actually verified — check the book, or
       <a id="addCsm" href="#" target="_blank" rel="noopener noreferrer">look it up on Common Sense Media</a>.
-      A wrong note is worse than none.</p>
+      A reviewer will check them before they appear publicly.</p>
     <div class="field"><label for="addTitleIn">Title</label><input id="addTitleIn" maxlength="120"></div>
     <div class="row2">
-      <div class="field"><label for="addAuthor">Author</label><input id="addAuthor" maxlength="80"></div>
+      <div class="field"><label for="addAuthor" id="addAuthorLabel">Author</label><input id="addAuthor" maxlength="80"></div>
       <div class="field"><label for="addAges">Ages</label><input id="addAges" maxlength="12" placeholder="8–12"></div>
     </div>
     <div class="field">
       <label>What's in it? Tap all that apply</label>
       <div class="chips" id="addChips"></div>
     </div>
-    <button class="save" id="addGo">Save to catalogue</button>
+    <button class="save" id="addGo">Submit for review</button>
     <p class="form-msg" id="addMsg"></p>
   </div>
 </div>
@@ -649,6 +650,21 @@ const POSITIVES = {
    same way. What differs is the DATA SOURCE and the WORDS on screen, so those
    are gathered here. mediaType is the single switch everything reads. */
 let mediaType = "book";
+
+/* ===== affiliate tags =====
+   When someone clicks a "buy" link and purchases, these tags credit the sale
+   to you so you earn a small commission. They're the ONLY thing you change to
+   turn earning on — replace the placeholders with your real tags once you're
+   approved by each program. Until then the links still work (they just don't
+   earn), so nothing breaks if a tag is left blank.
+     • Amazon:   apply at affiliate-program.amazon.com  → get your "tracking id"
+     • Bookshop: apply at bookshop.org/affiliates       → get your affiliate id
+   IMPORTANT: only apply to Amazon once you have real traffic — they close
+   accounts that don't make 3 sales within 180 days of signing up. */
+const AFFILIATE = {
+  amazon: "",      // e.g. "dickensrumi-20"   (leave "" until approved)
+  bookshop: ""     // e.g. "12345"            (leave "" until approved)
+};
 let searchMode = "browse";   // "browse" (age-based) or "lookup" (plain title search)
 
 const MEDIA = {
@@ -1127,7 +1143,7 @@ const FILMS = {
 /* ===== setup ===== */
 const OL="https://openlibrary.org/search.json";
 const GB="https://www.googleapis.com/books/v1/volumes";
-const FIELDS="key,title,author_name,cover_i,subject,first_sentence,isbn,ia,ebook_access";
+const FIELDS="key,title,author_name,cover_i,subject,first_sentence,isbn,ia,ebook_access,first_publish_year";
 const LIMIT=40, TIMEOUT=12000, MAXCHARS=600, RANK_MAX=30;
 const STATES=[null,"flag","avoid"];
 const SHELF=[["want","Want to read"],["reading","Reading"],["finished","Finished"]];
@@ -1182,14 +1198,28 @@ const cardKey = c => !c ? "" : (c.kind === "series" ? `series:${c.series.id}` : 
 const normName = s => norm(s).split(" ").filter(w => w.length > 1).join(" ");
 
 /* ===== catalogue lookups =====
-   These dispatch on mediaType: books use SERIES/BOOKS, movies use
-   FRANCHISES/FILMS. The two catalogues share a shape so one set of lookups
-   serves both. For movies, a "franchise" is a series and its `films` are the
-   `books`; there are no branches or author-matching (a film's title is
-   distinctive enough on its own). */
+   Published database records are checked first, then the original hardcoded
+   starter catalogue. That makes Supabase the scalable source of truth without
+   breaking the site while the old records are being migrated. */
+const databaseSeries = new Map();       // group id -> render-ready series/franchise
+const databaseItemsByTitle = new Map(); // "media|normalised title" -> checked items
+const communityBooks = new Map();       // legacy catalog_books fallback
+
 function findSeries(doc){
   const t = norm(doc?.title);
   if (!t) return null;
+
+  const docCreators = mediaType === "movie"
+    ? [normName(doc?.studio || "")]
+    : (doc?.author_name || []).map(normName);
+  for (const s of databaseSeries.values()){
+    if (s.mediaType !== mediaType) continue;
+    const creatorAgrees = !s.author && !s.studio
+      || docCreators.includes(normName(s.author || s.studio));
+    if (t === norm(s.title)) return s;
+    if ((mediaType === "movie" || creatorAgrees)
+        && s.books.some(x => t === norm(x.title))) return s;
+  }
 
   if (mediaType === "movie"){
     for (const [id,f] of Object.entries(FRANCHISES)){
@@ -1213,15 +1243,16 @@ function findSeries(doc){
   }
   return null;
 }
-/* The hardcoded BOOKS use a hand-written regex for matching. Community entries
-   from the database don't — they match on normalised title + author, which is
-   safe to build from user input (no regex injection) and good enough since a
-   contributor typed the exact title. Hardcoded entries win on a tie: the
-   trusted core is never overridden by a community addition. */
-const communityBooks = new Map();   // key -> {title, author, ages, notes}
-
 const findBook = doc => {
   if (typeof doc?.title !== "string") return null;
+  const dynamic = databaseItemsByTitle.get(`${mediaType}|${norm(doc.title)}`) || [];
+  if (dynamic.length){
+    const creators = mediaType === "movie"
+      ? [normName(doc?.studio || "")]
+      : (doc?.author_name || []).map(normName);
+    return dynamic.find(x => !x.author && !x.studio
+      || creators.includes(normName(x.author || x.studio))) || (dynamic.length === 1 ? dynamic[0] : null);
+  }
   if (mediaType === "movie"){
     const hard = Object.values(FILMS).find(f => f.match.test(doc.title));
     if (hard) return hard;
@@ -1232,17 +1263,74 @@ const findBook = doc => {
   return communityBooks.get(key(doc)) || null;
 };
 
-async function loadCommunityBooks(){
+async function loadPublishedCatalog(){
   if (!db) return;
   const keepValid = (arr, dict) => Array.isArray(arr) ? arr.filter(n => dict[noteId(n)]) : [];
-  // Try with positives; if that column doesn't exist yet, fall back without it.
-  // This keeps the app working whether or not the DB migration has been run.
+
+  // New scalable catalogue. RLS exposes only published records to visitors.
+  let published = [], publishedError = null;
+  const pageSize = 1000; // Supabase/PostgREST commonly caps a response at 1,000 rows.
+  for (let from = 0; ; from += pageSize){
+    const { data, error } = await db.from("catalog_items").select(
+      "id,media_type,title,creator,year,ages,group_id,sequence_number,cover_url,description,mpaa,external_source,external_id,verification_method,catalog_groups(id,title,creator,ages,kind,cover_url),catalog_content_notes(category,level,note),catalog_positive_notes(category,level,note)"
+    ).eq("status","published").range(from, from + pageSize - 1);
+    if (error){ publishedError = error; break; }
+    published.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+
+  if (!publishedError){
+    databaseSeries.clear(); databaseItemsByTitle.clear();
+    (published || []).forEach(r => {
+      const toNotes = rows => (rows || []).map(n => n.level
+        ? { id:n.category, level:n.level, note:n.note || undefined }
+        : n.category);
+      const notes = keepValid(toNotes(r.catalog_content_notes), CATEGORIES);
+      const positives = keepValid(toNotes(r.catalog_positive_notes), POSITIVES);
+      const item = {
+        id:r.id, group_id:r.group_id || null, mediaType:r.media_type,
+        title:r.title, author:r.media_type === "book" ? r.creator : "",
+        studio:r.media_type === "movie" ? r.creator : "", year:r.year,
+        ages:r.ages || "", mpaa:r.mpaa || "", notes, positives,
+        cover_url:r.cover_url || "", description:r.description || "",
+        verification_method:r.verification_method || "source_checked"
+      };
+      const tk = `${r.media_type}|${norm(r.title)}`;
+      if (!databaseItemsByTitle.has(tk)) databaseItemsByTitle.set(tk, []);
+      databaseItemsByTitle.get(tk).push(item);
+
+      const g = r.catalog_groups;
+      if (g){
+        if (!databaseSeries.has(g.id)) databaseSeries.set(g.id, {
+          id:g.id, database:true, mediaType:r.media_type, movie:r.media_type === "movie",
+          title:g.title, author:r.media_type === "book" ? g.creator : "",
+          studio:r.media_type === "movie" ? g.creator : "", ages:g.ages || "",
+          cover_url:g.cover_url || "", books:[]
+        });
+        databaseSeries.get(g.id).books.push({
+          n:Number(r.sequence_number) || databaseSeries.get(g.id).books.length + 1,
+          title:r.title, year:r.year, mpaa:r.mpaa || "", notes, positives,
+          verification_method:r.verification_method || "source_checked"
+        });
+      }
+    });
+    databaseSeries.forEach(s => s.books.sort((a,b) => a.n - b.n || (a.year || 0) - (b.year || 0)));
+  } else {
+    // The site remains usable before the new SQL migration is installed.
+    console.info("Scalable catalogue not installed yet; using the starter catalogue.");
+  }
+
+  // Keep reading the former community table during migration. New submissions
+  // go to the private review queue and never appear here until published.
   let data, error;
   ({ data, error } = await db.from("catalog_books").select("title, author, ages, notes, positives"));
   if (error){
     ({ data, error } = await db.from("catalog_books").select("title, author, ages, notes"));
   }
-  if (error){ console.error("Couldn't load community catalogue:", error); return; }
+  if (error){
+    if (!publishedError) return;
+    console.error("Couldn't load a database catalogue:", error); return;
+  }
   communityBooks.clear();
   (data || []).forEach(b => {
     const k = `${norm(b.title)}|${norm(b.author)}`;
@@ -1252,6 +1340,32 @@ async function loadCommunityBooks(){
       positives: keepValid(b.positives, POSITIVES)
     });
   });
+}
+
+/* Turn published database records into normal search documents. This lets an
+   exact title/author/franchise lookup succeed even if Open Library or TMDB is
+   temporarily down or has a sparse record. */
+function databaseDocs(query, byCreator){
+  const q = norm(query), out = [];
+  if (!q) return out;
+  for (const [tk,items] of databaseItemsByTitle){
+    if (!tk.startsWith(mediaType + "|")) continue;
+    for (const item of items){
+      const creator = item.author || item.studio || "";
+      const group = item.group_id ? databaseSeries.get(item.group_id) : null;
+      const matches = byCreator
+        ? norm(creator).includes(q)
+        : norm(item.title).includes(q) || norm(group?.title).includes(q);
+      if (!matches) continue;
+      out.push({
+        key:`catalog:${item.id}`, title:item.title,
+        author_name:item.author ? [item.author] : [], studio:item.studio || "",
+        thumb:item.cover_url || null, gdesc:item.description || null,
+        year:item.year || null, mpaa:item.mpaa || "", subject:[]
+      });
+    }
+  }
+  return out;
 }
 
 /* Collapse a whole series' notes into one list, deduped by category. When the
@@ -1297,9 +1411,15 @@ function editDistance(a, b){
 function didYouMean(query){
   const nq = norm(query);
   if (nq.length < 4) return null;                    // too short to judge
+  const dynamic = [
+    ...[...databaseSeries.values()].filter(x => x.mediaType === mediaType),
+    ...[...databaseItemsByTitle.entries()]
+      .filter(([k]) => k.startsWith(mediaType + "|"))
+      .flatMap(([,items]) => items)
+  ];
   const cat = mediaType === "movie"
-    ? [...Object.values(FRANCHISES), ...Object.values(FILMS)]
-    : [...Object.values(SERIES), ...Object.values(BOOKS)];
+    ? [...dynamic, ...Object.values(FRANCHISES), ...Object.values(FILMS)]
+    : [...dynamic, ...Object.values(SERIES), ...Object.values(BOOKS)];
 
   let best = null, bestRatio = 1;
   for (const entry of cat){
@@ -1473,8 +1593,16 @@ function whereToGet(doc){
       `https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${title}" ${author(doc)}`)}`);
   // Bookshop by title + author (not the often-foreign ISBN). Author matters:
   // "Bone" alone matches hundreds of books; "Bone Jeff Smith" finds the one.
-  addb("Bookshop.org",
-      `https://bookshop.org/search?keywords=${q}`);
+  // Carries your affiliate id when set, so a purchase earns a commission.
+  addb("Buy on Bookshop.org",
+      `https://bookshop.org/search?keywords=${q}` +
+      (AFFILIATE.bookshop ? `&affiliate=${AFFILIATE.bookshop}` : ""));
+  // Amazon search, books department, with your affiliate tag when set. Simple
+  // search link (not live price lookup — that needs Amazon's Product API, which
+  // requires an approved account first).
+  addb("Buy on Amazon",
+      `https://www.amazon.com/s?k=${q}&i=stripbooks` +
+      (AFFILIATE.amazon ? `&tag=${AFFILIATE.amazon}` : ""));
   addb("Find on Google Books",
       `https://www.google.com/search?tbm=bks&q=${q}`);
   // A work page shows whatever edition Open Library has set as default — which
@@ -1916,8 +2044,14 @@ function renderShelf(){
    panel fills in description and rating from Google Books as usual. */
 function cardFromSaved(k, v){
   if (k.startsWith("series:")){
-    const id = k.slice(7), s = SERIES[id];
-    if (s) return { kind:"series", series:{ id, ...s },
+    const id = k.slice(7);
+    const dynamic = databaseSeries.get(id);
+    if (dynamic) return { kind:"series", series:dynamic,
+                          doc:{ title:v.title,
+                                author_name: dynamic.author ? [dynamic.author] : [],
+                                studio:dynamic.studio || "", cover_i:v.coverId, thumb:v.coverUrl } };
+    const s = mediaType === "movie" ? FRANCHISES[id] : SERIES[id];
+    if (s) return { kind:"series", series:{ id, ...s, books:s.books || s.films },
                     doc:{ title:v.title, author_name:[s.author], cover_i:v.coverId, thumb:v.coverUrl } };
   }
   return { kind:"book",
@@ -2405,11 +2539,11 @@ function guessBlock(g, title, auth){
   return box;
 }
 
-/* A signed-in user who knows a book can add verified notes for everyone. This
-   is how the catalogue grows with checked data instead of my guesses. */
+/* A signed-in user can submit evidence, but it enters the private review queue.
+   Only an approved reviewer can publish it through catalog-admin.html. */
 function addNoteButton(box, title){
   if (!db || !user || !openItem) return;
-  const b = el("button","addbtn","+ Add verified notes for this book");
+  const b = el("button","addbtn",`+ Submit notes for this ${M().one}`);
   b.type = "button";
   b.onclick = () => openAddBook(openItem);
   box.append(b);
@@ -2463,20 +2597,30 @@ $("addGo").onclick = async () => {
   msg.classList.remove("err");
 
   if (!title){ msg.textContent = "A title is needed."; msg.classList.add("err"); return; }
-  if (!auth){ msg.textContent = "An author is needed, so the book can be matched reliably."; msg.classList.add("err"); return; }
+  if (!auth && mediaType === "book"){ msg.textContent = "An author is needed, so the book can be matched reliably."; msg.classList.add("err"); return; }
 
   $("addGo").disabled = true; msg.textContent = "Saving…";
   try {
-    await writeWithRetry(() => db.from("catalog_books").upsert(
-      { title, author:auth, ages: ages || null, notes, added_by:user.id },
-      { onConflict:"title,author" }));
+    const doc = openItem?.doc || {};
+    const tmdbId = String(doc.key || "").startsWith("tmdb:") ? String(doc.key).slice(5) : null;
+    const olId = typeof doc.key === "string" && doc.key.startsWith("/works/") ? doc.key : null;
+    await writeWithRetry(() => db.from("catalog_items").insert({
+      media_type:mediaType, title, creator:auth, ages:ages || null,
+      year:Number.isFinite(doc.year) ? doc.year : (Number.isFinite(doc.first_publish_year) ? doc.first_publish_year : null),
+      cover_url:doc.thumb || (Number.isFinite(doc.cover_i) ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : null),
+      description:doc.gdesc || null, mpaa:doc.mpaa || null,
+      external_source:tmdbId ? "tmdb" : (olId ? "openlibrary" : "community"),
+      external_id:tmdbId || olId, status:"pending",
+      draft_notes:notes, created_by:user.id
+    }));
 
-    // Update the in-memory catalogue immediately so the panel reflects it now.
-    communityBooks.set(`${norm(title)}|${norm(auth)}`, { title, author:auth, ages, notes });
-    msg.textContent = "Added. Thank you — everyone searching will see these now.";
-    setTimeout(() => { closeAddBook(); if (openItem) openPanel(openItem); }, 900);
+    msg.textContent = "Submitted. Thank you — a reviewer will check it before it appears publicly.";
+    setTimeout(closeAddBook, 1200);
   } catch(e){
-    msg.textContent = "Couldn't save that. Try again."; msg.classList.add("err");
+    msg.textContent = e?.code === "23505"
+      ? "This title is already published or waiting for review."
+      : "Couldn't submit that. Try again.";
+    msg.classList.add("err");
     console.error(e);
   } finally { $("addGo").disabled = false; }
 };
@@ -2698,6 +2842,7 @@ function toDoc(item){
     thumb: v.imageLinks?.thumbnail?.replace(/^http:/, "https:") || null,
     subject: Array.isArray(v.categories) ? v.categories : [],
     isbn: (v.industryIdentifiers || []).map(i => i.identifier),
+    year: v.publishedDate ? parseInt(String(v.publishedDate).slice(0,4),10) || null : null,
     gdesc: typeof v.description === "string" ? v.description.replace(/<[^>]*>/g,"").trim() : null,
     grating: typeof v.averageRating === "number" ? v.averageRating : null,
     gcount: v.ratingsCount || 0
@@ -3001,6 +3146,9 @@ async function search(){
         || findSeries(d) || findBook(d));
     }
 
+    // Merge verified database hits before collapsing. They carry the checked
+    // notes and also make exact lookups resilient to third-party API gaps.
+    docs = merge(databaseDocs(topic, byAuthor), docs);
     offset = LIMIT;
     cards = collapse(docs);
 
@@ -3152,6 +3300,13 @@ function draw(topic = lastTopic, note = lastNote){
     } else if (single?.ages){
       meta.append(el("span","tag",`Ages ${single.ages}`));
     }
+    if (isS || single){
+      const method = isS && c.series.database
+        ? (c.series.books.every(x => x.verification_method === "human_checked") ? "human_checked" : "source_checked")
+        : single?.verification_method;
+      meta.append(el("span","tag", method === "source_checked" ? "Source checked"
+        : method === "human_checked" ? "Full work checked" : "Hand-checked"));
+    }
     if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
     if (saved.has(k))
       meta.append(el("span","tag saved", SHELF.find(s => s[0] === saved.get(k)?.status)?.[1] || "Saved"));
@@ -3272,6 +3427,13 @@ async function openPanel(c){
     if (c.series.ages) meta.append(el("span","tag",`Ages ${c.series.ages}`));
   } else if (single?.ages){
     meta.append(el("span","tag",`Ages ${single.ages}`));
+  }
+  if (isS || single){
+    const method = isS && c.series.database
+      ? (c.series.books.every(x => x.verification_method === "human_checked") ? "human_checked" : "source_checked")
+      : single?.verification_method;
+    meta.append(el("span","tag", method === "source_checked" ? "Source checked"
+      : method === "human_checked" ? "Full work checked" : "Hand-checked"));
   }
   if (Number.isFinite(c.fit)) meta.append(el("span","tag ai",`Fit ${c.fit}/5`));
   if (isAi){
@@ -3397,8 +3559,9 @@ function seriesBlock(s){
 
   out.push(ul);
   if (s.todo) out.push(el("p","todo", s.todo));
-  out.push(el("p","source",
-    `${orderWord} and content notes are hand-entered and checked, not pulled from a database. Spot something wrong or missing? Fix it in the catalogue.`));
+  out.push(el("p","source", s.database
+    ? `${orderWord} and content notes passed through the Dickens & Rumi reviewer queue. Please cross-check anything important for your family.`
+    : `${orderWord} and content notes are hand-entered and checked. Please cross-check anything important for your family.`));
   return out;
 }
 
@@ -3544,7 +3707,12 @@ $("search").onclick = search;
   if (e.key === "Enter") $("kidGo").click(); }));
 
 renderAccount();
-loadCommunityBooks();   // additions everyone has contributed
+loadPublishedCatalog().then(() => {
+  // Refresh anything already on screen after the checked database catalogue
+  // arrives. The starter catalogue rendered immediately, so this never blocks.
+  if (cards.length) draw();
+  if (!$("collections").hidden) showCollections();
+});
 
 /* ===== media toggle =====
    Flip the whole app between books and movies. Updates the labels, clears the
@@ -3562,6 +3730,7 @@ function applyMediaLabels(){
   // The lookup "by author" option reads "director" in movie mode.
   const byOpt = document.querySelector('#lookupBy option[value="author"]');
   if (byOpt) byOpt.textContent = mediaType === "movie" ? "director" : "author";
+  $("addAuthorLabel").textContent = mediaType === "movie" ? "Studio (optional)" : "Author";
   $("tabBooks").setAttribute("aria-selected", String(mediaType === "book"));
   $("tabMovies").setAttribute("aria-selected", String(mediaType === "movie"));
   showLevel();
