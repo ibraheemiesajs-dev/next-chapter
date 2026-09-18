@@ -19,6 +19,7 @@
 .compare .btn{font-size:12px;padding:5px 8px}.cross-detail{border-top:1px solid var(--rule);padding-top:12px;margin-top:12px}.cross-detail label{display:block;margin:8px 0;font-size:13px}.cross-detail textarea{display:block;width:100%;min-height:70px;border:1px solid var(--rule);border-radius:4px;padding:9px;background:#fff}.decision{color:var(--green);font-size:12px}.help a{color:var(--berry)}.source .small{overflow-wrap:anywhere}.review-progress{margin:16px 0 8px;font-size:13px;color:var(--soft)}.save-state{font-size:12px;min-height:18px;color:var(--soft);margin-top:10px}
 .rating-row button:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:560px){.rating-row{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.rating-row .label{grid-column:1/-1}.rating-row .unknown{grid-column:auto}.rating-row button{width:100%;height:36px}.review-card{padding:14px}.compare th,.compare td{padding:7px 5px}.wrap{padding:12px}}
+.comparison-group{margin-top:20px}.comparison-group h4{font:700 18px var(--display);margin:0 0 8px}.positive-comparison{border-top:3px solid var(--green);padding-top:16px}.positive-comparison h4{color:var(--green)}.compare .small{margin-top:5px;max-width:320px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -258,32 +259,37 @@ function draftToState(raw,dict){
   for(const n of Array.isArray(raw)?raw:[]){const id=n?.category||n?.id;if(Object.hasOwn(dict,id)&&validLevel(n.level))m.set(id,n.level)}
   return m;
 }
+function normalizeAIGroup(raw,dict,known){
+  const result=Object.fromEntries(Object.keys(dict).map(id=>[id,{presence:"unknown",level:null,reason:""}])),seen=new Set();
+  if(!known)return result;
+  for(const n of Array.isArray(raw)?raw:[]){
+    const id=typeof n==="string"?n:n?.category||n?.id;if(!Object.hasOwn(dict,id))continue;
+    if(seen.has(id)){result[id]={presence:"unknown",level:null,reason:"Conflicting duplicate assessments."};continue}seen.add(id);
+    if(typeof n==="string"){result[id]={presence:"present",level:null,reason:""};continue}
+    let level=validLevel(n.level)?n.level:null;
+    const positive=n.present===true||n.presence==="present",negative=n.present===false||n.presence==="absent";
+    let presence=n.presence==="unknown"||(positive&&negative)||(positive&&level===0)||(negative&&level>0)?"unknown"
+      :negative||level===0?"absent":positive||level>0?"present":"unknown";
+    if(presence==="unknown")level=null;
+    result[id]={presence,level,reason:typeof n.reason==="string"?n.reason.slice(0,300):""};
+  }return result;
+}
 function normalizeAI(data){
   if(!data||typeof data!=="object"||typeof data.known!=="boolean")throw new Error("The AI returned an unexpected response. Your ratings were kept.");
-  const categories=Object.fromEntries(Object.keys(CATEGORIES).map(id=>[id,{presence:"unknown",level:null}]));
-  if(data.known){
-    for(const n of Array.isArray(data.notes)?data.notes:[]){
-      const id=typeof n==="string"?n:n?.category||n?.id;
-      if(!Object.hasOwn(CATEGORIES,id))continue;
-      if(typeof n==="string"){categories[id]={presence:"present",level:null};continue}
-      const level=validLevel(n.level)?n.level:null;
-      const presence=n.present===false||n.presence==="absent"||level===0?"absent"
-        :n.present===true||n.presence==="present"||(level!==null&&level>0)?"present":"unknown";
-      categories[id]={presence,level};
-    }
-  }
-  return{known:data.known,categories,summary:typeof data.summary==="string"?data.summary.slice(0,3000):""};
+  return{known:data.known,categories:normalizeAIGroup(data.notes,CATEGORIES,data.known),positives:normalizeAIGroup(data.positives,POSITIVES,data.known),summary:typeof data.summary==="string"?data.summary.slice(0,3000):""};
 }
+function ratingState(id){return Object.hasOwn(POSITIVES,id)?positiveState:noteState}
+function categoryLabel(id){return POSITIVES[id]||CATEGORIES[id]}
 function currentIdentity(){return{media:current.media_type,title:$("editTitle").value.trim(),author:$("editCreator").value.trim(),year:$("editYear").value.trim()}}
 function identityKey(x){return JSON.stringify([x.media,x.title,x.author,x.year])}
 function comparableAI(){return reviewContext.ai&&identityKey(reviewContext.ai.identity)===identityKey(currentIdentity())?reviewContext.ai:null}
 function compareCategory(id,assessment=comparableAI()){
-  const yours=noteState.has(id)?noteState.get(id):null,ai=assessment?.categories?.[id]||{presence:"unknown",level:null};
+  const state=ratingState(id),yours=state.has(id)?state.get(id):null,ai=assessment?.[Object.hasOwn(POSITIVES,id)?"positives":"categories"]?.[id]||{presence:"unknown",level:null};
   let kind="unknown",label="AI has no assessment";
   if(yours===null){kind="gap";label="Needs your assessment"}
   else if(ai.presence==="present"&&yours===0){kind="disagree";label="Presence differs"}
   else if(ai.presence==="absent"&&yours>0){kind="disagree";label="Presence differs"}
-  else if(validLevel(ai.level)&&Math.abs(ai.level-yours)>=2){kind="disagree";label="Intensity differs"}
+  else if(validLevel(ai.level)&&Math.abs(ai.level-yours)>=2){kind="disagree";label=Object.hasOwn(POSITIVES,id)?"Strength differs":"Intensity differs"}
   else if(ai.presence!=="unknown"){kind="aligned";label="No difference flagged"}
   const fingerprint=JSON.stringify([assessment?.checkedAt||null,yours,ai]);
   const decision=reviewContext.decisions?.[id];
@@ -307,7 +313,7 @@ function ratingRow(id,label,state,positive=false){
   [null,0,1,2,3,4,5].forEach(v=>{
     const chosen=state.has(id)?state.get(id):null,b=el("button",chosen===v?"on":"",v===null?"?":String(v));
     b.dataset.value=v===null?"null":String(v);if(v===null)b.classList.add("unknown");b.type="button";
-    b.title=v===null?"Not assessed":v===0?"None":"Intensity "+v;b.setAttribute("aria-label",label+": "+b.title);b.setAttribute("aria-pressed",String(chosen===v));
+    b.title=v===null?"Not assessed":v===0?"None":(positive?"Strength ":"Intensity ")+v;b.setAttribute("aria-label",label+": "+b.title);b.setAttribute("aria-pressed",String(chosen===v));
     b.onclick=e=>{e.stopPropagation();changeRating(id,v)};row.append(b);
   });return row;
 }
@@ -325,13 +331,13 @@ function renderChecker(){
   if(current.group_id)defs.push(["editSequence","Series/franchise order",current.sequence_number??""]);
   defs.forEach(args=>meta.append(field(...args)));card.append(meta);
   const more=el("div","grid2");more.append(field("editAges","Suggested ages",current.ages||""));if(current.media_type==="movie")more.append(field("editMpaa","MPAA rating",current.mpaa||""));card.append(more,field("editDescription","Description",current.description||"",true));
-  const pre=el("div","actions"),ai=el("button","btn alt","AI preview"),none=el("button","btn alt","Mark unanswered as none"),xcheck=el("button","btn alt","Cross-check with AI");ai.id="aiPrefill";none.id="markNone";xcheck.id="crossCheck";pre.append(ai,none,xcheck);card.append(pre);
-  card.append(el("p","help","AI preview and cross-check use the same AI service. Presence suggestions do not supply an intensity score. Assess the ratings using your sources."));
+  const pre=el("div","actions"),ai=el("button","btn alt","AI preview"),none=el("button","btn alt","Mark unanswered cautions as none"),xcheck=el("button","btn alt","Cross-check with AI");ai.id="aiPrefill";none.id="markNone";xcheck.id="crossCheck";pre.append(ai,none,xcheck);card.append(pre);
+  card.append(el("p","help","Both AI buttons assess content cautions and positive qualities. Suggestions come from model knowledge, not a source search. Review them against your evidence; your ratings remain yours."));
   if(reviewContext.submittedCategories?.length)card.append(el("p","help","Submitted presence notes (unscored): "+reviewContext.submittedCategories.filter(id=>Object.hasOwn(CATEGORIES,id)).map(id=>CATEGORIES[id]).join(", ")+". Assess their intensity before publishing."));
   const xnote=el("section","cross-panel");xnote.id="crossNote";xnote.hidden=true;card.append(xnote);
   const progress=el("p","review-progress");progress.id="reviewProgress";progress.setAttribute("aria-live","polite");card.append(progress);
   const cautions=el("section","rating-section");cautions.append(el("h3","","What’s in it?"),el("p","help","Choose ? for unassessed, 0 for none, or 1–5 for intensity. Assess all nine categories before publishing."));Object.entries(CATEGORIES).forEach(([id,label])=>cautions.append(ratingRow(id,label,noteState)));card.append(cautions);
-  const good=el("section","rating-section");good.append(el("h3","","What’s good in it?"),el("p","help","Optional positive signals; leave ? when not assessed."));Object.entries(POSITIVES).forEach(([id,label])=>good.append(ratingRow(id,label,positiveState,true)));card.append(good);
+  const good=el("section","rating-section");good.append(el("h3","","What’s good in it?"),el("p","help","Assess positive qualities too: ? = not assessed, 0 = none, 1 = slight, 2 = some, 3 = clear, 4 = strong, 5 = central throughout. These ratings are optional; AI suggestions appear above."));Object.entries(POSITIVES).forEach(([id,label])=>good.append(ratingRow(id,label,positiveState,true)));card.append(good);
   const evidence=el("section","rating-section");evidence.append(el("h3","","Evidence"),el("p","help","These links help you find evidence. Record the exact page used in the custom source fields when possible."));
   const sources=el("div","sources");sourceSuggestions(current).forEach((s,i)=>{
     const row=el("label","source"),cb=document.createElement("input"),body=el("div"),a=el("a","",s.name);cb.type="checkbox";cb.dataset.source=String(i);cb.checked=(reviewContext.sourceChecks||[]).includes(i);a.href=s.url;a.target="_blank";a.rel="noopener noreferrer";body.append(a,el("div","small",s.url));row.append(cb,body);sources.append(row);
@@ -343,8 +349,8 @@ function renderChecker(){
   const status=el("p","status",""),saveState=el("p","save-state", "Draft loaded");status.setAttribute("role","status");saveState.id="saveState";saveState.setAttribute("role","status");card.append(actions,status,saveState);
   $("checker").replaceChildren(card);bindChecker();renderQueue();updateProgress();renderCrossCheck();
 }
-function updateProgress(){if($("reviewProgress"))$("reviewProgress").textContent=`${noteState.size} of ${Object.keys(CATEGORIES).length} categories assessed · ${positiveState.size} positive signals assessed`}
-function aiLabel(a){return a.presence==="unknown"?"Unknown / not listed":a.presence==="absent"?"Explicitly absent":a.level===null?"Present · intensity unknown":`Present · ${a.level}/5`}
+function updateProgress(){if($("reviewProgress"))$("reviewProgress").textContent=`${noteState.size} of ${Object.keys(CATEGORIES).length} categories assessed · ${positiveState.size} of ${Object.keys(POSITIVES).length} positive signals assessed`}
+function aiLabel(a,positive=false){return a.presence==="unknown"?"Unknown / not listed":a.presence==="absent"?"Explicitly absent":a.level===null?(positive?"Present · strength unknown":"Present · intensity unknown"):`Present · ${a.level}/5`}
 function renderCrossCheck(){
   const box=$("crossNote");if(!box)return;
   const assessment=reviewContext.ai;box.replaceChildren();box.hidden=!assessment;
@@ -354,27 +360,32 @@ function renderCrossCheck(){
   box.append(el("p","help",`Checked ${new Date(assessment.checkedAt).toLocaleString()}. AI suggestions are unverified. Categories omitted by the AI remain unknown.`));
   if(assessment.summary)box.append(el("p","",assessment.summary));
   if(!assessment.known){box.append(el("p","help","The AI could not assess this title. Continue using your evidence."));return}
-  const rows=Object.keys(CATEGORIES).map(id=>compareCategory(id,assessment)),flagged=rows.filter(x=>x.kind==="disagree"),unresolved=flagged.filter(x=>!x.decision);
-  const summary=el("div","cross-summary");summary.append(el("span","badge",`${unresolved.length} differences to revisit`),el("span","badge",`${rows.filter(x=>x.ai.presence==="unknown").length} AI unknowns`),el("span","badge",`${rows.filter(x=>x.yours===null).length} awaiting your rating`));box.append(summary);
-  const wrap=el("div","compare-wrap"),table=el("table","compare"),head=el("thead"),hr=el("tr");["Category","Your rating","AI suggestion","Review"].forEach(t=>hr.append(el("th","",t)));head.append(hr);table.append(head);
-  const body=el("tbody");rows.forEach(r=>{
-    const tr=el("tr",r.kind),action=el("td");tr.append(el("td","",CATEGORIES[r.id]),el("td","",r.yours===null?"Not assessed":r.yours===0?"None":`${r.yours}/5`),el("td","",aiLabel(r.ai)));
-    action.append(el("div",r.decision?"decision":"",r.decision?"Evidence reviewed":r.label));
-    if(r.kind==="disagree"||r.kind==="gap"||r.decision){const b=el("button","btn alt",r.decision?"View note":"Review");b.onclick=()=>{reviewDetail=r.id;renderCrossCheck()};action.append(b)}
-    tr.append(action);body.append(tr);
-  });table.append(body);wrap.append(table);box.append(wrap);
-  if(!flagged.length)box.append(el("p","help","No differences flagged in the available information. Your evidence determines the final ratings."));
-  if(reviewDetail&&Object.hasOwn(CATEGORIES,reviewDetail))renderDecisionEditor(box,reviewDetail);
+  for(const [dict,title,positive] of [[CATEGORIES,"What’s in it?",false],[POSITIVES,"What’s good in it?",true]]){
+    const group=el("section",positive?"comparison-group positive-comparison":"comparison-group");group.append(el("h4","",title));
+    const rows=Object.keys(dict).map(id=>compareCategory(id,assessment)),flagged=rows.filter(x=>x.kind==="disagree"),unresolved=flagged.filter(x=>!x.decision);
+    const summary=el("div","cross-summary");summary.append(el("span","badge",`${unresolved.length} differences to revisit`),el("span","badge",`${rows.filter(x=>x.ai.presence==="unknown").length} AI unknowns`),el("span","badge",`${rows.filter(x=>x.yours===null).length} awaiting your rating`));group.append(summary);
+    const wrap=el("div","compare-wrap"),table=el("table","compare"),head=el("thead"),hr=el("tr");table.setAttribute("aria-label",title);["Category","Your rating","AI suggestion","Review"].forEach(t=>hr.append(el("th","",t)));head.append(hr);table.append(head);
+    const body=el("tbody");rows.forEach(r=>{
+      const tr=el("tr",r.kind),action=el("td"),suggestion=el("td","",aiLabel(r.ai,positive));
+      if(r.ai.reason)suggestion.append(el("div","small",r.ai.reason));
+      tr.append(el("td","",dict[r.id]),el("td","",r.yours===null?"Not assessed":r.yours===0?"None":`${r.yours}/5`),suggestion);
+      action.append(el("div",r.decision?"decision":"",r.decision?"Evidence reviewed":r.label));
+      const b=el("button","btn alt",r.decision?"View note":"Review");b.dataset.review=r.id;b.onclick=()=>{reviewDetail=r.id;renderCrossCheck()};action.append(b);
+      tr.append(action);body.append(tr);
+    });table.append(body);wrap.append(table);group.append(wrap);box.append(group);
+  }
+  box.append(el("p","help","Your evidence determines the final ratings. Positive qualities do not cancel out content cautions."));
+  if(reviewDetail&&(Object.hasOwn(CATEGORIES,reviewDetail)||Object.hasOwn(POSITIVES,reviewDetail)))renderDecisionEditor(box,reviewDetail);
 }
 function renderDecisionEditor(box,id){
-  const r=compareCategory(id),panel=el("div","cross-detail");panel.append(el("strong","",`Review ${CATEGORIES[id]}`));
-  const jump=el("button","btn alt","Go to my rating");jump.onclick=()=>{activeRating=id;const row=document.querySelector(`[data-rating="${id}"]`);row.scrollIntoView({block:"center",behavior:"smooth"});row.querySelector("button").focus();paintRating(id,noteState)};panel.append(jump);
+  const r=compareCategory(id),panel=el("div","cross-detail");panel.append(el("strong","",`Review ${categoryLabel(id)}`));
+  const jump=el("button","btn alt","Go to my rating");jump.onclick=()=>{activeRating=id;const row=document.querySelector(`[data-rating="${id}"]`);row.scrollIntoView({block:"center",behavior:"smooth"});row.querySelector("button").focus();paintRating(id,ratingState(id))};panel.append(jump);
   const label=el("label","","What did your source establish? Include a page, scene, or URL."),note=document.createElement("textarea");note.maxLength=300;note.value=reviewContext.decisions?.[id]?.reason||"";note.id="decisionReason";label.htmlFor=note.id;panel.append(label,note);
   const acknowledgement=el("label"),cb=document.createElement("input");cb.type="checkbox";acknowledgement.append(cb,document.createTextNode(" I rechecked the evidence for this category."));panel.append(acknowledgement);
   const save=el("button","btn alt","Record my evidence review"),feedback=el("p","help");save.onclick=()=>{
     if(mutationBusy)return;
     if(!cb.checked||!note.value.trim()){feedback.textContent="Add a short evidence note and confirm you rechecked the source.";return}
-    if(!noteState.has(id)){feedback.textContent="Assess your rating first, then record the evidence review.";return}
+    if(!ratingState(id).has(id)){feedback.textContent="Assess your rating first, then record the evidence review.";return}
     reviewContext.decisions[id]={fingerprint:compareCategory(id).fingerprint,reason:note.value.trim(),reviewedAt:new Date().toISOString()};markDirty();renderCrossCheck();
   };panel.append(save,feedback);box.append(panel);
 }
@@ -398,7 +409,7 @@ function syncEvidence(){
   reviewContext.customName=$("customSourceName").value.trim();reviewContext.customUrl=$("customSourceUrl").value.trim();reviewContext.evidenceNote=$("evidenceNote").value.trim();reviewContext.method=$("method").value;
 }
 const draftStateJson=state=>[...state].filter(([,v])=>validLevel(v)).map(([category,level])=>({category,level}));
-const stateJson=state=>[...state].filter(([,v])=>validLevel(v)&&v>0).map(([category,level])=>({category,level,...(state===noteState&&compareCategory(category).decision?{note:compareCategory(category).decision.reason}:{})}));
+const stateJson=state=>[...state].filter(([,v])=>validLevel(v)&&v>0).map(([category,level])=>({category,level,...(compareCategory(category).decision?{note:compareCategory(category).decision.reason}:{})}));
 function draftSnapshot(){
   syncEvidence();const meta=collectMeta();
   if(!meta.title)throw new Error("A title is required.");
@@ -433,12 +444,16 @@ async function requestAI(){
   const item=current,token=viewToken,request=++aiRequest,identity=currentIdentity();if(!identity.title)return checkerStatus("Enter a title first.",true);
   aiBusy=true;const a=$("aiPrefill"),b=$("crossCheck");setBusy(a,true,"Asking AI…");setBusy(b,true,"Asking AI…");checkerStatus("Checking this title…");
   try{
-    const {data,error}=await db.functions.invoke("recommend",{body:{mode:"notes",...identity}});
+    const {data,error}=await db.functions.invoke("catalog-assess",{body:identity});
     if(token!==viewToken||item.id!==current?.id||request!==aiRequest||navigationBusy||mutationBusy)return;
-    if(error||data?.error)throw new Error(data?.error||error.message);
+    if(error||data?.error){
+      let detail=data?.error;
+      if(!detail&&error?.context){try{detail=(await error.context.json()).error}catch(_){}}
+      throw new Error(detail||"AI assessment unavailable. Check that catalog-assess is deployed and its AI secrets are configured. Your ratings are kept.");
+    }
     if(identityKey(identity)!==identityKey(currentIdentity()))return checkerStatus("The title details changed. Run a new check for the current details.",true);
     const parsed=normalizeAI(data);reviewContext.ai={...parsed,identity,checkedAt:new Date().toISOString()};reviewContext.decisions={};reviewDetail=null;
-    markDirty();renderCrossCheck();checkerStatus(parsed.known?"AI comparison ready. Your ratings are unchanged.":"The AI could not assess this title. Use your sources.");
+    markDirty();renderCrossCheck();checkerStatus(parsed.known?"AI comparison ready for cautions and positive qualities. Your ratings are unchanged.":"The AI could not assess this title. Use your sources.");
   }catch(e){if(token===viewToken)checkerStatus(e.message||"AI check failed. Try again.",true)}finally{if(token===viewToken&&request===aiRequest){aiBusy=false;if(!mutationBusy){setBusy(a,false);setBusy(b,false)}}}
 }
 function bindChecker(){
@@ -474,7 +489,7 @@ async function publishCurrent(){
   if(!sources.length||(method==="source_checked"&&!sources.some(s=>validHttpUrl(s.url))))return checkerStatus("Record a source URL, or choose full-work review.",true);
   if(reviewContext.evidenceNote)sources[0].note=reviewContext.evidenceNote.slice(0,500);
   // Include reviewer decisions in the publish audit; an AI run never counts as a source.
-  for(const id of Object.keys(CATEGORIES)){const decision=compareCategory(id).decision;if(decision)sources.push({name:`Reviewer decision: ${CATEGORIES[id]}`,url:"",note:decision.reason})}
+  for(const id of [...Object.keys(CATEGORIES),...Object.keys(POSITIVES)]){const decision=compareCategory(id).decision;if(decision)sources.push({name:`Reviewer decision: ${categoryLabel(id)}`,url:"",note:decision.reason})}
   const notes=stateJson(noteState),positives=stateJson(positiveState),ages=$("editAges").value.trim()||null;
   lockMutation(true);const b=$("publish");setBusy(b,true,"Publishing…");
   try{
