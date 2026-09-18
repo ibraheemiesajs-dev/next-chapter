@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dickens &amp; Rumi — Catalogue checker</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14323b;--soft:#5d7077;--paper:#f2efe4;--card:#fffdf7;--gold:#e8a33d;--berry:#8c3a5b;--green:#2c6e49;--rule:#d9d3c2;--red:#9d2d3f;--display:"Fraunces",Georgia,serif;--body:"Public Sans",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body)}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}.wrap{max-width:1180px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:2px solid var(--ink);padding-bottom:18px}.brand{display:flex;align-items:center;gap:13px}.mark{font-size:30px}.brand h1{font:900 25px/1.1 var(--display);margin:0}.brand h1 span{color:var(--berry)}.brand p{margin:3px 0 0;color:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.account{text-align:right;font-size:13px;color:var(--soft)}.account button{border:0;background:none;color:var(--berry);text-decoration:underline}.notice{padding:12px 14px;border:1px solid var(--gold);background:#fbf1dc;border-radius:5px;margin:18px 0}.bad{border-color:var(--red);background:#f8e8eb;color:#7b2032}.ok{border-color:#82ad94;background:#eaf4ed;color:#235d3c}.auth{max-width:420px;margin:56px auto;background:var(--card);border:1px solid var(--rule);padding:26px}.auth h2,.section-title{font:700 24px var(--display);margin:0 0 12px}.field{margin:0 0 13px}.field label,.eyebrow{display:block;color:var(--soft);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;font-weight:700}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--rule);background:#fff;border-radius:4px}.field textarea{min-height:86px;resize:vertical}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px}.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);font-weight:700;padding:10px 16px;border-radius:4px}.btn:hover{background:var(--berry);border-color:var(--berry)}.btn.alt{background:transparent;color:var(--ink)}.btn.alt:hover{background:var(--ink);color:var(--paper)}.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--ink)}.btn.red{border-color:var(--red);color:var(--red);background:transparent}.btn[disabled]{opacity:.5;cursor:progress}.google{width:100%;background:#fff;color:#3c4043;border-color:#c8ced1;margin-top:10px}.tabs{display:flex;gap:22px;margin:24px 0 18px;border-bottom:1px solid var(--rule)}.tab{border:0;background:none;padding:10px 2px;border-bottom:3px solid transparent;font-weight:700;color:var(--soft)}.tab[aria-selected=true]{border-bottom-color:var(--gold);color:var(--ink)}.panel{background:var(--card);border:1px solid var(--rule);border-radius:5px;padding:20px}.toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.toolbar .field{flex:1 1 210px;margin:0}.toolbar .narrow{flex:0 1 150px}.help{color:var(--soft);font-size:13px;margin:6px 0 18px}.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:18px}.result{display:grid;grid-template-columns:22px 54px 1fr;gap:10px;border:1px solid var(--rule);background:#fff;padding:11px;border-radius:4px}.result.selected{border-color:var(--berry);box-shadow:0 0 0 1px var(--berry)}.result img,.cover{width:54px;height:81px;object-fit:cover;background:#e5e0d2;border-radius:2px}.result h3{font:700 16px/1.25 var(--display);margin:0 0 3px}.small{font-size:12px;color:var(--soft)}.batch{position:sticky;bottom:10px;margin-top:18px;border:1px solid var(--ink);background:var(--paper);padding:14px;border-radius:5px;box-shadow:0 8px 30px #14323b22}.batch-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.badge{display:inline-block;border:1px solid var(--rule);padding:2px 7px;border-radius:12px;font-size:11px;color:var(--soft)}.review-layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px}.queue{border:1px solid var(--rule);background:var(--card);max-height:calc(100vh - 180px);overflow:auto;position:sticky;top:18px}.queue-head{padding:14px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--card);z-index:1}.queue-list{list-style:none;margin:0;padding:0}.queue-list button{width:100%;border:0;border-bottom:1px solid var(--rule);background:none;text-align:left;padding:11px 13px}.queue-list button:hover,.queue-list button.active{background:#f6eadf}.queue-list strong{display:block}.review-card{background:var(--card);border:1px solid var(--rule);padding:22px}.review-top{display:grid;grid-template-columns:78px 1fr;gap:16px}.review-top .cover{width:78px;height:117px}.review-top h2{font:800 27px/1.16 var(--display);margin:0}.meta-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:18px 0}.rating-section{margin:24px 0}.rating-section h3{font:700 19px var(--display);margin:0 0 4px}.rating-row{display:grid;grid-template-columns:minmax(150px,1fr) repeat(7,34px);gap:6px;align-items:center;padding:7px 0;border-bottom:1px dotted var(--rule)}.rating-row.active{background:#fbf1dc}.rating-row .label{font-size:13px}.rating-row button{width:32px;height:30px;border:1px solid var(--rule);background:#fff;border-radius:4px;font-size:12px}.rating-row button.on{background:var(--berry);border-color:var(--berry);color:#fff}.rating-row.positive button.on{background:var(--green);border-color:var(--green)}.sources{display:grid;gap:8px;margin:10px 0}.source{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;border:1px solid var(--rule);padding:9px;border-radius:4px}.source a{color:var(--berry);font-weight:700}.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:18px}.status{min-height:20px;color:var(--berry);font-size:13px}.kbd{font-size:12px;color:var(--soft);margin-left:auto}.empty{padding:32px;text-align:center;color:var(--soft)}[hidden]{display:none!important}@media(max-width:800px){.review-layout{grid-template-columns:1fr}.queue{position:static;max-height:250px}.grid2,.grid3,.meta-grid{grid-template-columns:1fr}.rating-row{grid-template-columns:minmax(120px,1fr) repeat(4,34px)}.rating-row .unknown{grid-column:2}.top{align-items:flex-start}.wrap{padding:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="mark">☾✦</div><div><h1>Dickens <span>&amp; Rumi</span></h1><p>Catalogue checker</p></div></div>
+    <div class="account" id="account"></div>
+  </header>
+  <div id="globalMsg"></div>
+
+  <section class="auth" id="authBox">
+    <h2>Reviewer sign in</h2>
+    <p class="help">Only approved catalogue reviewers can open the queue or publish records.</p>
+    <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div>
+    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password"></div>
+    <button class="btn" id="signIn">Sign in</button>
+    <button class="btn google" id="google">Continue with Google</button>
+    <p class="status" id="authMsg"></p>
+  </section>
+
+  <main id="app" hidden>
+    <nav class="tabs" aria-label="Admin sections">
+      <button class="tab" data-tab="import" aria-selected="true">Bulk import</button>
+      <button class="tab" data-tab="review" aria-selected="false">Review queue <span class="badge" id="queueCount">0</span></button>
+    </nav>
+
+    <section id="importTab">
+      <h2 class="section-title">Build the review queue</h2>
+      <p class="help">Search a whole series or franchise, select the real matches, then enqueue them in one batch. Imported records are never public until a reviewer publishes them.</p>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="field narrow"><label for="importMedia">Media</label><select id="importMedia"><option value="book">Books</option><option value="movie">Movies</option></select></div>
+          <div class="field"><label for="importQuery">Series, franchise, title, author, or topic</label><input id="importQuery" placeholder="e.g. Redwall"></div>
+          <button class="btn" id="findTitles">Find titles</button>
+          <button class="btn alt" id="popularMovies" hidden>Popular family films</button>
+        </div>
+        <details style="margin-top:16px">
+          <summary><b>Or paste a list</b> <span class="small">— one title per line; optional creator and year separated by |</span></summary>
+          <div class="field" style="margin-top:10px"><textarea id="pasteList" placeholder="The Novice | Taran Matharu | 2015&#10;The Inquisition | Taran Matharu | 2016"></textarea></div>
+          <button class="btn alt" id="usePaste">Use pasted list</button>
+        </details>
+        <p class="status" id="importMsg"></p>
+        <div class="actions" id="selectionTools" hidden><button class="btn alt" id="selectAll">Select all</button><button class="btn alt" id="clearAll">Clear</button></div>
+        <div class="results" id="importResults"></div>
+
+        <div class="batch" id="batchBox" hidden>
+          <div class="batch-head"><strong><span id="selectedCount">0</span> selected</strong><span class="small">Duplicates are skipped automatically.</span></div>
+          <div class="grid3">
+            <div class="field"><label for="groupTitle">Series/franchise name (optional)</label><input id="groupTitle" placeholder="Redwall"></div>
+            <div class="field"><label for="groupCreator">Author/studio</label><input id="groupCreator"></div>
+            <div class="field"><label for="groupAges">Suggested ages</label><input id="groupAges" placeholder="9–13"></div>
+          </div>
+          <button class="btn gold" id="enqueue">Add selected to review queue</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="reviewTab" hidden>
+      <div class="review-layout">
+        <aside class="queue">
+          <div class="queue-head">
+            <div class="field" style="margin:0"><label for="queueFilter">Queue</label><select id="queueFilter"><option value="all">All pending</option><option value="book">Books</option><option value="movie">Movies</option></select></div>
+          </div>
+          <ul class="queue-list" id="queueList"></ul>
+        </aside>
+        <section id="checker"><div class="empty">Choose a title from the queue.</div></section>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+const SUPABASE_URL="https://weoybccspfetglvmekab.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlb3liY2NzcGZldGdsdm1la2FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0MTIxODcsImV4cCI6MjA5OTk4ODE4N30.KjqhPGJyfjF-k1dR-YkjLN-FOaS3tQ4_ARNAEkOtzzU";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const OL="https://openlibrary.org/search.json";
+const CATEGORIES={violence:"Violence",gore:"Graphic injury",scary:"Frightening scenes",death:"Death of a character",romance:"Romance",lgbtqia:"LGBTQIA characters",language:"Strong language",substances:"Alcohol or drugs",religion:"Religious themes"};
+const POSITIVES={rolemodels:"Good role models",educational:"Educational value",kindness:"Kindness & empathy",courage:"Courage & resilience",diversity:"Diverse representation",creativity:"Creativity & curiosity"};
+const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n};
+const norm=s=>(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+let user=null, reviewer=null, discoveries=[], selected=new Set(), queue=[], current=null;
+let noteState=new Map(), positiveState=new Map(), activeRating=null, saveTimer=null;
+
+function message(text,type="notice"){$("globalMsg").replaceChildren(text?el("div",type,text):document.createTextNode(""));}
+function cleanYear(v){const n=parseInt(v,10);return Number.isFinite(n)?n:null}
+function coverUrl(d){return d.cover_url||d.thumb||(d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`:null)}
+function setBusy(button,busy,label){if(!button)return;button.disabled=busy;if(label){if(!button.dataset.label)button.dataset.label=button.textContent;button.textContent=busy?label:button.dataset.label}}
+
+async function authenticate(){
+  const {data:{session}}=await db.auth.getSession();
+  user=session?.user||null;
+  if(!user){showAuth();return}
+  const {data,error}=await db.from("catalog_reviewers").select("display_name,is_active").eq("user_id",user.id).eq("is_active",true).maybeSingle();
+  if(error||!data){showAuth("Signed in, but this account is not an approved catalogue reviewer.");return}
+  reviewer=data;showApp();
+}
+function showAuth(msg=""){
+  $("authBox").hidden=false;$("app").hidden=true;
+  $("authMsg").textContent=msg;
+  $("account").replaceChildren(user?el("span","",user.email):document.createTextNode("Private reviewer workspace"));
+}
+function showApp(){
+  $("authBox").hidden=true;$("app").hidden=false;
+  const who=el("span","",reviewer.display_name||user.email), out=el("button","","Sign out");
+  out.onclick=async()=>{await db.auth.signOut();user=reviewer=null;showAuth()};
+  $("account").replaceChildren(who,document.createElement("br"),out);
+  loadQueue();
+}
+$("signIn").onclick=async()=>{
+  const b=$("signIn");setBusy(b,true,"Signing in…");$("authMsg").textContent="";
+  const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)$("authMsg").textContent=error.message;setBusy(b,false);
+};
+$("google").onclick=async()=>{await db.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.href.split("#")[0]}})};
+db.auth.onAuthStateChange(()=>setTimeout(authenticate,0));
+["email","password"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")$("signIn").click()}));
+
+document.querySelectorAll(".tab").forEach(tab=>tab.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t===tab)));
+  $("importTab").hidden=tab.dataset.tab!=="import";$("reviewTab").hidden=tab.dataset.tab!=="review";
+  if(tab.dataset.tab==="review")loadQueue();
+});
+$("importMedia").onchange=()=>{$("popularMovies").hidden=$("importMedia").value!=="movie";renderDiscoveries([])};
+$("importQuery").addEventListener("keydown",e=>{if(e.key==="Enter")$("findTitles").click()});
+
+async function searchBooks(q){
+  const fields="key,title,author_name,cover_i,first_publish_year,isbn,subject";
+  const res=await fetch(`${OL}?q=${encodeURIComponent(q)}&fields=${fields}&language=eng&limit=40`);
+  if(!res.ok)throw new Error("Open Library did not answer.");
+  const docs=(await res.json()).docs||[];
+  return docs.filter(d=>d.title).map(d=>({media_type:"book",title:d.title,creator:d.author_name?.[0]||"",year:d.first_publish_year||null,cover_url:coverUrl(d),external_source:"openlibrary",external_id:d.key||"",description:"",raw:d}));
+}
+async function searchMovies(q,discover=false){
+  const body=discover?{mode:"tmdb_discover",genres:[10751],certs:"PG"}:{mode:"tmdb",topic:q,age:18,page:1};
+  const {data,error}=await db.functions.invoke("recommend",{body});
+  if(error||data?.error)throw new Error(data?.error||error.message);
+  return (data?.results||[]).filter(m=>m.title).map(m=>({media_type:"movie",title:m.title,creator:m.studio||"",year:m.year||null,cover_url:m.poster?`https://image.tmdb.org/t/p/w342${m.poster}`:"",external_source:"tmdb",external_id:String(m.id||""),description:m.overview||"",mpaa:m.mpaa||"",raw:m}));
+}
+$("findTitles").onclick=async()=>{
+  const q=$("importQuery").value.trim();if(!q)return $("importMsg").textContent="Enter a title, series, author, or topic.";
+  const b=$("findTitles");setBusy(b,true,"Searching…");$("importMsg").textContent="";
+  try{renderDiscoveries($("importMedia").value==="book"?await searchBooks(q):await searchMovies(q))}
+  catch(e){$("importMsg").textContent=e.message}finally{setBusy(b,false)}
+};
+$("popularMovies").onclick=async()=>{const b=$("popularMovies");setBusy(b,true,"Loading…");try{renderDiscoveries(await searchMovies("",true))}catch(e){$("importMsg").textContent=e.message}finally{setBusy(b,false)}};
+$("usePaste").onclick=()=>{
+  const media=$("importMedia").value;
+  const rows=$("pasteList").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{const [title,creator,year]=line.split("|").map(x=>x.trim());return{media_type:media,title,creator:creator||"",year:cleanYear(year),cover_url:"",external_source:"manual",external_id:"",description:""}}).filter(x=>x.title);
+  renderDiscoveries(rows);
+};
+function renderDiscoveries(items){
+  discoveries=items;selected.clear();$("importResults").replaceChildren();
+  $("selectionTools").hidden=!items.length;$("importMsg").textContent=items.length?`${items.length} possible matches found. Select only the real titles.`:"";
+  items.forEach((d,i)=>{
+    const card=el("label","result"),box=document.createElement("input");box.type="checkbox";box.onchange=()=>{box.checked?selected.add(i):selected.delete(i);card.classList.toggle("selected",box.checked);syncBatch()};
+    const src=coverUrl(d),pic=src?document.createElement("img"):el("div","cover");if(src){pic.src=src;pic.alt="";pic.loading="lazy"}
+    const info=el("div");info.append(el("h3","",d.title),el("div","small",[d.creator,d.year].filter(Boolean).join(" · ")||"Metadata to complete in review"));
+    card.append(box,pic,info);$("importResults").append(card);
+  });syncBatch();
+}
+function syncBatch(){$("batchBox").hidden=!selected.size;$("selectedCount").textContent=selected.size}
+$("selectAll").onclick=()=>{selected=new Set(discoveries.map((_,i)=>i));document.querySelectorAll("#importResults input").forEach(x=>{x.checked=true;x.closest(".result").classList.add("selected")});syncBatch()};
+$("clearAll").onclick=()=>{selected.clear();document.querySelectorAll("#importResults input").forEach(x=>{x.checked=false;x.closest(".result").classList.remove("selected")});syncBatch()};
+
+async function ensureGroup(media,title,creator,ages){
+  if(!title.trim())return null;
+  let q=db.from("catalog_groups").select("id").eq("media_type",media).eq("title",title.trim()).eq("creator",creator.trim());
+  const {data:found}=await q.maybeSingle();if(found)return found.id;
+  const {data,error}=await db.from("catalog_groups").insert({media_type:media,kind:media==="movie"?"franchise":"series",title:title.trim(),creator:creator.trim(),ages:ages.trim()||null,status:"pending",created_by:user.id}).select("id").single();
+  if(error)throw error;return data.id;
+}
+$("enqueue").onclick=async()=>{
+  const b=$("enqueue");setBusy(b,true,"Adding…");$("importMsg").textContent="";
+  try{
+    const media=$("importMedia").value,chosen=[...selected].sort((a,b)=>a-b).map(i=>discoveries[i]);
+    const gid=await ensureGroup(media,$("groupTitle").value,$("groupCreator").value,$("groupAges").value);
+    const rows=chosen.map((d,i)=>({media_type:media,title:d.title,creator:d.creator||$("groupCreator").value.trim()||"",year:d.year,ages:$("groupAges").value.trim()||null,group_id:gid,sequence_number:gid?i+1:null,cover_url:d.cover_url||null,description:d.description||null,mpaa:d.mpaa||null,external_source:d.external_source||"manual",external_id:d.external_id||null,status:"pending",created_by:user.id}));
+    const {error}=await db.from("catalog_items").upsert(rows,{onConflict:"canonical_key",ignoreDuplicates:true});if(error)throw error;
+    $("importMsg").textContent=`Added ${rows.length} title${rows.length===1?"":"s"} to the review queue. Existing duplicates were left unchanged.`;
+    renderDiscoveries([]);await loadQueue();
+  }catch(e){$("importMsg").textContent=e.message||"Could not add this batch."}finally{setBusy(b,false)}
+};
+
+async function loadQueue(){
+  if(!reviewer)return;
+  let data=[],error=null;const pageSize=1000;
+  for(let from=0;;from+=pageSize){const res=await db.from("catalog_items").select("id,media_type,title,creator,year,ages,group_id,sequence_number,cover_url,description,mpaa,external_source,external_id,status,draft_notes,draft_positives,draft_summary,catalog_groups(title,creator)").eq("status","pending").order("created_at").range(from,from+pageSize-1);if(res.error){error=res.error;break}data.push(...(res.data||[]));if(!res.data||res.data.length<pageSize)break}
+  if(error){message("The review queue could not load. Run supabase-catalog.sql first, then refresh.","notice bad");return}
+  queue=data||[];$("queueCount").textContent=queue.length;renderQueue();
+  if(current){const fresh=queue.find(x=>x.id===current.id);fresh?openItem(fresh):openItem(queue[0]||null)}
+}
+function filteredQueue(){const f=$("queueFilter").value;return f==="all"?queue:queue.filter(x=>x.media_type===f)}
+function renderQueue(){
+  const list=$("queueList"),items=filteredQueue();list.replaceChildren();
+  if(!items.length)return list.append(el("li","empty","Queue clear."));
+  items.forEach(item=>{const b=el("button",current?.id===item.id?"active":"");b.append(el("strong","",item.title),el("span","small",`${item.media_type==="book"?"Book":"Movie"}${item.creator?" · "+item.creator:""}`));b.onclick=()=>openItem(item);list.append(el("li",""));list.lastChild.append(b)});
+}
+$("queueFilter").onchange=renderQueue;
+
+function sourceSuggestions(item){
+  const q=encodeURIComponent(`"${item.title}" ${item.creator||""}`.trim());
+  if(item.media_type==="movie")return[
+    {name:"Common Sense Media",url:`https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${item.title}"`)}`},
+    {name:"TMDB",url:item.external_source==="tmdb"&&item.external_id?`https://www.themoviedb.org/movie/${item.external_id}`:`https://www.themoviedb.org/search?query=${encodeURIComponent(item.title)}`},
+    {name:"IMDb search",url:`https://www.imdb.com/find/?q=${encodeURIComponent(item.title)}`}
+  ];
+  return[
+    {name:"Common Sense Media",url:`https://www.google.com/search?q=${encodeURIComponent(`site:commonsensemedia.org "${item.title}" ${item.creator||""}`)}`},
+    {name:"Google Books",url:`https://www.google.com/search?tbm=bks&q=${q}`},
+    {name:"Open Library",url:`https://openlibrary.org/search?q=${q}`},
+    {name:"Publisher/search",url:`https://www.google.com/search?q=${q}`}
+  ];
+}
+function draftToState(raw,dict){const m=new Map();(Array.isArray(raw)?raw:[]).forEach(n=>{const id=typeof n==="string"?n:n?.category||n?.id;if(dict[id]){const level=typeof n==="string"?2:Number(n?.level);m.set(id,Number.isFinite(level)?level:2)}});return m}
+function paintRating(id,state){
+  const row=document.querySelector(`[data-rating="${id}"]`);if(!row)return;
+  const chosen=state.has(id)?String(state.get(id)):"null";
+  row.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.value===chosen));
+  document.querySelectorAll(".rating-row").forEach(x=>x.classList.toggle("active",x===row&&activeRating===id));
+}
+function ratingRow(id,label,state,positive=false){
+  const row=el("div","rating-row"+(positive?" positive":""));row.dataset.rating=id;row.onclick=()=>{activeRating=id;document.querySelectorAll(".rating-row").forEach(x=>x.classList.toggle("active",x===row))};
+  row.append(el("span","label",label));
+  const values=[null,0,1,2,3,4,5];
+  values.forEach(v=>{const chosen=state.has(id)?state.get(id):null,b=el("button",chosen===v?"on":"",v===null?"?":String(v));b.dataset.value=v===null?"null":String(v);if(v===null)b.classList.add("unknown");b.type="button";b.title=v===null?"Not assessed":v===0?"None":"Intensity "+v;b.onclick=e=>{e.stopPropagation();activeRating=id;if(v===null)state.delete(id);else state.set(id,v);paintRating(id,state);scheduleDraftSave()};row.append(b)});
+  return row;
+}
+function renderChecker(){
+  if(!current)return $("checker").replaceChildren(el("div","empty","Choose a title from the queue."));
+  const card=el("div","review-card"),top=el("div","review-top"),src=coverUrl(current),pic=src?document.createElement("img"):el("div","cover");if(src){pic.src=src;pic.alt=""}
+  const heading=el("div");heading.append(el("span","eyebrow",current.media_type==="book"?"Book":"Movie"),el("h2","",current.title),el("p","help",[current.creator,current.year,current.catalog_groups?.title].filter(Boolean).join(" · ")));
+  top.append(pic,heading);card.append(top);
+  const meta=el("div","meta-grid");
+  const defs=[["editTitle","Title",current.title],["editCreator",current.media_type==="book"?"Author":"Studio",current.creator||""],["editYear","Year",current.year||""]];
+  if(current.group_id)defs.push(["editSequence","Series/franchise order",current.sequence_number||""]);
+  defs.forEach(([id,label,val])=>{const f=el("div","field"),i=document.createElement("input");i.id=id;i.value=val;f.append(el("label","",label),i);meta.append(f)});card.append(meta);
+  const more=el("div","grid2");[["editAges","Suggested ages",current.ages||""],["editMpaa","MPAA rating",current.mpaa||""]].forEach(([id,label,val])=>{const f=el("div","field"),i=document.createElement("input");i.id=id;i.value=val;f.append(el("label","",label),i);more.append(f)});card.append(more);
+  const desc=el("div","field"),ta=document.createElement("textarea");ta.id="editDescription";ta.value=current.description||"";desc.append(el("label","","Description"),ta);card.append(desc);
+  const pre=el("div","actions"),ai=el("button","btn alt","AI prefill"),none=el("button","btn alt","Mark unanswered cautions as none");ai.id="aiPrefill";none.id="markNone";pre.append(ai,none);card.append(pre);
+  const cautions=el("section","rating-section");cautions.append(el("h3","","What’s in it?"),el("p","help","Every caution must be marked 0–5 before publishing. AI prefill is only a draft."));Object.entries(CATEGORIES).forEach(([id,label])=>cautions.append(ratingRow(id,label,noteState)));card.append(cautions);
+  const good=el("section","rating-section");good.append(el("h3","","What’s good in it?"),el("p","help","Optional positive signals; leave ? when not assessed."));Object.entries(POSITIVES).forEach(([id,label])=>good.append(ratingRow(id,label,positiveState,true)));card.append(good);
+  const evidence=el("section","rating-section");evidence.append(el("h3","","Evidence"),el("p","help","Open the sources you rely on, then tick each one actually reviewed."));const sources=el("div","sources");sourceSuggestions(current).forEach((s,i)=>{const row=el("label","source"),cb=document.createElement("input"),body=el("div"),a=document.createElement("a");cb.type="checkbox";cb.dataset.source=String(i);a.href=s.url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=s.name;body.append(a,el("div","small",s.url));row.append(cb,body);sources.append(row)});evidence.append(sources);
+  const custom=el("div","grid2");[["customSourceName","Custom source name"],["customSourceUrl","Custom source URL"]].forEach(([id,label])=>{const f=el("div","field"),i=document.createElement("input");i.id=id;f.append(el("label","",label),i);custom.append(f)});evidence.append(custom);
+  const method=el("div","grid2"),mf=el("div","field"),sel=document.createElement("select");sel.id="method";sel.append(new Option("Source checked","source_checked"),new Option("I read/watched the full work","human_checked"));mf.append(el("label","","Verification level"),sel);const cf=el("label","source"),confirm=document.createElement("input");confirm.type="checkbox";confirm.id="confirmEvidence";cf.append(confirm,el("span","","I reviewed the evidence and corrected the draft."));method.append(mf,cf);evidence.append(method);card.append(evidence);
+  const actions=el("div","actions"),publish=el("button","btn gold","Verify & publish →"),save=el("button","btn alt","Save draft & next"),reject=el("button","btn red","Reject");publish.id="publish";save.id="saveNext";reject.id="reject";actions.append(publish,save,reject,el("span","kbd","Keys: 0–5 rate · N next · V publish"));card.append(actions,el("p","status",""));
+  $("checker").replaceChildren(card);bindChecker();renderQueue();
+}
+function openItem(item){
+  current=item||null;activeRating=null;
+  noteState=item?draftToState(item.draft_notes,CATEGORIES):new Map();positiveState=item?draftToState(item.draft_positives,POSITIVES):new Map();renderChecker();
+}
+function collectMeta(){const seq=parseFloat($("editSequence")?.value);return{title:$("editTitle")?.value.trim(),creator:$("editCreator")?.value.trim()||"",year:cleanYear($("editYear")?.value),sequence_number:Number.isFinite(seq)?seq:null,ages:$("editAges")?.value.trim()||null,mpaa:$("editMpaa")?.value.trim()||null,description:$("editDescription")?.value.trim()||null}}
+const draftStateJson=state=>[...state].filter(([,v])=>v>=0).map(([category,level])=>({category,level}));
+const stateJson=state=>[...state].filter(([,v])=>v>0).map(([category,level])=>({category,level}));
+async function saveDraft(quiet=false){
+  if(!current)return;
+  const update={...collectMeta(),draft_notes:draftStateJson(noteState),draft_positives:draftStateJson(positiveState),updated_at:new Date().toISOString()};
+  const {error}=await db.from("catalog_items").update(update).eq("id",current.id);if(error){if(!quiet)checkerStatus(error.message);throw error}
+  Object.assign(current,update);if(!quiet)checkerStatus("Draft saved.");
+}
+function scheduleDraftSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveDraft(true).catch(()=>{}),700)}
+function checkerStatus(text,bad=false){const s=$("checker").querySelector(".status");if(s){s.textContent=text;s.style.color=bad?"var(--red)":"var(--green)"}}
+function nextItem(){const list=filteredQueue(),i=list.findIndex(x=>x.id===current?.id);openItem(list[i+1]||list[0]||null)}
+function bindChecker(){
+  if(!current)return;
+  $("aiPrefill").onclick=async()=>{const b=$("aiPrefill");setBusy(b,true,"Asking AI…");try{const {data,error}=await db.functions.invoke("recommend",{body:{mode:"notes",media:current.media_type,title:current.title,author:current.creator||""}});if(error||data?.error)throw new Error(data?.error||error.message);if(data?.known)(data.notes||[]).forEach(id=>{if(CATEGORIES[id]&&!noteState.has(id))noteState.set(id,2)});current.draft_summary=data?.summary||"";Object.keys(CATEGORIES).forEach(id=>paintRating(id,noteState));scheduleDraftSave();checkerStatus("AI preview loaded. Check every value before publishing.")}catch(e){checkerStatus(e.message,true)}finally{setBusy(b,false)}};
+  $("markNone").onclick=()=>{Object.keys(CATEGORIES).forEach(id=>{if(!noteState.has(id))noteState.set(id,0);paintRating(id,noteState)});scheduleDraftSave()};
+  $("saveNext").onclick=async()=>{try{await saveDraft();nextItem()}catch(_){}};
+  $("reject").onclick=async()=>{if(!confirm(`Reject “${current.title}”?`))return;const {error}=await db.from("catalog_items").update({status:"rejected",updated_at:new Date().toISOString()}).eq("id",current.id);if(error)return checkerStatus(error.message,true);queue=queue.filter(x=>x.id!==current.id);$("queueCount").textContent=queue.length;openItem(filteredQueue()[0]||null)};
+  $("publish").onclick=publishCurrent;
+}
+async function publishCurrent(){
+  const missing=Object.keys(CATEGORIES).filter(id=>!noteState.has(id));if(missing.length)return checkerStatus(`Assess every caution first. ${missing.length} unanswered.`,true);
+  if(!$("confirmEvidence").checked)return checkerStatus("Confirm that you reviewed the evidence.",true);
+  const method=$("method").value,suggestions=sourceSuggestions(current),sources=[];
+  document.querySelectorAll("[data-source]").forEach(cb=>{if(cb.checked)sources.push(suggestions[Number(cb.dataset.source)])});
+  const customUrl=$("customSourceUrl").value.trim(),customName=$("customSourceName").value.trim();if(customUrl||customName)sources.push({name:customName||"Custom source",url:customUrl});
+  if(method==="human_checked")sources.push({name:current.media_type==="book"?"Full book reviewed":"Full film watched",url:"",note:"Reviewer confirmed the complete work."});
+  if(!sources.length)return checkerStatus("Select at least one source, or choose full-work review.",true);
+  const b=$("publish");setBusy(b,true,"Publishing…");
+  try{
+    await saveDraft(true);
+    const {error}=await db.rpc("publish_catalog_item",{p_item_id:current.id,p_notes:stateJson(noteState),p_positives:stateJson(positiveState),p_sources:sources,p_method:method,p_ages:$("editAges").value.trim()||null});if(error)throw error;
+    const old=current;queue=queue.filter(x=>x.id!==old.id);$("queueCount").textContent=queue.length;openItem(filteredQueue()[0]||null);message(`Published “${old.title}”. It is now available in the public catalogue.`,"notice ok");
+  }catch(e){checkerStatus(e.message||"Could not publish.",true)}finally{setBusy($("publish"),false)}
+}
+document.addEventListener("keydown",e=>{
+  if($("reviewTab").hidden||!current||/input|textarea|select/i.test(e.target.tagName))return;
+  if(/^[0-5]$/.test(e.key)&&activeRating){const state=CATEGORIES[activeRating]?noteState:positiveState;state.set(activeRating,Number(e.key));paintRating(activeRating,state);scheduleDraftSave()}
+  else if(e.key.toLowerCase()==="n")$("saveNext")?.click();else if(e.key.toLowerCase()==="v")$("publish")?.click();
+});
+authenticate();
+</script>
+</body>
+</html>
