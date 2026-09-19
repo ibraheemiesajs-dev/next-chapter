@@ -20,6 +20,7 @@
 .rating-row button:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media(max-width:560px){.rating-row{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.rating-row .label{grid-column:1/-1}.rating-row .unknown{grid-column:auto}.rating-row button{width:100%;height:36px}.review-card{padding:14px}.compare th,.compare td{padding:7px 5px}.wrap{padding:12px}}
 .comparison-group{margin-top:20px}.comparison-group h4{font:700 18px var(--display);margin:0 0 8px}.positive-comparison{border-top:3px solid var(--green);padding-top:16px}.positive-comparison h4{color:var(--green)}.compare .small{margin-top:5px;max-width:320px;overflow-wrap:anywhere}
+.auto-panel{margin-top:22px;border-top:4px solid var(--green)}.auto-heading{display:flex;justify-content:space-between;gap:20px;align-items:center}.auto-heading h2{font:700 22px var(--display);margin:0}.auto-heading .help{margin-bottom:0}.auto-controls{display:flex;margin-top:12px;gap:12px;align-items:center;flex-wrap:wrap}.auto-controls input[type=number]{width:65px;padding:5px;border:1px solid var(--rule);border-radius:3px}.auto-log{max-height:180px;overflow:auto;padding-left:22px;font-size:13px}.auto-log li{padding:4px 0}.auto-panel details{margin-top:12px}.auto-panel summary{cursor:pointer}.source-origin{border:1px solid var(--green);padding:12px;background:#eaf4ed;margin:16px 0}.auto-panel button[aria-checked=true]{background:var(--green);border-color:var(--green)}@media(max-width:560px){.auto-heading{display:block}.auto-heading button{margin-top:12px}}
 </style>
 </head>
 <body>
@@ -41,6 +42,16 @@
   </section>
 
   <main id="app" hidden>
+    <section class="panel auto-panel" aria-labelledby="autoHeading">
+      <div class="auto-heading"><div><h2 id="autoHeading">Automatic book drafts</h2><p class="help">Public book discovery → mixed evidence → AI draft → your approval. Runs while this page is open and visible.</p></div><button class="btn" id="autoToggle" role="switch" aria-checked="false">Auto review: OFF</button></div>
+      <p id="autoStatus" role="status" aria-live="polite">Off. Choose books to discover, then turn on automatic draft preparation.</p>
+      <div class="grid2" style="margin-top:18px"><div class="field"><label for="autoQuery">Books to discover</label><input id="autoQuery" maxlength="180" value="children fantasy" placeholder="Title, author, or subject"></div><div class="field"><label for="autoProvider">Discovery catalogue</label><select id="autoProvider"><option value="openlibrary">Open Library</option><option value="googlebooks">Google Books (server key required)</option></select></div></div>
+      <p class="help">Catalogue listings identify books. Wikipedia and available public-domain text supply evidence. AI estimates fill remaining gaps only when enabled; they are never marked as verified.</p>
+      <div class="auto-controls"><label><input id="autoEstimates" type="checkbox" checked> Allow labeled AI estimates</label><label><input id="autoGutenberg" type="checkbox" checked> Look for public-domain text</label></div>
+      <div class="auto-controls"><label for="autoInterval">Seconds between books <input id="autoInterval" type="number" min="5" max="300" value="15"></label><button class="btn alt" id="autoRefresh">Check connection</button><button class="btn alt" id="showDrafts">Review prepared drafts</button></div>
+      <p class="small" id="autoCounts">Each draft uses your configured AI account. Nothing is published automatically.</p>
+      <details><summary>Activity and retries</summary><p class="help">Sources and search progress are saved with your drafts. Check connection verifies server setup; source availability is checked as each book is processed. No Common Sense Media feed is needed.</p><p id="sourceImportStatus" role="status"></p><button class="btn alt" id="autoRetry">Retry failed books in this search</button><ol id="autoLog" class="auto-log" aria-label="Recent automatic review activity"></ol></details>
+    </section>
     <nav class="tabs" aria-label="Admin sections">
       <button class="tab" data-tab="import" aria-selected="true">Bulk import</button>
       <button class="tab" data-tab="review" aria-selected="false">Review queue <span class="badge" id="queueCount">0</span></button>
@@ -81,7 +92,7 @@
       <div class="review-layout">
         <aside class="queue">
           <div class="queue-head">
-            <div class="field" style="margin:0"><label for="queueFilter">Queue</label><select id="queueFilter"><option value="all">All pending</option><option value="book">Books</option><option value="movie">Movies</option></select></div>
+            <div class="field" style="margin:0"><label for="queueFilter">Queue</label><select id="queueFilter"><option value="all">All pending</option><option value="prepared">AI drafts awaiting approval</option><option value="book">Books</option><option value="movie">Movies</option></select></div>
           </div>
           <ul class="queue-list" id="queueList"></ul>
         </aside>
@@ -107,6 +118,7 @@ let noteState=new Map(), positiveState=new Map(), activeRating=null, saveTimer=n
 let viewToken=0, aiRequest=0, aiBusy=false, mutationBusy=false, navigationBusy=false, queueRequest=0;
 let reviewContext=emptyReviewContext(), dirty=false, editRevision=0, saveTail=Promise.resolve();
 let reviewDetail=null;
+let autoRunning=false,autoInFlight=false,autoTimer=null,autoErrors=0,autoPrepared=0,autoRefreshVersion=0,csmBusy=false,autoStopReason="Off.";
 
 function message(text,type="notice"){$("globalMsg").replaceChildren(text?el("div",type,text):document.createTextNode(""));}
 function cleanYear(v){const n=parseInt(v,10);return Number.isFinite(n)?n:null}
@@ -126,6 +138,7 @@ async function authenticate(){
   reviewer=data;showApp();
 }
 function showAuth(msg=""){
+  stopAuto("Off — sign in to review books.");
   $("authBox").hidden=false;$("app").hidden=true;
   $("authMsg").textContent=msg;
   $("account").replaceChildren(user?el("span","",user.email):document.createTextNode("Private reviewer workspace"));
@@ -133,7 +146,7 @@ function showAuth(msg=""){
 function showApp(){
   $("authBox").hidden=true;$("app").hidden=false;
   const who=el("span","",reviewer.display_name||user.email), out=el("button","","Sign out");
-  out.onclick=async()=>{try{if(current&&dirty)await saveDraft(true);await db.auth.signOut();user=reviewer=null;current=null;viewToken++;showAuth()}catch(e){message("Could not finish saving or sign out: "+e.message,"notice bad")}};
+  out.onclick=async()=>{stopAuto("Off — signing out.");try{if(current&&dirty)await saveDraft(true);await db.auth.signOut();user=reviewer=null;current=null;viewToken++;showAuth()}catch(e){message("Could not finish saving or sign out: "+e.message,"notice bad")}};
   $("account").replaceChildren(who,document.createElement("br"),out);
   if(!current)loadQueue();
 }
@@ -222,11 +235,11 @@ async function loadQueue(){
   $("queueCount").textContent=queue.length;renderQueue();
   if(!current&&!$("reviewTab").hidden&&filteredQueue().length)openItem(filteredQueue()[0]);
 }
-function filteredQueue(){const f=$("queueFilter").value;return f==="all"?queue:queue.filter(x=>x.media_type===f)}
+function filteredQueue(){const f=$("queueFilter").value;return f==="all"?queue:f==="prepared"?queue.filter(x=>readReviewContext(x.draft_summary).automation?.state==="needs_approval"):queue.filter(x=>x.media_type===f)}
 function renderQueue(){
   const list=$("queueList"),items=filteredQueue();list.replaceChildren();
   if(!items.length)return list.append(el("li","empty","Queue clear."));
-  items.forEach(item=>{const b=el("button",current?.id===item.id?"active":"");b.append(el("strong","",item.title),el("span","small",`${item.media_type==="book"?"Book":"Movie"}${item.creator?" · "+item.creator:""}`));b.disabled=mutationBusy||navigationBusy;b.onclick=()=>navigateTo(item);list.append(el("li",""));list.lastChild.append(b)});
+  items.forEach(item=>{const b=el("button",current?.id===item.id?"active":"");b.append(el("strong","",item.title),el("span","small",`${item.media_type==="book"?"Book":"Movie"}${item.creator?" · "+item.creator:""}`));if(readReviewContext(item.draft_summary).automation?.state==="needs_approval")b.append(el("span","badge","AI draft · needs approval"));b.disabled=mutationBusy||navigationBusy;b.onclick=()=>navigateTo(item);list.append(el("li",""));list.lastChild.append(b)});
 }
 $("queueFilter").onchange=renderQueue;
 
@@ -271,7 +284,7 @@ function normalizeAIGroup(raw,dict,known){
     let presence=n.presence==="unknown"||(positive&&negative)||(positive&&level===0)||(negative&&level>0)?"unknown"
       :negative||level===0?"absent":positive||level>0?"present":"unknown";
     if(presence==="unknown")level=null;
-    result[id]={presence,level,reason:typeof n.reason==="string"?n.reason.slice(0,300):""};
+    result[id]={presence,level,reason:typeof n.reason==="string"?n.reason.slice(0,300):"",...(n.basis?{basis:presence==="unknown"?"unknown":["source","estimate"].includes(n.basis)?n.basis:"unknown",sourceId:typeof n.sourceId==="string"?n.sourceId:null}:{})};
   }return result;
 }
 function normalizeAI(data){
@@ -281,7 +294,7 @@ function normalizeAI(data){
 function ratingState(id){return Object.hasOwn(POSITIVES,id)?positiveState:noteState}
 function categoryLabel(id){return POSITIVES[id]||CATEGORIES[id]}
 function currentIdentity(){return{media:current.media_type,title:$("editTitle").value.trim(),author:$("editCreator").value.trim(),year:$("editYear").value.trim()}}
-function identityKey(x){return JSON.stringify([x.media,x.title,x.author,x.year])}
+function identityKey(x){return JSON.stringify([x?.media,x?.title,x?.author,x?.year])}
 function comparableAI(){return reviewContext.ai&&identityKey(reviewContext.ai.identity)===identityKey(currentIdentity())?reviewContext.ai:null}
 function compareCategory(id,assessment=comparableAI()){
   const state=ratingState(id),yours=state.has(id)?state.get(id):null,ai=assessment?.[Object.hasOwn(POSITIVES,id)?"positives":"categories"]?.[id]||{presence:"unknown",level:null};
@@ -331,9 +344,11 @@ function renderChecker(){
   if(current.group_id)defs.push(["editSequence","Series/franchise order",current.sequence_number??""]);
   defs.forEach(args=>meta.append(field(...args)));card.append(meta);
   const more=el("div","grid2");more.append(field("editAges","Suggested ages",current.ages||""));if(current.media_type==="movie")more.append(field("editMpaa","MPAA rating",current.mpaa||""));card.append(more,field("editDescription","Description",current.description||"",true));
-  const pre=el("div","actions"),ai=el("button","btn alt","AI preview"),none=el("button","btn alt","Mark unanswered cautions as none"),xcheck=el("button","btn alt","Cross-check with AI");ai.id="aiPrefill";none.id="markNone";xcheck.id="crossCheck";pre.append(ai,none,xcheck);card.append(pre);
+  const pre=el("div","actions"),ai=el("button","btn alt","AI preview"),none=el("button","btn alt","Mark unanswered cautions as none"),xcheck=el("button","btn alt","Cross-check with AI");ai.id="aiPrefill";none.id="markNone";xcheck.id="crossCheck";pre.append(ai,none,xcheck);if(current.media_type==="book"){const fill=el("button","btn gold","Fill from mixed sources");fill.id="mixedFill";pre.append(fill)}card.append(pre);
   card.append(el("p","help","Both AI buttons assess content cautions and positive qualities. Suggestions come from model knowledge, not a source search. Review them against your evidence; your ratings remain yours."));
   if(reviewContext.submittedCategories?.length)card.append(el("p","help","Submitted presence notes (unscored): "+reviewContext.submittedCategories.filter(id=>Object.hasOwn(CATEGORIES,id)).map(id=>CATEGORIES[id]).join(", ")+". Assess their intensity before publishing."));
+  if(reviewContext.automation?.workflow==="mixed")renderMixedSources(card);
+  if(reviewContext.automation?.source){const origin=el("div","source-origin");origin.append(el("strong","","Source-based AI draft — awaiting your approval"),el("p","help","AI filled supported ratings from a supplied CSM review. Check the source and any unanswered categories before publishing."));const link=el("a","","Open Common Sense Media review");if(validCsmUrl(reviewContext.automation.source.url)){link.href=reviewContext.automation.source.url;link.target="_blank";link.rel="noopener noreferrer";origin.append(link)}card.append(origin)}
   const xnote=el("section","cross-panel");xnote.id="crossNote";xnote.hidden=true;card.append(xnote);
   const progress=el("p","review-progress");progress.id="reviewProgress";progress.setAttribute("aria-live","polite");card.append(progress);
   const cautions=el("section","rating-section");cautions.append(el("h3","","What’s in it?"),el("p","help","Choose ? for unassessed, 0 for none, or 1–5 for intensity. Assess all nine categories before publishing."));Object.entries(CATEGORIES).forEach(([id,label])=>cautions.append(ratingRow(id,label,noteState)));card.append(cautions);
@@ -349,6 +364,21 @@ function renderChecker(){
   const status=el("p","status",""),saveState=el("p","save-state", "Draft loaded");status.setAttribute("role","status");saveState.id="saveState";saveState.setAttribute("role","status");card.append(actions,status,saveState);
   $("checker").replaceChildren(card);bindChecker();renderQueue();updateProgress();renderCrossCheck();
 }
+function mixedSources(){return reviewContext.automation?.sources||reviewContext.ai?.sources||[]}
+function renderMixedSources(card){
+  const origin=el("div","source-origin"),assessment=reviewContext.ai,estimates=Object.values({...assessment?.categories,...assessment?.positives}).filter(x=>x.basis==="estimate").length;
+  origin.append(el("strong","","Mixed-source AI draft — awaiting your approval"),el("p","help",`${estimates} AI estimates. Review both cautions and positive qualities. Evidence labels describe what the AI used, not verification. Check the sources you personally reviewed below.`));
+  const discovery=reviewContext.automation.discovery;if(discovery&&validEvidenceUrl(discovery.url)){const a=el("a","small","Discovery listing (metadata only)");a.href=discovery.url;a.target="_blank";a.rel="noopener noreferrer";origin.append(a)}
+  for(const source of mixedSources()){
+    if(!validEvidenceUrl(source.url))continue;
+    const row=el("div",""),label=el("label"),cb=document.createElement("input"),a=el("a","",source.name||"Source");cb.type="checkbox";cb.dataset.mixedSource=source.id;cb.checked=(reviewContext.mixedSourceChecks||[]).includes(source.id);cb.onchange=()=>markDirty();
+    a.href=source.url;a.target="_blank";a.rel="noopener noreferrer";label.append(cb,document.createTextNode(" I reviewed "));row.append(label,a,el("p","small",source.coverage||"Retrieved evidence"));
+    if(source.attribution)row.append(el("p","small",source.attribution));if(source.license){const license=el("p","small",source.license);if(validEvidenceUrl(source.licenseUrl)){const link=el("a","","License");link.href=source.licenseUrl;link.target="_blank";link.rel="noopener noreferrer";license.append(document.createTextNode(" · "),link)}row.append(license)}origin.append(row);
+  }
+  if(!mixedSources().length)origin.append(el("p","help","No content evidence matched this book. AI estimates require your own evidence or a full-book review."));
+  for(const warning of assessment?.warnings||[])origin.append(el("p","small",warning));
+  card.append(origin);
+}
 function updateProgress(){if($("reviewProgress"))$("reviewProgress").textContent=`${noteState.size} of ${Object.keys(CATEGORIES).length} categories assessed · ${positiveState.size} of ${Object.keys(POSITIVES).length} positive signals assessed`}
 function aiLabel(a,positive=false){return a.presence==="unknown"?"Unknown / not listed":a.presence==="absent"?"Explicitly absent":a.level===null?(positive?"Present · strength unknown":"Present · intensity unknown"):`Present · ${a.level}/5`}
 function renderCrossCheck(){
@@ -357,7 +387,7 @@ function renderCrossCheck(){
   if(!assessment)return;
   box.append(el("h3","","AI comparison"));
   if(!comparableAI()){box.append(el("p","help","Title, creator, year, or media changed. Run a new cross-check for this work."));return}
-  box.append(el("p","help",`Checked ${new Date(assessment.checkedAt).toLocaleString()}. AI suggestions are unverified. Categories omitted by the AI remain unknown.`));
+  box.append(el("p","help",`Checked ${new Date(assessment.checkedAt).toLocaleString()}. ${assessment.workflow==="mixed"?"Mixed-source suggestions: evidence, estimates and unknowns are labeled separately.":assessment.source?"AI interpretation of supplied Common Sense Media review content; human approval still required.":"AI suggestions from model knowledge are unverified."} Categories omitted by the AI remain unknown.`));
   if(assessment.summary)box.append(el("p","",assessment.summary));
   if(!assessment.known){box.append(el("p","help","The AI could not assess this title. Continue using your evidence."));return}
   for(const [dict,title,positive] of [[CATEGORIES,"What’s in it?",false],[POSITIVES,"What’s good in it?",true]]){
@@ -367,6 +397,7 @@ function renderCrossCheck(){
     const wrap=el("div","compare-wrap"),table=el("table","compare"),head=el("thead"),hr=el("tr");table.setAttribute("aria-label",title);["Category","Your rating","AI suggestion","Review"].forEach(t=>hr.append(el("th","",t)));head.append(hr);table.append(head);
     const body=el("tbody");rows.forEach(r=>{
       const tr=el("tr",r.kind),action=el("td"),suggestion=el("td","",aiLabel(r.ai,positive));
+      if(r.ai.basis){suggestion.append(el("div","badge",r.ai.basis==="source"?"Retrieved evidence":r.ai.basis==="estimate"?"AI estimate · unverified":"Unknown"));const src=mixedSources().find(x=>x.id===r.ai.sourceId);if(src&&validEvidenceUrl(src.url)){const link=el("a","small",src.name);link.href=src.url;link.target="_blank";link.rel="noopener noreferrer";suggestion.append(link)}}
       if(r.ai.reason)suggestion.append(el("div","small",r.ai.reason));
       tr.append(el("td","",dict[r.id]),el("td","",r.yours===null?"Not assessed":r.yours===0?"None":`${r.yours}/5`),suggestion);
       action.append(el("div",r.decision?"decision":"",r.decision?"Evidence reviewed":r.label));
@@ -405,6 +436,7 @@ function collectMeta(){
   return{title:$("editTitle")?.value.trim(),creator:$("editCreator")?.value.trim()||"",year,sequence_number:seq,ages:$("editAges")?.value.trim()||null,mpaa:$("editMpaa")?.value.trim()||null,description:$("editDescription")?.value.trim()||null};
 }
 function syncEvidence(){
+  reviewContext.mixedSourceChecks=[...document.querySelectorAll("[data-mixed-source]:checked")].map(cb=>cb.dataset.mixedSource);
   reviewContext.sourceChecks=[...document.querySelectorAll("[data-source]:checked")].map(cb=>Number(cb.dataset.source));
   reviewContext.customName=$("customSourceName").value.trim();reviewContext.customUrl=$("customSourceUrl").value.trim();reviewContext.evidenceNote=$("evidenceNote").value.trim();reviewContext.method=$("method").value;
 }
@@ -437,12 +469,12 @@ function markDirty(){
 function checkerStatus(text,bad=false){const s=$("checker").querySelector(".status");if(s){s.textContent=text;s.style.color=bad?"var(--red)":"var(--green)"}}
 function lockMutation(lock){
   mutationBusy=lock;$("checker").querySelectorAll("input,textarea,select,button").forEach(n=>n.disabled=lock);
-  if(!lock){if(aiBusy){$("aiPrefill").disabled=true;$("crossCheck").disabled=true}else{setBusy($("aiPrefill"),false);setBusy($("crossCheck"),false)}}renderQueue();
+  if(!lock){if(aiBusy){$("aiPrefill").disabled=true;$("crossCheck").disabled=true;if($("mixedFill"))$("mixedFill").disabled=true}else{setBusy($("aiPrefill"),false);setBusy($("crossCheck"),false)}}renderQueue();
 }
 async function requestAI(){
   if(aiBusy||mutationBusy||navigationBusy)return;
   const item=current,token=viewToken,request=++aiRequest,identity=currentIdentity();if(!identity.title)return checkerStatus("Enter a title first.",true);
-  aiBusy=true;const a=$("aiPrefill"),b=$("crossCheck");setBusy(a,true,"Asking AI…");setBusy(b,true,"Asking AI…");checkerStatus("Checking this title…");
+  aiBusy=true;if($("mixedFill"))$("mixedFill").disabled=true;const a=$("aiPrefill"),b=$("crossCheck");setBusy(a,true,"Asking AI…");setBusy(b,true,"Asking AI…");checkerStatus("Checking this title…");
   try{
     const {data,error}=await db.functions.invoke("catalog-assess",{body:identity});
     if(token!==viewToken||item.id!==current?.id||request!==aiRequest||navigationBusy||mutationBusy)return;
@@ -454,13 +486,13 @@ async function requestAI(){
     if(identityKey(identity)!==identityKey(currentIdentity()))return checkerStatus("The title details changed. Run a new check for the current details.",true);
     const parsed=normalizeAI(data);reviewContext.ai={...parsed,identity,checkedAt:new Date().toISOString()};reviewContext.decisions={};reviewDetail=null;
     markDirty();renderCrossCheck();checkerStatus(parsed.known?"AI comparison ready for cautions and positive qualities. Your ratings are unchanged.":"The AI could not assess this title. Use your sources.");
-  }catch(e){if(token===viewToken)checkerStatus(e.message||"AI check failed. Try again.",true)}finally{if(token===viewToken&&request===aiRequest){aiBusy=false;if(!mutationBusy){setBusy(a,false);setBusy(b,false)}}}
+  }catch(e){if(token===viewToken)checkerStatus(e.message||"AI check failed. Try again.",true)}finally{if(token===viewToken&&request===aiRequest){aiBusy=false;if(!mutationBusy){setBusy(a,false);setBusy(b,false);if($("mixedFill"))$("mixedFill").disabled=false}}}
 }
 function bindChecker(){
   if(!current)return;
   $("checker").querySelectorAll('input:not([type="checkbox"]),textarea,select').forEach(n=>n.addEventListener("input",()=>{markDirty();if(["editTitle","editCreator","editYear"].includes(n.id))renderCrossCheck()}));
   document.querySelectorAll("[data-source]").forEach(n=>n.onchange=markDirty);
-  $("aiPrefill").onclick=requestAI;$("crossCheck").onclick=requestAI;
+  $("aiPrefill").onclick=requestAI;$("crossCheck").onclick=requestAI;if($("mixedFill"))$("mixedFill").onclick=fillFromMixed;
   $("markNone").onclick=()=>{if(mutationBusy)return;Object.keys(CATEGORIES).forEach(id=>{if(!noteState.has(id))noteState.set(id,0);paintRating(id,noteState)});markDirty();updateProgress();renderCrossCheck()};
   $("saveNext").onclick=async()=>{
     if(mutationBusy||navigationBusy)return;
@@ -479,12 +511,20 @@ function validHttpUrl(value){try{return["http:","https:"].includes(new URL(value
 async function publishCurrent(){
   if(mutationBusy||navigationBusy||!current)return;
   if(aiBusy)return checkerStatus("Wait for the AI check to finish, then review the results.",true);
+  if(reviewContext.automation&&identityKey(reviewContext.automation.identity)!==identityKey(currentIdentity()))return checkerStatus("Title details changed since the source draft. Run the source fill again for this exact book before publishing.",true);
   const missing=Object.keys(CATEGORIES).filter(id=>!noteState.has(id));if(missing.length)return checkerStatus(`Assess every category first. ${missing.length} unanswered.`,true);
   if(!$("confirmEvidence").checked)return checkerStatus("Confirm that you reviewed the evidence.",true);
   syncEvidence();const item=current,method=reviewContext.method,suggestions=sourceSuggestions(item),sources=[];
+  if(reviewContext.automation?.workflow==="mixed"){
+    const estimated=reviewContext.automation.estimateCategories||Object.entries({...reviewContext.ai?.categories,...reviewContext.ai?.positives}).filter(([,v])=>v.basis==="estimate").map(([id])=>id);
+    const unchecked=estimated.filter(id=>ratingState(id).has(id)&&!compareCategory(id).decision);
+    if(method!=="human_checked"&&unchecked.length)return checkerStatus(`Record an evidence review for ${unchecked.length} AI-estimated ratings using their Review buttons, or confirm you reviewed the full book.`,true);
+    for(const src of mixedSources())if((reviewContext.mixedSourceChecks||[]).includes(src.id)&&validEvidenceUrl(src.url))sources.push({name:src.name,url:src.url,note:[src.attribution,src.license,src.coverage,"Personally checked by reviewer"].filter(Boolean).join(" · ").slice(0,500)});
+  }
   reviewContext.sourceChecks.forEach(i=>{if(suggestions[i])sources.push({...suggestions[i]})});
   if(reviewContext.customUrl&&!validHttpUrl(reviewContext.customUrl))return checkerStatus("Enter a complete http or https source URL.",true);
   if(reviewContext.customUrl||reviewContext.customName)sources.push({name:reviewContext.customName||"Custom source",url:reviewContext.customUrl});
+  const source=reviewContext.automation?.source;if(source&&validCsmUrl(source.url)&&!sources.some(s=>s.url===source.url))sources.push({name:"Common Sense Media",url:source.url,note:"Source used for the AI draft; reviewer confirmed evidence before publication."});
   if(method==="human_checked")sources.push({name:item.media_type==="book"?"Full book reviewed":"Full film watched",url:"",note:"Reviewer confirmed the complete work."});
   if(!sources.length||(method==="source_checked"&&!sources.some(s=>validHttpUrl(s.url))))return checkerStatus("Record a source URL, or choose full-work review.",true);
   if(reviewContext.evidenceNote)sources[0].note=reviewContext.evidenceNote.slice(0,500);
@@ -498,6 +538,78 @@ async function publishCurrent(){
     removeFromQueue(item);message(`Published “${item.title}”.`,"notice ok");
   }catch(e){checkerStatus(e.message||"Could not publish. Your draft is retained.",true)}finally{setBusy(b,false);lockMutation(false)}
 }
+
+function mixedOptions(){return {query:$("autoQuery").value.trim(),provider:$("autoProvider").value,estimates:$("autoEstimates").checked,gutenberg:$("autoGutenberg").checked}}
+function validEvidenceUrl(url){try{const u=new URL(url);return u.protocol==="https:"&&["en.wikipedia.org","www.gutenberg.org","openlibrary.org","books.google.com","creativecommons.org"].includes(u.hostname)&&!u.username&&!u.password&&!u.port}catch{return false}}
+function validCsmUrl(url){try{const u=new URL(url);return u.protocol==="https:"&&["www.commonsensemedia.org","commonsensemedia.org"].includes(u.hostname)&&u.pathname.startsWith("/book-reviews/")&&!u.username&&!u.password&&!u.port}catch{return false}}
+async function autoRequest(body){
+  const {data,error}=await db.functions.invoke("catalog-autoreview",{body});
+  if(error||data?.error){let detail=data?.error,status=error?.context?.status||0;try{if(!detail&&error?.context)detail=(await error.context.json()).error}catch(_){}
+    const e=new Error(detail||"Automatic review unavailable. Deploy catalog-autoreview and run its SQL setup.");e.status=status;throw e}
+  if(!data||typeof data!=="object")throw new Error("Automatic review returned an invalid response.");return data;
+}
+function autoLog(text){const list=$("autoLog");list.prepend(el("li","",`${new Date().toLocaleTimeString()} — ${text}`));while(list.children.length>20)list.lastChild.remove()}
+function syncAutoControls(){const b=$("autoToggle");b.setAttribute("aria-checked",String(autoRunning));b.textContent=autoRunning?"Auto review: ON — turn off":"Auto review: OFF";$("autoInterval").disabled=autoRunning||autoInFlight;for(const id of ["autoQuery","autoProvider","autoEstimates","autoGutenberg"])$(id).disabled=autoRunning||autoInFlight}
+function stopAuto(reason="Off. Saved drafts are ready for your review."){
+  autoStopReason=reason;autoRunning=false;autoRefreshVersion++;clearTimeout(autoTimer);autoTimer=null;syncAutoControls();$("autoStatus").textContent=autoInFlight?"Off — finishing the current request. No next book will start.":reason;
+}
+async function refreshAutoStatus(){
+  const state=await autoRequest({action:"mixed-status",options:mixedOptions()});
+  $("autoCounts").textContent=`${state.waiting||0} sources waiting · ${state.drafted||0} drafts prepared · ${state.skipped||0} existing books skipped · ${state.failed||0} failed after retries. ${state.done?"Discovery search complete.":"Public discovery ready."} ${state.aiConfigured?"AI configured.":"Server AI setup required."} AI usage is charged to your configured account.`;
+  return state;
+}
+async function toggleAuto(){
+  if(autoRunning){stopAuto();return}if(autoInFlight)return;
+  if(!reviewer)return message("Sign in as a reviewer first.","notice bad");
+  autoRunning=true;autoErrors=0;autoPrepared=0;const version=++autoRefreshVersion;syncAutoControls();$("autoStatus").textContent="Checking source connection…";
+  try{const state=await refreshAutoStatus();if(!autoRunning||version!==autoRefreshVersion)return;
+    if(!state.aiConfigured){stopAuto("Off — set the server AI key and model first.");return}if($("autoProvider").value==="googlebooks"&&!state.googleBooksConfigured){stopAuto("Off — set GOOGLE_BOOKS_API_KEY or choose Open Library.");return}scheduleAuto(0);
+  }catch(e){if(version===autoRefreshVersion)stopAuto(e.message)}
+}
+function scheduleAuto(ms){clearTimeout(autoTimer);autoTimer=null;if(!autoRunning)return;autoTimer=setTimeout(()=>{autoTimer=null;autoStep()},ms)}
+async function autoStep(){
+  if(!autoRunning||autoInFlight)return;
+  if(document.hidden){$("autoStatus").textContent="Paused while this page is hidden. It will continue when you return.";return}
+  if(!reviewer){stopAuto("Off — reviewer session ended.");return}
+  if(csmBusy||aiBusy||mutationBusy||navigationBusy){scheduleAuto(2000);return}
+  autoInFlight=true;syncAutoControls();$("autoStatus").textContent="Reading the next source and preparing a book draft…";
+  let delay=Math.max(5,Math.min(300,Number($("autoInterval").value)||15))*1000;
+  try{
+    const result=await autoRequest({action:"mixed-step",options:mixedOptions()});autoErrors=0;
+    if(result.status==="drafted"){autoPrepared++;autoLog(`Draft ready: ${result.title}${result.estimates?" · "+result.estimates+" AI estimates":""}`);for(const warning of result.warnings||[])autoLog(warning);if(user&&reviewer)await loadQueue();}
+    else if(result.status==="skipped")autoLog(`Kept existing book: ${result.title}`);
+    else if(result.status==="idle"){delay=60000;autoLog(result.message||"Waiting for source records.");if(result.complete)stopAuto(result.message)}
+    else if(result.status==="busy")delay=10000;
+    else if(result.status!=="waiting")throw new Error("Unknown worker result; stopped to avoid duplicate work.");
+    if(autoRunning)$("autoStatus").textContent=result.status==="drafted"?`${autoPrepared} draft${autoPrepared===1?"":"s"} prepared this session. Next book shortly…`:result.message||"Continuing shortly…";
+  }catch(e){autoErrors++;autoLog(e.message);delay=e.status===429?60000:Math.min(60000,10000*autoErrors);
+    if([400,401,403,503].includes(e.status)||autoErrors>=3){stopAuto("Off — "+e.message)}else if(autoRunning)$("autoStatus").textContent=`${e.message} Retrying shortly (${autoErrors}/3).`;
+  }finally{autoInFlight=false;syncAutoControls();if(autoRunning)scheduleAuto(delay);else $("autoStatus").textContent=autoStopReason}
+}
+async function fillFromMixed(){
+  if(!current||aiBusy||mutationBusy||navigationBusy||csmBusy)return;
+  const item=current,token=viewToken,identity=currentIdentity();if(!identity.author)return checkerStatus("Enter the author so the correct book can be matched.",true);
+  let applied=false;
+  csmBusy=true;aiBusy=true;lockMutation(true);checkerStatus("Finding matching public evidence and preparing labeled suggestions…");
+  try{
+    const result=await autoRequest({action:"mixed-fill",identity,options:mixedOptions()});
+    if(result.status==="busy")throw new Error("The background worker is finishing a book. Try again shortly.");
+    if(token!==viewToken||current?.id!==item.id||identityKey(identity)!==identityKey(currentIdentity()))return;
+    const data=result.assessment;if(!data||data.workflow!=="mixed"||!Array.isArray(data.sources)||data.sources.some(x=>!validEvidenceUrl(x.url))||identityKey(data.identity)!==identityKey(identity))throw new Error("Source identity could not be confirmed. Your ratings were kept.");
+    const parsed=normalizeAI(data);let filled=0;
+    for(const [dict,state] of [[parsed.categories,noteState],[parsed.positives,positiveState]])for(const [id,rating] of Object.entries(dict)){if(!state.has(id)&&rating.presence!=="unknown"&&validLevel(rating.level)){state.set(id,rating.level);filled++}}
+    syncEvidence();reviewContext.ai={...parsed,workflow:"mixed",sources:data.sources,warnings:data.warnings||[],identity,checkedAt:new Date().toISOString()};reviewContext.decisions={};reviewContext.mixedSourceChecks=[];reviewContext.automation={workflow:"mixed",sources:data.sources,estimateCategories:Object.entries({...parsed.categories,...parsed.positives}).filter(([,v])=>v.basis==="estimate").map(([id])=>id),identity,state:"needs_approval",preparedAt:new Date().toISOString()};
+    // Resume normal draft-save behavior only after response validation and application.
+    mutationBusy=false;markDirty();mutationBusy=true;applied=true;await saveDraft(true);renderChecker();checkerStatus(`Filled ${filled} unrated fields. Existing scores were kept. Review the source, then approve publication.`);
+  }catch(e){if(applied){Object.assign(item,collectMeta());renderChecker()}checkerStatus(e.message,true)}finally{csmBusy=false;aiBusy=false;lockMutation(false)}
+}
+$("autoToggle").onclick=toggleAuto;
+$("autoRetry").onclick=async()=>{const b=$("autoRetry");setBusy(b,true,"Retrying…");try{const r=await autoRequest({action:"mixed-retry",options:mixedOptions()});if(r.status==="busy")throw new Error("Wait for the current book to finish, then retry.");if(r.status!=="retried")throw new Error("Retry request did not complete.");autoLog(`Reset ${r.retried} failed sources for retry.`);await refreshAutoStatus()}catch(e){$("sourceImportStatus").textContent=e.message}finally{setBusy(b,false)}};
+$("autoRefresh").onclick=async()=>{const b=$("autoRefresh");setBusy(b,true,"Checking…");try{await refreshAutoStatus();if(!autoRunning&&!autoInFlight)$("autoStatus").textContent="Connection checked. Turn on automatic review when ready."}catch(e){$("autoStatus").textContent=e.message}finally{setBusy(b,false)}};
+$("showDrafts").onclick=async()=>{$("queueFilter").value="prepared";document.querySelector('[data-tab="review"]').click();await loadQueue();const next=filteredQueue()[0];if(next)await navigateTo(next)};
+document.addEventListener("visibilitychange",()=>{if(autoRunning&&!autoInFlight){clearTimeout(autoTimer);autoTimer=null;if(document.hidden)$("autoStatus").textContent="Paused while this page is hidden. It will continue when you return.";else scheduleAuto(0)}});
+window.addEventListener("pagehide",()=>stopAuto());
+
 document.addEventListener("keydown",e=>{
   if($("reviewTab").hidden||!current||mutationBusy||navigationBusy||e.ctrlKey||e.metaKey||e.altKey||/input|textarea|select/i.test(e.target.tagName))return;
   if((/^[0-5]$/.test(e.key)||e.key==="?")&&activeRating){e.preventDefault();changeRating(activeRating,e.key==="?"?null:Number(e.key))}
